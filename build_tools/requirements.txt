@@ -2,3 +2,4 @@ flake8
 pytest-cov
 lightgbm
 xgboost
+cython>=0.28.5
