@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'Deep Forest'
-copyright = '2021, LAMDA Group, Nanjing University'
+copyright = '2021, LAMDA, Nanjing University, China'
 author = 'Yi-Xuan Xu'
 
 # The master toctree document.
@@ -55,7 +55,7 @@ templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "default"
+pygments_style = "sphinx"
 
 # -- Options for HTML output -------------------------------------------------
 

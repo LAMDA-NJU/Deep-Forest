@@ -12,6 +12,7 @@ The stable version is available via `PyPI <https://pypi.org/>`__ using:
 
 The package is portable and with very few package dependencies. It is recommended to use the package environment from `Anaconda <https://www.anaconda.com/>`__ since it already installs all required packages.
 
+Notice that only the 64-bit Linux and Windows platform are officially supported. To use deep forest on Mac OS or other platforms, you will need to build the package from source.
 
 Building from Source
 --------------------
