@@ -1,0 +1,13 @@
+[report]
+show_missing = True
+
+[run]
+plugins = Cython.Coverage
+include = */deepforest/*
+omit =
+    */setup.py
+	*/deepforest/setup.py
+	*/deepforest/tree/setup.py
+	*/deepforest/__init__.py
+	*/deepforest/tree/__init__.py
+    */deepforest/tests/*
