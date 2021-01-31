@@ -20,7 +20,5 @@ build/
 _build/
 dist/
 deep_forest.egg-info/
-benchmarks/*.txt
-benchmarks/logs
 cache/
 tmp/

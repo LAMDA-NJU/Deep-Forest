@@ -3,7 +3,7 @@ coverage:
   status:
     project:
       default:
-        # treshold: 1%
+        # Threshold: 1%
         informational: true
     patch:
       default:
