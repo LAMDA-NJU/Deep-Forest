@@ -7,6 +7,10 @@ from cpython cimport Py_INCREF, PyObject, PyTypeObject
 
 from libc.stdlib cimport free
 from libc.string cimport memcpy
+# This class is modified from:
+#   https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/tree/_tree.pyx
+
+
 from libc.string cimport memset
 from libc.stdint cimport SIZE_MAX
 

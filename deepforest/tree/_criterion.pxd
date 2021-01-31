@@ -1,13 +1,6 @@
-# Authors: Gilles Louppe <g.louppe@gmail.com>
-#          Peter Prettenhofer <peter.prettenhofer@gmail.com>
-#          Brian Holt <bdholt1@gmail.com>
-#          Joel Nothman <joel.nothman@gmail.com>
-#          Arnaud Joly <arnaud.v.joly@gmail.com>
-#          Jacob Schreiber <jmschreiber91@gmail.com>
-#
-# License: BSD 3 clause
+# This header file is modified from:
+#   https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/tree/_criterion.pxd
 
-# See _criterion.pyx for implementation details.
 
 import numpy as np
 cimport numpy as np

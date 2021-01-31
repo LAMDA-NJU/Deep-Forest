@@ -8,23 +8,24 @@ import numpy
 from numpy.distutils.core import setup
 
 
-DISTNAME = 'deepforest'
+# Package Info
+DISTNAME = "deep-forest"
 DESCRIPTION = "Deep Forest"
-with open('README.rst') as f:
+with open("README.rst") as f:
     LONG_DESCRIPTION = f.read()
-MAINTAINER = 'Yi-Xuan Xu'
-MAINTAINER_EMAIL = 'xuyx@lamda.nju.edu.cn'
-URL = 'https://github.com/LAMDA-NJU/Deep-Forest'
-VERSION = '0.1.0'
+MAINTAINER = "Yi-Xuan Xu"
+MAINTAINER_EMAIL = "xuyx@lamda.nju.edu.cn"
+URL = "https://github.com/LAMDA-NJU/Deep-Forest"
+VERSION = "0.1.0"
 
 
-def configuration(parent_package='', top_path=None):
-    if os.path.exists('MANIFEST'):
-        os.remove('MANIFEST')
+def configuration(parent_package="", top_path=None):
+    if os.path.exists("MANIFEST"):
+        os.remove("MANIFEST")
 
     from numpy.distutils.misc_util import Configuration
     config = Configuration(None, parent_package, top_path)
-    config.add_subpackage('deepforest')
+    config.add_subpackage("deepforest")
 
     return config
 
@@ -49,19 +50,18 @@ if __name__ == "__main__":
           long_description=LONG_DESCRIPTION,
           zip_safe=False,
           classifiers=[
-              'Intended Audience :: Science/Research',
-              'Intended Audience :: Developers',
-              'Programming Language :: C',
-              'Programming Language :: Python',
-              'Topic :: Software Development',
-              'Topic :: Scientific/Engineering',
-              'Operating System :: Microsoft :: Windows',
-              'Operating System :: POSIX',
-              'Operating System :: Unix',
-              'Programming Language :: Python :: 3',
-              'Programming Language :: Python :: 3.6',
-              'Programming Language :: Python :: 3.7',
-              'Programming Language :: Python :: 3.8',
+              "Intended Audience :: Science/Research",
+              "Intended Audience :: Developers",
+              "Programming Language :: C",
+              "Programming Language :: Python",
+              "Topic :: Software Development",
+              "Topic :: Scientific/Engineering",
+              "Operating System :: Microsoft :: Windows",
+              "Operating System :: Unix",
+              "Programming Language :: Python :: 3",
+              "Programming Language :: Python :: 3.6",
+              "Programming Language :: Python :: 3.7",
+              "Programming Language :: Python :: 3.8",
             ],
           python_requires=">=3.6",
           install_requires=[

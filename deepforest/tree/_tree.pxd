@@ -1,18 +1,5 @@
-# The header file for `_tree.pyx`
-#
-# Author: Yi-Xuan Xu <xuyx@lamda.nju.edu.cn>
-# Last Modified: December, 2020
-
-# Modified from the implementation of decision tree in Scikit-Learn.
-# Authors: Gilles Louppe <g.louppe@gmail.com>
-#          Peter Prettenhofer <peter.prettenhofer@gmail.com>
-#          Brian Holt <bdholt1@gmail.com>
-#          Joel Nothman <joel.nothman@gmail.com>
-#          Arnaud Joly <arnaud.v.joly@gmail.com>
-#          Jacob Schreiber <jmschreiber91@gmail.com>
-#          Nelson Liu <nelson@nelsonliu.me>
-#
-# License: BSD 3 clause
+# This header file is modified from:
+#   https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/tree/_tree.pxd
 
 
 import numpy as np

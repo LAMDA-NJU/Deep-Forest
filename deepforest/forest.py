@@ -1,5 +1,5 @@
 """
-Implementation of the forest for classification in Deep Forest.
+Implementation of the forest model for classification in Deep Forest.
 
 This class is modified from:
     https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/ensemble/_forest.py

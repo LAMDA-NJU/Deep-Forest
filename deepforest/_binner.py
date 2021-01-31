@@ -1,5 +1,5 @@
 """
-Implementation of the Binner in Deep Forest.
+Implementation of the Binner class in Deep Forest.
 
 This class is modified from:
     https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/ensemble/_hist_gradient_boosting/binning.py

@@ -2,14 +2,9 @@
 # cython: boundscheck=False
 # cython: wraparound=False
 
-# Authors: Gilles Louppe <g.louppe@gmail.com>
-#          Peter Prettenhofer <peter.prettenhofer@gmail.com>
-#          Arnaud Joly <arnaud.v.joly@gmail.com>
-#          Jacob Schreiber <jmschreiber91@gmail.com>
-#          Nelson Liu <nelson@nelsonliu.me>
-#
-#
-# License: BSD 3 clause
+# This header file is modified from:
+#   https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/tree/_utils.pyx
+
 
 from libc.stdlib cimport free
 from libc.stdlib cimport malloc

@@ -1,4 +1,4 @@
-"""Implementation of forest-based Cascade Layer."""
+"""Implementation of the forest-based cascade layer."""
 
 
 __all__ = ["Layer"]

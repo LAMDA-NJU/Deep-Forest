@@ -1,4 +1,4 @@
-"""A wrapper on base estimator."""
+"""A wrapper on the base estimator for naming consistency."""
 
 
 __all__ = ["Estimator"]
