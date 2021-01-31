@@ -1,6 +1,20 @@
 Deep Forest
 ===========
 
+|github|_ |codecov|_ |python|_ |pypi|_
+
+.. |github| image:: https://github.com/LAMDA-NJU/Deep-Forest/workflows/DeepForest-CI/badge.svg
+.. _github: https://github.com/LAMDA-NJU/Deep-Forest/actions
+
+.. |codecov| image:: https://codecov.io/gh/LAMDA-NJU/Deep-Forest/branch/master/graph/badge.svg?token=5BVXOT8RPO
+.. _codecov: https://codecov.io/gh/LAMDA-NJU/Deep-Forest
+    
+.. |python| image:: https://img.shields.io/pypi/pyversions/deep-forest
+.. _python: https://pypi.org/project/deep-forest/
+
+.. |pypi| image:: https://img.shields.io/pypi/v/deep-forest?color=blue
+.. _pypi: https://pypi.org/project/deep-forest/
+
 **Deep Forest** is a general ensemble framework that uses tree-based ensemble algorithms such as Random Forest. It is designed to have the following advantages:
 
 - **Powerful**: Better accuracy than existing tree-based ensemble methods.
