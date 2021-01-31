@@ -19,7 +19,7 @@
 build/
 _build/
 dist/
-deepforest.egg-info/
+deep_forest.egg-info/
 benchmarks/*.txt
 benchmarks/logs
 cache/

@@ -74,38 +74,3 @@ def test_forest_workflow(load_func):
 
     model.fit(X_binned, y)
     model.predict(X_binned)
-
-
-@pytest.mark.parametrize("load_func", [load_iris, load_wine])
-def test_forest_oob_warning(load_func):
-
-    oob_n_estimators = 5
-    random_state = 42
-
-    X_train, y_train = load_func(return_X_y=True)
-
-    # Data binning
-    binner = _BinMapper(random_state=random_state)
-    X_train_binned = binner.fit_transform(X_train)
-
-    # Random Forest
-    model = RandomForestClassifier(n_estimators=oob_n_estimators,
-                                   random_state=random_state)
-
-    with pytest.warns(None) as record:
-        model.fit(X_train_binned, y_train)
-
-    assert len(record) == 2
-    assert "Some inputs do not have OOB predictions" in str(record[0].message)
-    assert "invalid value encountered in true_divide" in str(record[1].message)
-
-    # Extremely Random Forest
-    model = ExtraTreesClassifier(n_estimators=oob_n_estimators,
-                                 random_state=random_state)
-
-    with pytest.warns(None) as record:
-        model.fit(X_train_binned, y_train)
-
-    assert len(record) == 2
-    assert "Some inputs do not have OOB predictions" in str(record[0].message)
-    assert "invalid value encountered in true_divide" in str(record[1].message)
