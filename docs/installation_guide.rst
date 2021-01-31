@@ -12,17 +12,18 @@ The stable version is available via `PyPI <https://pypi.org/>`__ using:
 
 The package is portable and with very few package dependencies. It is recommended to use the package environment from `Anaconda <https://www.anaconda.com/>`__ since it already installs all required packages.
 
-Notice that only the 64-bit Linux and Windows platform are officially supported. To use deep forest on Mac OS or other platforms, you will need to build the package from source.
+Notice that only the 64-bit Linux and Windows platform are officially supported. To use deep forest on Mac-OS or other platforms, you will need to build the entire package from source.
 
 Building from Source
 --------------------
 
 Building from source is required to work on a contribution (bug fix, new feature, code or documentation improvement).
 
-- **Use Git to check out the latest source from the repository on Github:**
+- **Use Git to check out the latest source from the repository on Gitee or Github:**
 
 .. code-block:: bash
 
+    $ git clone https://gitee.com/lamda-nju/deep-forest.git
     $ git clone https://github.com/LAMDA-NJU/Deep-Forest.git
     $ cd Deep-Forest
 
@@ -50,6 +51,10 @@ Building from source is required to work on a contribution (bug fix, new feature
 
     $ cd tests
     % pytest
+
+.. warning::
+
+    **[Jan 31, 2021]** The Numpy developers have released the version 1.20.0 of `Numpy <https://github.com/numpy/numpy/releases/tag/v1.20.0>`__, which makes many changes on the C-APIs, and can be incompatible with those used in the package. You are at your own risks to build the package from source with the version 1.20.0 of Numpy installed.
 
 Acknowledgement
 ---------------

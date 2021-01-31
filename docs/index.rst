@@ -1,5 +1,5 @@
-Welcome to Deep Forest's Documentation
-======================================
+Deep Forest Documentation
+=========================
 
 **Deep Forest** is a general ensemble framework that uses tree-based ensemble algorithms such as Random Forest. It is designed to have the following advantages:
 
@@ -8,14 +8,18 @@ Welcome to Deep Forest's Documentation
 - **Efficient**: Fast training speed and high efficiency.
 - **Scalable**: Capable of handling large-scale data.
 
-For a quick start, please refer to `How to Get Started <./how_to_get_started.html>`__. For a detailed guidance on parameter tunning, please refer to `Parameters Tunning <./parameters_tunning.html>`__.
+The package is actively being developed. The goal is to provide users from the industrial and academic community with a third option on tree-based ensemble methods apart from Random Forest and Gradient Boosting Decision Tree. To achieve this, any help would be welcomed. Please check the homepage on `Gitee <https://gitee.com/lamda-nju/deep-forest>`__ or `Github <https://github.com/LAMDA-NJU/Deep-Forest>`__ for details.
 
-The package is actively being developed. The goal is to provide users from the industrial and academic community with a third option on tree-based ensemble methods apart from Random Forest and Gradient Boosting Decision Tree. To achieve this, any help would be welcomed. Please check the `Homepage <https://github.com/LAMDA-NJU/DF21>`__ for details.
+Guidepost
+---------
+* For a quick start, please refer to `How to Get Started <./how_to_get_started.html>`__.
+* For a guidance on parameter tunning, please refer to `Parameters Tunning <./parameters_tunning.html>`__.
+* For a comparison between deep forest and other tree-based ensemble methods, please refer to `Experiments <./experiments.html>`__.
 
 Installation
 ------------
 
-The package is available via PyPI using:
+The package is available via `PyPI <https://pypi.org/project/deep-forest/>`__ using:
 
 .. code-block:: bash
 
@@ -26,19 +30,27 @@ Quickstart
 
 .. code-block:: python
 
+    from deepforest import CascadeForestClassifier
+
+    # Load utils
     from sklearn.datasets import load_digits
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import accuracy_score
 
-    from deepforest import CascadeForestClassifier
-
+    # Load data
     X, y = load_digits(return_X_y=True)
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
+
     model = CascadeForestClassifier(random_state=1)
+
+    # Train
     model.fit(X_train, y_train)
+
+    # Evaluate
     y_pred = model.predict(X_test)
     acc = accuracy_score(y_test, y_pred) * 100
-    print("\nTesting Accuracy: {:.3f} %".format(acc))
+
+    print("Testing Accuracy: {:.3f} %".format(acc))
     >>> Testing Accuracy: 98.667 %
 
 Resources
@@ -46,6 +58,7 @@ Resources
 
 * Deep Forest: `[Paper] <https://arxiv.org/pdf/1702.08835.pdf>`__
 * Keynote at AISTATS 2019: `[Slides] <https://aistats.org/aistats2019/0-AISTATS2019-slides-zhi-hua_zhou.pdf>`__
+* Source Code: `[Gitee] <https://gitee.com/lamda-nju/deep-forest>`__ | `[GitHub] <https://github.com/LAMDA-NJU/Deep-Forest>`__
 
 Reference
 ---------
@@ -58,6 +71,15 @@ Reference
         Pages = {3553-3559},
         Title = {{Deep Forest:} Towards an alternative to deep neural networks},
         Year = {2017}}
+    
+    @article{zhou2019deep,
+        title={Deep forest},
+        author={Zhi-Hua Zhou and Ji Feng},
+        journal={National Science Review},
+        volume={6},
+        number={1},
+        pages={74--86},
+        year={2019}}
 
 .. toctree::
    :maxdepth: 1

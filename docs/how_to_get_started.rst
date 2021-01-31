@@ -6,18 +6,16 @@ This is a quick start guide for you to try out deep forest. The full script is a
 Installation
 ------------
 
-The package is available via `PyPI <https://pypi.org/>`__ using:
+The package is available via `PyPI <https://pypi.org/>`__. As a kind reminder, do not forget the hyphen (``-``) between ``deep`` and ``forest``.
 
 .. code-block:: bash
 
     $ pip install deep-forest
 
-As a kind reminder, do not forget the hyphen (``-``) between ``deep`` and ``forest``.
-
 Load Data
 ---------
 
-Deep forest assumes data to be in the form of 2D Numpy array of shape (n_samples, n_features). It will conduct internal check and transformation on the input data. For example, the code snippet below loads a toy dataset on digits classification:
+Deep forest assumes data to be in the form of 2D Numpy array of shape (``n_samples``, ``n_features``). It will conduct internal check and transformation on the input data. For example, the code snippet below loads a toy dataset on digits classification:
 
 .. code-block:: python
 
@@ -43,13 +41,13 @@ A key advantage of deep forest is its **adaptive model complexity depending on t
 Train and Evaluate
 ------------------
 
-Deep forest provides Scikit-Learn like APIs for training and evaluating. Given the training data, the training stage is triggered with the following code snippet:
+Deep forest provides Scikit-Learn like APIs on training and evaluating. Given the training data ``X_train`` and labels ``y_train``, the training stage is triggered with the following code snippet:
 
 .. code-block:: python
 
     model.fit(X_train, y_train)
 
-Once the model is trained, we can call :meth:`predict` to produce prediction results on the testing data, and evaluate the prediction results:
+Once the model was trained, you can call :meth:`predict` to produce prediction results on the testing data ``X_test``.
 
 .. code-block:: python
 
@@ -74,12 +72,14 @@ Given the saving results, you can call :meth:`load` to use deep forest for predi
     new_model = CascadeForestClassifier()
     new_model.load(MODEL_DIR)
 
+Notice that :obj:`new_model` is not the same as :obj:`model`, because only key information used for model inference was saved.
+
 .. _script:
 
 Example
 -------
 
-Below is the script on using deep forest for classification on a demo dataset.
+Below is the full script on using deep forest for classification on a demo dataset.
 
 .. code-block:: python
 
