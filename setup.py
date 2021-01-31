@@ -1,14 +1,12 @@
 import os
 import sys
-
+import numpy
 import setuptools
 from setuptools import find_packages
-
-import numpy
 from numpy.distutils.core import setup
 
 
-# Package Info
+# Project Information
 DISTNAME = "deep-forest"
 DESCRIPTION = "Deep Forest"
 with open("README.rst") as f:
@@ -20,10 +18,12 @@ VERSION = "0.1.0"
 
 
 def configuration(parent_package="", top_path=None):
+
     if os.path.exists("MANIFEST"):
         os.remove("MANIFEST")
 
     from numpy.distutils.misc_util import Configuration
+
     config = Configuration(None, parent_package, top_path)
     config.add_subpackage("deepforest")
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     os.chdir(local_path)
     sys.path.insert(0, local_path)
-    
+
     setup(configuration=configuration,
           name=DISTNAME,
           maintainer=MAINTAINER,
@@ -65,7 +65,7 @@ if __name__ == "__main__":
             ],
           python_requires=">=3.6",
           install_requires=[
-              "numpy>=1.13.3",
+              "nnumpy>=1.13.3,<1.20.0",
               "scipy>=0.19.1",
               "joblib>=0.11",
               "scikit-learn>=0.22",

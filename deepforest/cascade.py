@@ -148,7 +148,7 @@ __model_doc = """
     verbose : :obj:`int`, default=1
         Controls the verbosity when fitting and predicting.
 
-        - If ``<= 0``, slient mode, which means no logging information will
+        - If ``<= 0``, silent mode, which means no logging information will
           be displayed;
         - If ``1``, logging information on the cascade layer level will be
           displayed;

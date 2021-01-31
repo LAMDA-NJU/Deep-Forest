@@ -4,8 +4,6 @@
 # cython: nonecheck=False
 # cython: language_level=3
 
-# Author: Yi-Xuan Xu
-
 
 cimport cython
 import numpy as np

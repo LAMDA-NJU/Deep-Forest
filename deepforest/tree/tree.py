@@ -6,6 +6,9 @@ This class is modified from:
 """
 
 
+__all__ = ["DecisionTreeClassifier",
+           "ExtraTreeClassifier"]
+
 import numbers
 import warnings
 from abc import ABCMeta
@@ -31,9 +34,6 @@ from ._splitter import Splitter
 from ._tree import DepthFirstTreeBuilder
 from ._tree import Tree
 from . import _tree, _splitter, _criterion
-
-__all__ = ["DecisionTreeClassifier",
-           "ExtraTreeClassifier"]
 
 
 # =============================================================================

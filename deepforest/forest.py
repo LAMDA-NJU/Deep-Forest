@@ -5,6 +5,10 @@ This class is modified from:
     https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/ensemble/_forest.py
 """
 
+
+__all__ = ["RandomForestClassifier",
+           "ExtraTreesClassifier"]
+
 import numbers
 from warnings import warn
 import threading
@@ -32,10 +36,6 @@ from . import _forest as _C_FOREST
 
 from .tree import DecisionTreeClassifier, ExtraTreeClassifier
 from .tree._tree import DOUBLE
-
-
-__all__ = ["RandomForestClassifier",
-           "ExtraTreesClassifier"]
 
 
 MAX_INT = np.iinfo(np.int32).max
