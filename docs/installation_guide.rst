@@ -59,4 +59,4 @@ Building from source is required to work on a contribution (bug fix, new feature
 Acknowledgement
 ---------------
 
-The installation instructions were adapted from Scikit-Learn’s `advanced installation instructions <https://scikit-learn.org/stable/developers/advanced_installation.html>`__.
+The installation instructions were adapted from Scikit-Learn's `advanced installation instructions <https://scikit-learn.org/stable/developers/advanced_installation.html>`__.
