@@ -1,5 +1,5 @@
-Deep Forest
-===========
+Deep Forest (DF) 21
+===================
 
 |github|_ |codecov|_ |python|_ |pypi|_
 
@@ -14,9 +14,6 @@ Deep Forest
 
 .. |pypi| image:: https://img.shields.io/pypi/v/deep-forest?color=blue
 .. _pypi: https://pypi.org/project/deep-forest/
-
-Deep Forest (DF) 21
-===================
 
 **DF21** is an implementation of Deep Forest 2021.2.1. It is designed to have the following advantages:
 
