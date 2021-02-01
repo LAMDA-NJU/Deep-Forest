@@ -1,20 +1,20 @@
-Deep Forest Documentation
-=========================
+DF21 Documentation
+==================
 
-**Deep Forest** is a general ensemble framework that uses tree-based ensemble algorithms such as Random Forest. It is designed to have the following advantages:
+**DF21** is an implementation of Deep Forest 2021.2.1. It is designed to have the following advantages:
 
 - **Powerful**: Better accuracy than existing tree-based ensemble methods.
 - **Easy to Use**: Less efforts on tunning parameters.
 - **Efficient**: Fast training speed and high efficiency.
 - **Scalable**: Capable of handling large-scale data.
 
-The package is actively being developed. The goal is to provide users from the industrial and academic community with a third option on tree-based ensemble methods apart from Random Forest and Gradient Boosting Decision Tree. To achieve this, any help would be welcomed. Please check the homepage on `Gitee <https://gitee.com/lamda-nju/deep-forest>`__ or `Github <https://github.com/LAMDA-NJU/Deep-Forest>`__ for details.
+The package is actively being developed. The goal is to provide users from the industrial and academic community with **a third option on tree-based ensemble methods apart from Random Forest and Gradient Boosting Decision Tree**. To achieve this, any help would be welcomed. Please check the homepage on `Gitee <https://gitee.com/lamda-nju/deep-forest>`__ or `Github <https://github.com/LAMDA-NJU/Deep-Forest>`__ for details.
 
 Guidepost
 ---------
 * For a quick start, please refer to `How to Get Started <./how_to_get_started.html>`__.
-* For a guidance on parameter tunning, please refer to `Parameters Tunning <./parameters_tunning.html>`__.
-* For a comparison between deep forest and other tree-based ensemble methods, please refer to `Experiments <./experiments.html>`__.
+* For a guidance on tunning parameters for DF21, please refer to `Parameters Tunning <./parameters_tunning.html>`__.
+* For a comparison between DF21 and other tree-based ensemble methods, please refer to `Experiments <./experiments.html>`__.
 
 Installation
 ------------
@@ -65,13 +65,6 @@ Reference
 
 .. code-block:: latex
 
-    @inproceedings{zhou2017deep,
-        Author = {Zhi-Hua Zhou and Ji Feng},
-        Booktitle = {IJCAI},
-        Pages = {3553-3559},
-        Title = {{Deep Forest:} Towards an alternative to deep neural networks},
-        Year = {2017}}
-    
     @article{zhou2019deep,
         title={Deep forest},
         author={Zhi-Hua Zhou and Ji Feng},
@@ -80,6 +73,13 @@ Reference
         number={1},
         pages={74--86},
         year={2019}}
+
+    @inproceedings{zhou2017deep,
+        Author = {Zhi-Hua Zhou and Ji Feng},
+        Booktitle = {IJCAI},
+        Pages = {3553-3559},
+        Title = {{Deep Forest:} Towards an alternative to deep neural networks},
+        Year = {2017}}
 
 .. toctree::
    :maxdepth: 1
@@ -103,3 +103,8 @@ Reference
 
    About Us <http://www.lamda.nju.edu.cn/MainPage.ashx>
    Related Software <related_software>
+
+Acknowledgement
+---------------
+
+The lead developer and maintainer of DF21 is Mr. `Yi-Xuan Xu <https://github.com/xuyxu>`__. Before the release, it has been used internally in the LAMDA Group, Nanjing University, China.

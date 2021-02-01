@@ -15,7 +15,10 @@ Deep Forest
 .. |pypi| image:: https://img.shields.io/pypi/v/deep-forest?color=blue
 .. _pypi: https://pypi.org/project/deep-forest/
 
-**Deep Forest** is a general ensemble framework that uses tree-based ensemble algorithms such as Random Forest. It is designed to have the following advantages:
+Deep Forest (DF) 21
+===================
+
+**DF21** is an implementation of Deep Forest 2021.2.1. It is designed to have the following advantages:
 
 - **Powerful**: Better accuracy than existing tree-based ensemble methods.
 - **Easy to Use**: Less efforts on tunning parameters.
@@ -65,9 +68,23 @@ Reference
 
 .. code-block:: latex
 
+    @article{zhou2019deep,
+        title={Deep forest},
+        author={Zhi-Hua Zhou and Ji Feng},
+        journal={National Science Review},
+        volume={6},
+        number={1},
+        pages={74--86},
+        year={2019}}
+
     @inproceedings{zhou2017deep,
         Author = {Zhi-Hua Zhou and Ji Feng},
         Booktitle = {IJCAI},
         Pages = {3553-3559},
         Title = {{Deep Forest:} Towards an alternative to deep neural networks},
         Year = {2017}}
+
+Acknowledgement
+---------------
+
+The lead developer and maintainer of DF21 is Mr. `Yi-Xuan Xu <https://github.com/xuyxu>`__. Before the release, it has been used internally in the LAMDA Group, Nanjing University, China.
