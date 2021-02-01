@@ -1,5 +1,4 @@
 import copy
-import operator
 import pytest
 import shutil
 import numpy as np
