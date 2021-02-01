@@ -7,6 +7,7 @@ import time
 import numbers
 import numpy as np
 from abc import ABCMeta, abstractmethod
+from sklearn.base import  BaseEstimator, ClassifierMixin
 
 from . import _utils
 from . import _io
@@ -168,7 +169,7 @@ def deepforest_model_doc(header):
     return adddoc
 
 
-class BaseCascadeForest(metaclass=ABCMeta):
+class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def __init__(
         self,
@@ -746,7 +747,7 @@ class BaseCascadeForest(metaclass=ABCMeta):
 @deepforest_model_doc(
     """Implementation of the deep forest for classification."""
 )
-class CascadeForestClassifier(BaseCascadeForest):
+class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
