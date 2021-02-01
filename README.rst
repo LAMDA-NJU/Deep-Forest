@@ -22,6 +22,8 @@ Deep Forest (DF) 21
 - **Efficient**: Fast training speed and high efficiency.
 - **Scalable**: Capable of handling large-scale data.
 
+Whenever one used tree-based machine learning approaches such as Random Forest or GBDT, DF21 may offer a new powerful option.
+
 For a quick start, please refer to `How to Get Started <http://www.lamda.nju.edu.cn/deep-forest/how_to_get_started.html>`__. For a detailed guidance on parameter tunning, please refer to `Parameters Tunning <http://www.lamda.nju.edu.cn/deep-forest/parameters_tunning.html>`__.
 
 Installation

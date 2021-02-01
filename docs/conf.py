@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Deep Forest'
+project = 'Deep Forest (DF21)'
 copyright = '2021, LAMDA, Nanjing University, China'
 author = 'Yi-Xuan Xu'
 

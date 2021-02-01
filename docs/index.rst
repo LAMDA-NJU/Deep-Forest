@@ -8,7 +8,7 @@ DF21 Documentation
 - **Efficient**: Fast training speed and high efficiency.
 - **Scalable**: Capable of handling large-scale data.
 
-The package is actively being developed. The goal is to provide users from the industrial and academic community with **a third option on tree-based ensemble methods apart from Random Forest and Gradient Boosting Decision Tree**. To achieve this, any help would be welcomed. Please check the homepage on `Gitee <https://gitee.com/lamda-nju/deep-forest>`__ or `Github <https://github.com/LAMDA-NJU/Deep-Forest>`__ for details.
+Whenever one used tree-based machine learning approaches such as Random Forest or GBDT, DF21 may offer a new powerful option. This package is actively being developed, and any help would be welcomed. Please check the homepage on `Gitee <https://gitee.com/lamda-nju/deep-forest>`__ or `Github <https://github.com/LAMDA-NJU/Deep-Forest>`__ for details.
 
 Guidepost
 ---------
