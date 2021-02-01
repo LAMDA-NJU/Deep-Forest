@@ -1,7 +1,9 @@
 import copy
+import operator
 import pytest
 import shutil
-from numpy.testing import assert_array_equal
+import numpy as np
+from numpy.testing import assert_array_equal, assert_raises
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 
@@ -124,6 +126,36 @@ def test_model_workflow_partial_mode():
 
     model.clean()  # clear the buffer
     shutil.rmtree(save_dir)
+
+
+def test_model_sample_weight():
+    """Run the workflow of deep forest with a local buffer."""
+
+    case_kwargs = copy.deepcopy(kwargs)
+
+    # Training without sample_weight
+    model = CascadeForestClassifier(**case_kwargs)
+    model.fit(X_train, y_train)
+    y_pred_no_sample_weight = model.predict(X_test)
+
+    # Training with equal sample_weight
+    model = CascadeForestClassifier(**case_kwargs)
+    sample_weight = np.ones(y_train.size)
+    model.fit(X_train, y_train, sample_weight=sample_weight)
+    y_pred_equal_sample_weight = model.predict(X_test)
+
+    # Make sure the same predictions with None and equal sample_weight
+    assert_array_equal(y_pred_no_sample_weight, y_pred_equal_sample_weight)
+
+    model = CascadeForestClassifier(**case_kwargs)
+    sample_weight = np.where(y_train == 0, 0.1, y_train)
+    model.fit(X_train, y_train, sample_weight=y_train)
+    y_pred_skewed_sample_weight = model.predict(X_test)
+
+    # Make sure the different predictions with None and equal sample_weight
+    assert_raises(AssertionError, assert_array_equal, y_pred_skewed_sample_weight, y_pred_equal_sample_weight)
+
+    model.clean()  # clear the buffer
 
 
 def test_model_workflow_in_memory():

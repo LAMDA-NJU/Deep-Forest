@@ -421,7 +421,7 @@ class BaseCascadeForest(metaclass=ABCMeta):
     def n_aug_features_(self):
         return 2 * self.n_estimators * self.n_outputs_
 
-    def fit(self, X, y):
+    def fit(self, X, y, sample_weight=None):
         """
         Build a deep forest using the training data.
 
@@ -448,6 +448,9 @@ class BaseCascadeForest(metaclass=ABCMeta):
             ``np.uint8``.
         y : :obj:`numpy.ndarray` of shape (n_samples,)
             The class labels of input samples.
+        sample_weight : :obj:`numpy.ndarray` of shape (n_samples,),
+            default=None
+            Sample weights.
         """
         self._check_input(X, y)
         self._validate_params()
@@ -490,7 +493,7 @@ class BaseCascadeForest(metaclass=ABCMeta):
             print("{} Fitting cascade layer = {:<2}".format(_utils.ctime(), 0))
 
         tic = time.time()
-        X_aug_train_ = layer_.fit_transform(X_train_, y)
+        X_aug_train_ = layer_.fit_transform(X_train_, y, sample_weight)
         toc = time.time()
         training_time = toc - tic
 
@@ -566,7 +569,11 @@ class BaseCascadeForest(metaclass=ABCMeta):
                 print(msg.format(_utils.ctime(), layer_idx))
 
             tic = time.time()
-            X_aug_train_ = layer_.fit_transform(X_middle_train_, y)
+            X_aug_train_ = layer_.fit_transform(
+                X_middle_train_,
+                y,
+                sample_weight
+            )
             toc = time.time()
             training_time = toc - tic
 
@@ -666,7 +673,11 @@ class BaseCascadeForest(metaclass=ABCMeta):
                 print(msg.format(_utils.ctime(), self.predictor_name))
 
             tic = time.time()
-            self.predictor_.fit(X_middle_train_, y)
+            self.predictor_.fit(
+                X_middle_train_,
+                y,
+                sample_weight=sample_weight
+            )
             toc = time.time()
 
             if self.verbose > 0:

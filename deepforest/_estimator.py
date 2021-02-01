@@ -61,8 +61,8 @@ class Estimator(object):
     def oob_decision_function_(self):
         return self.estimator_.oob_decision_function_
 
-    def fit_transform(self, X, y):
-        self.estimator_.fit(X, y)
+    def fit_transform(self, X, y, sample_weight=None):
+        self.estimator_.fit(X, y, sample_weight)
         X_aug = self.estimator_.oob_decision_function_
 
         return X_aug

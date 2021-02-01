@@ -96,8 +96,9 @@ def _parallel_build_trees(
         X,
         y,
         n_samples_bootstrap,
+        sample_weight,
         out,
-        lock
+        lock,
 ):
     """
     Private function used to fit a single tree in parallel."""
@@ -107,8 +108,11 @@ def _parallel_build_trees(
                                         n_samples_bootstrap)
 
     # Fit the tree on the bootstrapped samples
+    if sample_weight is not None:
+        sample_weight = sample_weight[sample_mask]
     feature, threshold, children, value = tree.fit(X[sample_mask],
                                                    y[sample_mask],
+                                                   sample_weight=sample_weight,
                                                    check_input=False)
 
     if not children.flags["C_CONTIGUOUS"]:
@@ -422,6 +426,7 @@ class BaseForest(MultiOutputMixin, BaseEnsemble, metaclass=ABCMeta):
                 X,
                 y,
                 n_samples_bootstrap,
+                sample_weight,
                 oob_decision_function,
                 lock)
             for i, t in enumerate(trees))
