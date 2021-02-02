@@ -30,3 +30,5 @@ Version 0.1.*
 .. |Enhancement| replace:: :raw-html:`<span class="badge badge-info">Enhancement</span>` :raw-latex:`{\small\sc [Enhancement]}`
 .. |Fix| replace:: :raw-html:`<span class="badge badge-danger">Fix</span>` :raw-latex:`{\small\sc [Fix]}`
 .. |API| replace:: :raw-html:`<span class="badge badge-warning">API Change</span>` :raw-latex:`{\small\sc [API Change]}`
+
+- |Feature| configurable predictor parameter `#9 <https://github.com/LAMDA-NJU/Deep-Forest/issues/10>`__
