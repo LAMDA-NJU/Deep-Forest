@@ -7,7 +7,7 @@ import time
 import numbers
 import numpy as np
 from abc import ABCMeta, abstractmethod
-from sklearn.base import  BaseEstimator, ClassifierMixin
+from sklearn.base import BaseEstimator, ClassifierMixin
 
 from . import _utils
 from . import _io
