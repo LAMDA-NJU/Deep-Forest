@@ -17,13 +17,13 @@ from ._binner import Binner
 
 def _map_any_k_to_v(a, k, v):
     """Helper function for mapping ndarray values based on k-v pair, where k can be of any dtype."""
-        sidx = k.argsort()
-        k = k[sidx]
-        v = v[sidx]
-        idx = np.searchsorted(k,a.ravel()).reshape(a.shape)
-        idx[idx==len(k)] = 0
-        mask = k[idx] == a
-        return np.where(mask, v[idx], 0)
+    sidx = k.argsort()
+    k = k[sidx]
+    v = v[sidx]
+    idx = np.searchsorted(k,a.ravel()).reshape(a.shape)
+    idx[idx==len(k)] = 0
+    mask = k[idx] == a
+    return np.where(mask, v[idx], 0)
 
 def _map_int_k_to_v(a, k, v):
     """Helper function for mapping ndarray values based on k-v pair, where k can only be of integers. This function is much faster than the 'any dtype' version."""
