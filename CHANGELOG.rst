@@ -31,5 +31,5 @@ Version 0.1.*
 .. |Fix| replace:: :raw-html:`<span class="badge badge-danger">Fix</span>` :raw-latex:`{\small\sc [Fix]}`
 .. |API| replace:: :raw-html:`<span class="badge badge-warning">API Change</span>` :raw-latex:`{\small\sc [API Change]}`
 
-- |Feature| configurable predictor parameter `#10 <https://github.com/LAMDA-NJU/Deep-Forest/issues/10>`__
-- |Feature| sample_weight support in fit `#7 <https://github.com/LAMDA-NJU/Deep-Forest/issues/7>`__
+- |Feature| configurable predictor parameter (`#9 <https://github.com/LAMDA-NJU/Deep-Forest/issues/10>`__) @tczhao
+- |Enhancement| add base class ``BaseEstimator`` and ``ClassifierMixin`` (`#8 <https://github.com/LAMDA-NJU/Deep-Forest/pull/8>`__) @pjgao
