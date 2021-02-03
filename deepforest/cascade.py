@@ -837,21 +837,28 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         
         self.y_shape = y.shape
         
-        # Encoder deals with 1-D target now. 2-D and above WIP.
-        if len(self.y_shape) == 1: 
-            # Generate k-v pairs for the label encoding
-            self.o_label = np.unique(y) 
-            self.e_label = np.arange(len(self.o_label))
+        # Encoder does not deal with partial mode yet.
+        if not self.partial_mode:
+        
+            # Encoder deals with 1-D target now. 2-D and above WIP.
+            if len(self.y_shape) == 1: 
+                # Generate k-v pairs for the label encoding
+                self.o_label = np.unique(y) 
+                self.e_label = np.arange(len(self.o_label))
 
-            # If original labels are integers, then use the int version which is much faster
-            if np.issubdtype(y.dtype, np.integer):
-                encoded_y = _map_int_k_to_v(y, self.o_label, self.e_label)
+                # If original labels are integers, then use the int version which is much faster
+                if np.issubdtype(y.dtype, np.integer):
+                    encoded_y = _map_int_k_to_v(y, self.o_label, self.e_label)
+                else:
+                    encoded_y = _map_any_k_to_v(y, self.o_label, self.e_label)
+                super().fit(X, encoded_y)
+
             else:
-                encoded_y = _map_any_k_to_v(y, self.o_label, self.e_label)
-            super().fit(X, encoded_y)
-            
+                super().fit(X, y)
+        
         else:
             super().fit(X, y)
+            
 
     def predict_proba(self, X):
         """
@@ -944,11 +951,16 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         """
         proba = self.predict_proba(X)
     
-        # Decoder deals with 1-D target now. 2-D and above WIP.
-        if len(self.y_shape) == 1:
-            
-            # Encoded labels are always integers, so the int version mapper is applicable
-            return _map_int_k_to_v(np.argmax(proba, axis=1), self.e_label, self.o_label)
+        # Encoder does not deal with partial mode yet.
+        if not self.partial_mode:
+            # Decoder deals with 1-D target now. 2-D and above WIP.
+            if len(self.y_shape) == 1:
+
+                # Encoded labels are always integers, so the int version mapper is applicable
+                return _map_int_k_to_v(np.argmax(proba, axis=1), self.e_label, self.o_label)
+
+            else:
+                return np.argmax(proba, axis=1)
         
         else:
             return np.argmax(proba, axis=1)
