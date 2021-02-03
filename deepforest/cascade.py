@@ -749,8 +749,40 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 )
 class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self,
+                 n_bins=255,
+                 bin_subsample=2e5,
+                 bin_type="percentile",
+                 max_layers=20,
+                 n_estimators=2,
+                 n_trees=100,
+                 max_depth=None,
+                 min_samples_leaf=1,
+                 use_predictor=False,
+                 predictor="forest",
+                 n_tolerant_rounds=2,
+                 delta=1e-5,
+                 partial_mode=False,
+                 n_jobs=None,
+                 random_state=None,
+                 verbose=1):
+        super().__init__(
+            n_bins=n_bins,
+            bin_subsample=bin_subsample,
+            bin_type=bin_type,
+            max_layers=max_layers,
+            n_estimators=n_estimators,
+            n_trees=n_trees,
+            max_depth=max_depth,
+            min_samples_leaf=min_samples_leaf,
+            use_predictor=use_predictor,
+            predictor=predictor,
+            n_tolerant_rounds=n_tolerant_rounds,
+            delta=delta,
+            partial_mode=partial_mode,
+            n_jobs=n_jobs,
+            random_state=random_state,
+            verbose=verbose)
 
     def _repr_performance(self, pivot):
         msg = "Val Acc = {:.3f} %"
