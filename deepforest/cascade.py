@@ -15,6 +15,14 @@ from ._layer import Layer
 from ._binner import Binner
 
 
+def _get_predictor_kwargs(predictor_kwargs, **kwargs) -> dict:
+    """Overwrites default args if predictor_kwargs is supplied."""
+    for key, value in kwargs.items():
+        if key not in predictor_kwargs.keys():
+            predictor_kwargs[key] = value
+    return predictor_kwargs
+
+
 def _build_predictor(
     predictor_name,
     n_estimators,
@@ -22,7 +30,8 @@ def _build_predictor(
     max_depth=None,
     min_samples_leaf=1,
     n_jobs=None,
-    random_state=None
+    random_state=None,
+    predictor_kwargs={},
 ):
     """Build the predictor concatenated to the deep forest."""
     predictor_name = predictor_name.lower()
@@ -31,11 +40,14 @@ def _build_predictor(
     if predictor_name == "forest":
         from .forest import RandomForestClassifier
         predictor = RandomForestClassifier(
-            n_estimators=n_estimators,
-            max_depth=max_depth,
-            min_samples_leaf=min_samples_leaf,
-            n_jobs=n_jobs,
-            random_state=random_state,
+            **_get_predictor_kwargs(
+                predictor_kwargs,
+                n_estimators=n_estimators,
+                max_depth=max_depth,
+                min_samples_leaf=min_samples_leaf,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
         )
     # XGBoost
     elif predictor_name == "xgboost":
@@ -52,11 +64,14 @@ def _build_predictor(
         # because the exact mode of XGBoost is too slow.
         objective = "multi:softmax" if n_outputs > 2 else "binary:logistic"
         predictor = xgb.sklearn.XGBClassifier(
-            objective=objective,
-            n_estimators=n_estimators,
-            tree_method="hist",
-            n_jobs=n_jobs,
-            random_state=random_state,
+            **_get_predictor_kwargs(
+                predictor_kwargs,
+                objective=objective,
+                n_estimators=n_estimators,
+                tree_method="hist",
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
         )
     # LightGBM
     elif predictor_name == "lightgbm":
@@ -71,10 +86,13 @@ def _build_predictor(
 
         objective = "multiclass" if n_outputs > 2 else "binary"
         predictor = lgb.LGBMClassifier(
-            objective=objective,
-            n_estimators=n_estimators,
-            n_jobs=n_jobs,
-            random_state=random_state,
+            **_get_predictor_kwargs(
+                predictor_kwargs,
+                objective=objective,
+                n_estimators=n_estimators,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
         )
     else:
         msg = (
@@ -118,6 +136,11 @@ __model_doc = """
     predictor : :obj:`{"forest", "xgboost", "lightgbm"}`, default="forest"
         The type of the predictor concatenated to the deep forest. If
         ``use_predictor`` is False, this parameter will have no effect.
+    predictor_kwargs : :obj:`dict`, default={}
+        The configuration of the predictor concatenated to the deep forest.
+        Specifying this will extend/overwrite the original parameters inherit
+        from deep forest.
+        If ``use_predictor`` is False, this parameter will have no effect.
     n_tolerant_rounds : :obj:`int`, default=2
         Specify when to conduct early stopping. The training process
         terminates when the validation performance on the training set does
@@ -183,6 +206,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         min_samples_leaf=1,
         use_predictor=False,
         predictor="forest",
+        predictor_kwargs={},
         n_tolerant_rounds=2,
         delta=1e-5,
         partial_mode=False,
@@ -198,6 +222,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.n_trees = n_trees
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
+        self.predictor_kwargs = predictor_kwargs
         self.n_tolerant_rounds = n_tolerant_rounds
         self.delta = delta
         self.partial_mode = partial_mode
@@ -619,7 +644,8 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 self.max_depth,
                 self.min_samples_leaf,
                 self.n_jobs,
-                self.random_state
+                self.random_state,
+                self.predictor_kwargs,
             )
 
             binner_ = Binner(

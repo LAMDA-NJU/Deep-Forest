@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 
 import deepforest
 from deepforest import CascadeForestClassifier
+from deepforest.cascade import _get_predictor_kwargs
 
 
 save_dir = "./tmp"
@@ -26,6 +27,7 @@ toy_kwargs = {"n_bins": 10,
               "min_samples_leaf": 1,
               "use_predictor": True,
               "predictor": "forest",
+              "predictor_kwargs": {},
               "n_tolerant_rounds": 2,
               "delta": 1e-5,
               "n_jobs": -1,
@@ -41,11 +43,33 @@ kwargs = {"n_bins": 255,
           "min_samples_leaf": 1,
           "use_predictor": True,
           "predictor": "forest",
+          "predictor_kwargs": {},
           "n_tolerant_rounds": 2,
           "delta": 1e-5,
           "n_jobs": -1,
           "random_state": 0,
           "verbose": 2}
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        (
+            {"predictor_kwargs": {}, "n_job": 2},
+            {"n_job": 2},
+        ),
+        (
+            {"predictor_kwargs": {"n_job": 3}, "n_job": 2},
+            {"n_job": 3},
+        ),
+        (
+            {"predictor_kwargs": {"iter": 4}, "n_job": 2},
+            {"iter": 4, "n_job": 2},
+        ),
+    ],
+)
+def test_predictor_kwargs_overwrite(test_input, expected):
+    assert _get_predictor_kwargs(**test_input) == expected
 
 
 def test_model_properties_after_fitting():
