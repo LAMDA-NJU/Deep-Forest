@@ -815,6 +815,26 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def _repr_performance(self, pivot):
         msg = "Val Acc = {:.3f} %"
         return msg.format(pivot * 100)
+    
+    def _map_any_k_to_v(a, k, v):
+        sidx = k.argsort()
+        k = k[sidx]
+        v = v[sidx]
+        idx = np.searchsorted(k,a.ravel()).reshape(a.shape)
+        idx[idx==len(k)] = 0
+        mask = k[idx] == a
+        return np.where(mask, v[idx], 0)
+
+    def _map_int_k_to_v(a, k, v):
+        m = np.zeros(k.max()+1,dtype=v.dtype)
+        m[k] = v
+        return m[a]
+        
+    def fit(self, X, y):
+        
+        self.o_label = np.unique(y)
+        self.e_label = np.arange(len(k))
+        super().fit(X, map_any_k_to_v(y, self.o_label, self.e_label))
 
     def predict_proba(self, X):
         """
@@ -907,4 +927,4 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         """
         proba = self.predict_proba(X)
 
-        return np.argmax(proba, axis=1)
+        return map_any_k_to_v(np.argmax(proba, axis=1), self.e_label, self.o_label)
