@@ -841,7 +841,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         if len(self.y_shape) == 1: 
             # Generate k-v pairs for the label encoding
             self.o_label = np.unique(y) 
-            self.e_label = np.arange(len(k))
+            self.e_label = np.arange(len(self.o_label))
 
             # If original labels are integers, then use the int version which is much faster
             if np.issubdtype(y.dtype, np.integer):
@@ -945,7 +945,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         proba = self.predict_proba(X)
     
         # Decoder deals with 1-D target now. 2-D and above WIP.
-        if len(proba.shape) == 1:
+        if len(self.y_shape) == 1:
             
             # Encoded labels are always integers, so the int version mapper is applicable
             return _map_int_k_to_v(np.argmax(proba, axis=1), self.e_label, self.o_label)
