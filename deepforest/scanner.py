@@ -21,6 +21,11 @@ class ImageScanner(object):
         err_msg = "_torch_transform only accepts torch.Tensor as input, \
                   but got {}"
         assert isinstance(X, torch.Tensor), err_msg.format(type(X))
+        if X.dtype != torch.uint8:
+            msg = "Warning! ImageScanner will force to transform data \
+                   type of {} to uint8."
+            print(msg.format(X.dtype))
+            X = X.byte()
 
         n, c, _, _ = X.shape
         padding_wrapper = nn.ZeroPad2d(self.padding)
