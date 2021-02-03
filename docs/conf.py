@@ -13,7 +13,13 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('..'))
+import deepforest
+
+
+# -- Path setup --------------------------------------------------------------
+ON_READTHEDOCS = os.environ.get("READTHEDOCS") == "True"
+if not ON_READTHEDOCS:
+    sys.path.insert(0, os.path.abspath(".."))
 
 
 # -- Project information -----------------------------------------------------
