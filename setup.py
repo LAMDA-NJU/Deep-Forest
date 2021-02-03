@@ -1,7 +1,5 @@
 import os
 import sys
-import numpy
-import setuptools
 from setuptools import find_packages
 from numpy.distutils.core import setup
 
