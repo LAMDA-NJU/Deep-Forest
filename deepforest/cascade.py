@@ -15,6 +15,23 @@ from ._layer import Layer
 from ._binner import Binner
 
 
+def _map_any_k_to_v(a, k, v):
+    """Helper function for mapping ndarray values based on k-v pair, where k can be of any dtype."""
+        sidx = k.argsort()
+        k = k[sidx]
+        v = v[sidx]
+        idx = np.searchsorted(k,a.ravel()).reshape(a.shape)
+        idx[idx==len(k)] = 0
+        mask = k[idx] == a
+        return np.where(mask, v[idx], 0)
+
+def _map_int_k_to_v(a, k, v):
+    """Helper function for mapping ndarray values based on k-v pair, where k can only be of integers. This function is much faster than the 'any dtype' version."""
+    m = np.zeros(k.max()+1,dtype=v.dtype)
+    m[k] = v
+    return m[a]
+
+
 def _get_predictor_kwargs(predictor_kwargs, **kwargs) -> dict:
     """Overwrites default args if predictor_kwargs is supplied."""
     for key, value in kwargs.items():
@@ -815,26 +832,26 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def _repr_performance(self, pivot):
         msg = "Val Acc = {:.3f} %"
         return msg.format(pivot * 100)
-    
-    def _map_any_k_to_v(a, k, v):
-        sidx = k.argsort()
-        k = k[sidx]
-        v = v[sidx]
-        idx = np.searchsorted(k,a.ravel()).reshape(a.shape)
-        idx[idx==len(k)] = 0
-        mask = k[idx] == a
-        return np.where(mask, v[idx], 0)
-
-    def _map_int_k_to_v(a, k, v):
-        m = np.zeros(k.max()+1,dtype=v.dtype)
-        m[k] = v
-        return m[a]
         
     def fit(self, X, y):
         
-        self.o_label = np.unique(y)
-        self.e_label = np.arange(len(k))
-        super().fit(X, map_any_k_to_v(y, self.o_label, self.e_label))
+        self.y_shape = y.shape
+        
+        # Encoder deals with 1-D target now. 2-D and above WIP.
+        if len(self.y_shape) == 1: 
+            # Generate k-v pairs for the label encoding
+            self.o_label = np.unique(y) 
+            self.e_label = np.arange(len(k))
+
+            # If original labels are integers, then use the int version which is much faster
+            if np.issubdtype(y.dtype, np.integer):
+                encoded_y = _map_int_k_to_v(y, self.o_label, self.e_label)
+            else:
+                encoded_y = _map_any_k_to_v(y, self.o_label, self.e_label)
+            super().fit(X, encoded_y)
+            
+        else:
+            super().fit(X, y)
 
     def predict_proba(self, X):
         """
@@ -926,5 +943,12 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             The predicted classes.
         """
         proba = self.predict_proba(X)
-
-        return map_any_k_to_v(np.argmax(proba, axis=1), self.e_label, self.o_label)
+    
+        # Decoder deals with 1-D target now. 2-D and above WIP.
+        if len(proba.shape) == 1:
+            
+            # Encoded labels are always integers, so the int version mapper is applicable
+            return _map_int_k_to_v(np.argmax(proba, axis=1), self.e_label, self.o_label)
+        
+        else:
+            return np.argmax(proba, axis=1)
