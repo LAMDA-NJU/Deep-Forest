@@ -807,6 +807,11 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             random_state=random_state,
             verbose=verbose)
         
+        # Utility Variables
+        self.labels_are_encoded = False
+        self.type_of_target_ = none
+        self.label_encoder_ = none
+        
     def _encode_class_labels(self, y):
         """
         Docstring
@@ -815,7 +820,6 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         from sklearn.utils.multiclass import type_of_target
         from sklearn.preprocessing import LabelEncoder
         
-        self.labels_are_encoded = False
         self.type_of_target_ = type_of_target(y)
         
         # Label encoder deals with full-mode. Partial-mode support is WIP.
