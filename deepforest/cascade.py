@@ -809,8 +809,8 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         
         # Utility Variables
         self.labels_are_encoded = False
-        self.type_of_target_ = none
-        self.label_encoder_ = none
+        self.type_of_target_ = None
+        self.label_encoder_ = None
         
     def _encode_class_labels(self, y):
         """
