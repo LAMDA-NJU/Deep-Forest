@@ -152,7 +152,8 @@ def test_model_sample_weight():
     y_pred_skewed_sample_weight = model.predict(X_test)
 
     # Make sure the different predictions with None and equal sample_weight
-    assert_raises(AssertionError, assert_array_equal, y_pred_skewed_sample_weight, y_pred_equal_sample_weight)
+    assert_raises(AssertionError, assert_array_equal,
+                  y_pred_skewed_sample_weight, y_pred_equal_sample_weight)
 
     model.clean()  # clear the buffer
 

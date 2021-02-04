@@ -2,6 +2,7 @@ flake8
 pytest-cov
 lightgbm
 xgboost
+torch>=1.0.0
 cython>=0.28.5
 numpy>=1.13.3,<1.20.0
 scipy>=0.19.1
