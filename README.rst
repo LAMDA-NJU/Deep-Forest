@@ -18,7 +18,7 @@ Deep Forest (DF) 21
 .. |pypi| image:: https://img.shields.io/pypi/v/deep-forest?color=blue
 .. _pypi: https://pypi.org/project/deep-forest/
 
-**DF21** is an implementation of Deep Forest 2021.2.1. It is designed to have the following advantages:
+**DF21** is an implementation of `Deep Forest <https://arxiv.org/pdf/1702.08835.pdf>`__ 2021.2.1. It is designed to have the following advantages:
 
 - **Powerful**: Better accuracy than existing tree-based ensemble methods.
 - **Easy to Use**: Less efforts on tunning parameters.
