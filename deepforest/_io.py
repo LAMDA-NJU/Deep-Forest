@@ -10,7 +10,7 @@ import os
 import shutil
 import warnings
 import tempfile
-from joblib import (load, dump)
+from joblib import load, dump
 
 
 class Buffer(object):
@@ -33,12 +33,15 @@ class Buffer(object):
     store_data : bool, default=False
         Whether to cache the intermediate data to the local buffer.
     """
-    def __init__(self,
-                 use_buffer,
-                 buffer_dir=None,
-                 store_est=True,
-                 store_pred=True,
-                 store_data=False):
+
+    def __init__(
+        self,
+        use_buffer,
+        buffer_dir=None,
+        store_est=True,
+        store_pred=True,
+        store_data=False,
+    ):
 
         self.use_buffer = use_buffer
         self.store_est = store_est and use_buffer
@@ -48,16 +51,19 @@ class Buffer(object):
 
         # Create buffer
         if self.use_buffer:
-            self.buffer = tempfile.TemporaryDirectory(prefix="buffer_",
-                                                      dir=self.buffer_dir)
+            self.buffer = tempfile.TemporaryDirectory(
+                prefix="buffer_", dir=self.buffer_dir
+            )
 
             if store_data:
-                self.data_dir_ = tempfile.mkdtemp(prefix="data_",
-                                                  dir=self.buffer.name)
+                self.data_dir_ = tempfile.mkdtemp(
+                    prefix="data_", dir=self.buffer.name
+                )
 
             if store_est or store_pred:
-                self.model_dir_ = tempfile.mkdtemp(prefix="model_",
-                                                   dir=self.buffer.name)
+                self.model_dir_ = tempfile.mkdtemp(
+                    prefix="model_", dir=self.buffer.name
+                )
                 self.pred_dir_ = os.path.join(self.model_dir_, "predictor.est")
 
     @property
@@ -97,14 +103,16 @@ class Buffer(object):
             return X
 
         if is_training_data:
-            cache_dir = os.path.join(self.data_dir_,
-                                     "joblib_train_{}.mmap".format(layer_idx))
+            cache_dir = os.path.join(
+                self.data_dir_, "joblib_train_{}.mmap".format(layer_idx)
+            )
             # Delete
             if os.path.exists(cache_dir):
                 os.unlink(cache_dir)
         else:
-            cache_dir = os.path.join(self.data_dir_,
-                                     "joblib_test_{}.mmap".format(layer_idx))
+            cache_dir = os.path.join(
+                self.data_dir_, "joblib_test_{}.mmap".format(layer_idx)
+            )
             # Delete
             if os.path.exists(cache_dir):
                 os.unlink(cache_dir)
@@ -209,8 +217,10 @@ class Buffer(object):
                 try:
                     os.unlink(os.path.join(self.model_dir_, est_name))
                 except OSError:
-                    msg = ("Permission denied when deleting the dumped"
-                           " estimators during the early stopping stage.")
+                    msg = (
+                        "Permission denied when deleting the dumped"
+                        " estimators during the early stopping stage."
+                    )
                     warnings.warn(msg, RuntimeWarning)
 
     def close(self):
@@ -225,7 +235,7 @@ class Buffer(object):
 def model_mkdir(dirname):
     """Make the directory for saving the model."""
     if os.path.isdir(dirname):
-        msg = ("The directory to be created already exists {}.")
+        msg = "The directory to be created already exists {}."
         raise RuntimeError(msg.format(dirname))
 
     os.mkdir(dirname)
@@ -312,17 +322,13 @@ def model_loadobj(dirname, obj_type, d=None):
                 n_estimators=d["n_estimators"],
                 partial_mode=d["partial_mode"],
                 buffer=d["buffer"],
-                verbose=d["verbose"]
+                verbose=d["verbose"],
             )
 
             for est_type in ("rf", "erf"):
                 for est_idx in range(n_estimators):
-                    est_key = "{}-{}-{}".format(
-                        layer_idx, est_idx, est_type
-                    )
-                    dest = os.path.join(
-                        dirname, "estimator", est_key + ".est"
-                    )
+                    est_key = "{}-{}-{}".format(layer_idx, est_idx, est_type)
+                    dest = os.path.join(dirname, "estimator", est_key + ".est")
 
                     if not os.path.isfile(dest):
                         msg = "Missing estimator in the path: {}."

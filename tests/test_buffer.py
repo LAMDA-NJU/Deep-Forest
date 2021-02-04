@@ -5,11 +5,13 @@ import numpy as np
 from deepforest import _io as io
 
 
-open_buffer = io.Buffer(use_buffer=True,
-                        buffer_dir="./",
-                        store_est=True,
-                        store_pred=True,
-                        store_data=True)
+open_buffer = io.Buffer(
+    use_buffer=True,
+    buffer_dir="./",
+    store_est=True,
+    store_pred=True,
+    store_data=True,
+)
 
 
 close_buffer = io.Buffer(use_buffer=False)
@@ -39,13 +41,19 @@ def test_store_data_open_buffer():
     layer_idx = 0
     ret = open_buffer.cache_data(layer_idx, X, is_training_data=True)
     assert isinstance(ret, np.memmap)
-    assert os.path.exists(os.path.join(
-        open_buffer.data_dir_, "joblib_train_{}.mmap".format(layer_idx)))
+    assert os.path.exists(
+        os.path.join(
+            open_buffer.data_dir_, "joblib_train_{}.mmap".format(layer_idx)
+        )
+    )
 
     ret = open_buffer.cache_data(layer_idx, X, is_training_data=False)
     assert isinstance(ret, np.memmap)
-    assert os.path.exists(os.path.join(
-        open_buffer.data_dir_, "joblib_test_{}.mmap".format(layer_idx)))
+    assert os.path.exists(
+        os.path.join(
+            open_buffer.data_dir_, "joblib_test_{}.mmap".format(layer_idx)
+        )
+    )
 
 
 def test_load_estimator_missing():

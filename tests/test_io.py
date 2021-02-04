@@ -28,8 +28,9 @@ def test_mkdir_already_exist():
 
 
 def test_model_saveobj_not_exist():
-    err_msg = ("Cannot find the target directory: ./tmp."
-               " Please create it first.")
+    err_msg = (
+        "Cannot find the target directory: ./tmp." " Please create it first."
+    )
     with pytest.raises(RuntimeError, match=err_msg):
         io.model_saveobj(save_dir, "param", None)
 
