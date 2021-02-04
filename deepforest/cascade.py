@@ -839,8 +839,13 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         
         from sklearn.preprocessing import LabelEncoder
         
-        if self.labels_are_encoded:
-            decoded_y = self.label_encoder_.inverse_transform(y)
+        # Label encoder deals with full-mode. Partial-mode support is WIP.
+        if not self.partial_mode:
+            # Label encoder deals with single output, multi-class. Multi-output support is WIP.
+            if self.labels_are_encoded:
+                decoded_y = self.label_encoder_.inverse_transform(y)
+            else:
+                decoded_y = y
         else:
             decoded_y = y
             
