@@ -13,8 +13,6 @@
 import os
 import sys
 
-import deepforest
-
 
 # -- Path setup --------------------------------------------------------------
 ON_READTHEDOCS = os.environ.get("READTHEDOCS") == "True"
