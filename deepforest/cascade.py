@@ -15,23 +15,6 @@ from ._layer import Layer
 from ._binner import Binner
 
 
-def _map_any_k_to_v(a, k, v):
-    """Helper function for mapping ndarray values based on k-v pair, where k can be of any dtype."""
-    sidx = k.argsort()
-    k = k[sidx]
-    v = v[sidx]
-    idx = np.searchsorted(k,a.ravel()).reshape(a.shape)
-    idx[idx==len(k)] = 0
-    mask = k[idx] == a
-    return np.where(mask, v[idx], 0)
-
-def _map_int_k_to_v(a, k, v):
-    """Helper function for mapping ndarray values based on k-v pair, where k can only be of integers. This function is much faster than the 'any dtype' version."""
-    m = np.zeros(k.max()+1,dtype=v.dtype)
-    m[k] = v
-    return m[a]
-
-
 def _get_predictor_kwargs(predictor_kwargs, **kwargs) -> dict:
     """Overwrites default args if predictor_kwargs is supplied."""
     for key, value in kwargs.items():
@@ -171,7 +154,6 @@ __model_doc = """
     partial_mode : :obj:`bool`, default=False
         Whether to train the deep forest in partial mode. For large
         datasets, it is recommended to use the partial mode.
-
         - If ``True``, the partial mode is activated and all fitted
           estimators will be dumped in a local buffer;
         - If ``False``, all fitted estimators are directly stored in the
@@ -188,7 +170,6 @@ __model_doc = """
           instance used by :mod:`np.random`.
     verbose : :obj:`int`, default=1
         Controls the verbosity when fitting and predicting.
-
         - If ``<= 0``, silent mode, which means no logging information will
           be displayed;
         - If ``1``, logging information on the cascade layer level will be
@@ -430,7 +411,6 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def predict(self, X):
         """
         Predict class labels or regression values for X.
-
         For classification, the predicted class for each sample in X is
         returned. For regression, the predicted value based on X is returned.
         """
@@ -439,26 +419,22 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def n_aug_features_(self):
         return 2 * self.n_estimators * self.n_outputs_
 
-    def fit(self, X, y):
+    # flake8: noqa: E501
+    def fit(self, X, y, sample_weight=None):
         """
         Build a deep forest using the training data.
-
         .. note::
-
             Deep forest supports two kinds of modes for training:
-
             - **Full memory mode**, in which the training / testing data and
               all fitted estimators are directly stored in the memory.
             - **Partial mode**, in which after fitting each estimator using
               the training data, it will be dumped in the buffer. During the
               evaluating stage, the dumped estimators are reloaded into the
               memory sequentially to evaluate the testing data.
-
             By setting the ``partial_mode`` to ``True``, the partial mode is
             activated, and a local buffer will be created at the current
             directory. The partial mode is able to reduce the running memory
             cost when training the deep forest.
-
         Parameters
         ----------
         X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
@@ -466,6 +442,8 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             ``np.uint8``.
         y : :obj:`numpy.ndarray` of shape (n_samples,)
             The class labels of input samples.
+        sample_weight : :obj:`numpy.ndarray` of shape (n_samples,), default=None
+            Sample weights. If ``None``, then samples are equally weighted.
         """
         self._check_input(X, y)
         self._validate_params()
@@ -508,7 +486,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             print("{} Fitting cascade layer = {:<2}".format(_utils.ctime(), 0))
 
         tic = time.time()
-        X_aug_train_ = layer_.fit_transform(X_train_, y)
+        X_aug_train_ = layer_.fit_transform(X_train_, y, sample_weight)
         toc = time.time()
         training_time = toc - tic
 
@@ -584,7 +562,11 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 print(msg.format(_utils.ctime(), layer_idx))
 
             tic = time.time()
-            X_aug_train_ = layer_.fit_transform(X_middle_train_, y)
+            X_aug_train_ = layer_.fit_transform(
+                X_middle_train_,
+                y,
+                sample_weight
+            )
             toc = time.time()
             training_time = toc - tic
 
@@ -684,7 +666,11 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 print(msg.format(_utils.ctime(), self.predictor_name))
 
             tic = time.time()
-            self.predictor_.fit(X_middle_train_, y)
+            self.predictor_.fit(
+                X_middle_train_,
+                y,
+                sample_weight=sample_weight
+            )
             toc = time.time()
 
             if self.verbose > 0:
@@ -701,15 +687,11 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def save(self, dirname="model"):
         """
         Save the model to the specified directory.
-
         Parameters
         ----------
         dirname : :obj:`str`, default="model"
             The name of the output directory.
-
-
         .. warning::
-
             Other methods on model serialization such as :mod:`pickle` or
             :mod:`joblib` are not recommended, especially when ``partial_mode``
             is set to ``True``.
@@ -741,15 +723,11 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def load(self, dirname):
         """
         Load the model from the specified directory.
-
         Parameters
         ----------
         dirname : :obj:`str`
             The name of the input directory.
-
-
         .. note::
-
             The dumped model after calling :meth:`load_model` is not exactly
             the same as the model before saving, because many objects
             irrelevant to model inference will not be saved.
@@ -828,48 +806,65 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             n_jobs=n_jobs,
             random_state=random_state,
             verbose=verbose)
+        
+    def _encode_class_labels(self, y):
+        """
+        Docstring
+        """
+        
+        from sklearn.utils.multiclass import type_of_target
+        from sklearn.preprocessing import LabelEncoder
+        
+        self.labels_are_encoded = False
+        self.type_of_target_ = type_of_target(y)
+        
+        # Label encoder deals with full-mode. Partial-mode support is WIP.
+        if not self.partial_mode:
+            # Label encoder deals with single output, multi-class. Multi-output support is WIP.
+            if self.type_of_target_ is 'binary' or 'multiclass':
+                self.labels_are_encoded = True
+                self.label_encoder_ = LabelEncoder()
+                encoded_y = self.label_encoder_.fit_transform(y)
+            else:
+                encoded_y = y
+        else:
+            encoded_y = y
+            
+        return encoded_y
+    
+    def _decode_class_labels(self, y):
+        """
+        Docstring
+        """
+        
+        from sklearn.preprocessing import LabelEncoder
+        
+        if self.labels_are_encoded:
+            decoded_y = self.label_encoder_.inverse_transform(y)
+        else:
+            decoded_y = y
+            
+        return decoded_y
 
     def _repr_performance(self, pivot):
         msg = "Val Acc = {:.3f} %"
         return msg.format(pivot * 100)
+    
+    def fit(self, X, y, sample_weight=None):
         
-    def fit(self, X, y):
-        
-        self.y_shape = y.shape
-        
-        # Encoder does not deal with partial mode yet.
-        if not self.partial_mode:
-        
-            # Encoder deals with 1-D target now. 2-D and above WIP.
-            if len(self.y_shape) == 1: 
-                # Generate k-v pairs for the label encoding
-                self.o_label = np.unique(y) 
-                self.e_label = np.arange(len(self.o_label))
-
-                # If original labels are integers, then use the int version which is much faster
-                if np.issubdtype(y.dtype, np.integer):
-                    encoded_y = _map_int_k_to_v(y, self.o_label, self.e_label)
-                else:
-                    encoded_y = _map_any_k_to_v(y, self.o_label, self.e_label)
-                super().fit(X, encoded_y)
-
-            else:
-                super().fit(X, y)
-        
-        else:
-            super().fit(X, y)
-            
+        super().fit(
+            X=X, 
+            y=self._encode_class_labels(y),
+            sample_weight=sample_weight)
 
     def predict_proba(self, X):
         """
         Predict class probabilities for X.
-
         Parameters
         ----------
         X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
-
         Returns
         -------
         proba : :obj:`numpy.ndarray` of shape (n_samples, n_classes)
@@ -937,30 +932,16 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def predict(self, X):
         """
         Predict class for X.
-
         Parameters
         ----------
         X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
-
         Returns
         -------
         y : :obj:`numpy.ndarray` of shape (n_samples,)
             The predicted classes.
         """
         proba = self.predict_proba(X)
-    
-        # Encoder does not deal with partial mode yet.
-        if not self.partial_mode:
-            # Decoder deals with 1-D target now. 2-D and above WIP.
-            if len(self.y_shape) == 1:
 
-                # Encoded labels are always integers, so the int version mapper is applicable
-                return _map_int_k_to_v(np.argmax(proba, axis=1), self.e_label, self.o_label)
-
-            else:
-                return np.argmax(proba, axis=1)
-        
-        else:
-            return np.argmax(proba, axis=1)
+        return self._decode_class_labels(np.argmax(proba, axis=1))
