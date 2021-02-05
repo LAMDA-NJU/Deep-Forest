@@ -1,7 +1,5 @@
 import os
 import sys
-import numpy
-import setuptools
 from setuptools import find_packages
 from numpy.distutils.core import setup
 
@@ -38,36 +36,38 @@ if __name__ == "__main__":
     os.chdir(local_path)
     sys.path.insert(0, local_path)
 
-    setup(configuration=configuration,
-          name=DISTNAME,
-          maintainer=MAINTAINER,
-          maintainer_email=MAINTAINER_EMAIL,
-          packages=find_packages(),
-          include_package_data=True,
-          description=DESCRIPTION,
-          url=URL,
-          version=VERSION,
-          long_description=LONG_DESCRIPTION,
-          zip_safe=False,
-          classifiers=[
-              "Intended Audience :: Science/Research",
-              "Intended Audience :: Developers",
-              "Programming Language :: C",
-              "Programming Language :: Python",
-              "Topic :: Software Development",
-              "Topic :: Scientific/Engineering",
-              "Operating System :: Microsoft :: Windows",
-              "Operating System :: Unix",
-              "Programming Language :: Python :: 3",
-              "Programming Language :: Python :: 3.6",
-              "Programming Language :: Python :: 3.7",
-              "Programming Language :: Python :: 3.8",
-            ],
-          python_requires=">=3.6",
-          install_requires=[
-              "numpy>=1.13.3,<1.20.0",
-              "scipy>=0.19.1",
-              "joblib>=0.11",
-              "scikit-learn>=0.22",
-          ],
-          setup_requires=["cython"])
+    setup(
+        configuration=configuration,
+        name=DISTNAME,
+        maintainer=MAINTAINER,
+        maintainer_email=MAINTAINER_EMAIL,
+        packages=find_packages(),
+        include_package_data=True,
+        description=DESCRIPTION,
+        url=URL,
+        version=VERSION,
+        long_description=LONG_DESCRIPTION,
+        zip_safe=False,
+        classifiers=[
+            "Intended Audience :: Science/Research",
+            "Intended Audience :: Developers",
+            "Programming Language :: C",
+            "Programming Language :: Python",
+            "Topic :: Software Development",
+            "Topic :: Scientific/Engineering",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: Unix",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+        ],
+        python_requires=">=3.6",
+        install_requires=[
+            "numpy>=1.13.3,<1.20.0",
+            "scipy>=0.19.1",
+            "joblib>=0.11",
+            "scikit-learn>=0.22",
+        ],
+        setup_requires=["cython"],
+    )

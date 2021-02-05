@@ -39,6 +39,7 @@ def _build_predictor(
     # Random Forest
     if predictor_name == "forest":
         from .forest import RandomForestClassifier
+
         predictor = RandomForestClassifier(
             **_get_predictor_kwargs(
                 predictor_kwargs,
@@ -180,6 +181,7 @@ __model_doc = """
 
 def deepforest_model_doc(header):
     """Decorator on obtaining documentation for deep forest models."""
+
     def adddoc(cls):
         doc = [header + "\n\n"]
         doc.extend([__model_doc])
@@ -191,7 +193,6 @@ def deepforest_model_doc(header):
 
 
 class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
-
     def __init__(
         self,
         n_bins=255,
@@ -210,7 +211,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         partial_mode=False,
         n_jobs=None,
         random_state=None,
-        verbose=1
+        verbose=1,
     ):
         self.n_bins = n_bins
         self.bin_subsample = bin_subsample
@@ -270,8 +271,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         Register a layer into the internal container with the given index."""
         layer_key = "layer_{}".format(layer_idx)
         if layer_key in self.layers_:
-            msg = ("Layer with the key {} already exists in the internal"
-                   " container.")
+            msg = (
+                "Layer with the key {} already exists in the internal"
+                " container."
+            )
             raise RuntimeError(msg.format(layer_key))
 
         self.layers_.update({layer_key: layer})
@@ -294,8 +297,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         Register a binner into the internal container with the given index."""
         binner_key = "binner_{}".format(binner_idx)
         if binner_key in self.binners_:
-            msg = ("Binner with the key {} already exists in the internal"
-                   " container.")
+            msg = (
+                "Binner with the key {} already exists in the internal"
+                " container."
+            )
             raise RuntimeError(msg.format(binner_key))
 
         self.binners_.update({binner_key: binner})
@@ -317,8 +322,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             n_trees = 100 * (layer_idx + 1)
             return n_trees if n_trees <= 500 else 500
         else:
-            msg = ("Invalid value for n_trees. Allowed values are integers or"
-                   " 'auto'.")
+            msg = (
+                "Invalid value for n_trees. Allowed values are integers or"
+                " 'auto'."
+            )
             raise ValueError(msg)
 
     def _check_input(self, X, y=None):
@@ -365,8 +372,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         binning_time = toc - tic
 
         if self.verbose > 1:
-            msg = ("{} Binning {} data: {:.3f} MB => {:.3f} MB |"
-                   " Elapsed = {:.3f} s")
+            msg = (
+                "{} Binning {} data: {:.3f} MB => {:.3f} MB |"
+                " Elapsed = {:.3f} s"
+            )
             print(
                 msg.format(
                     _utils.ctime(),
@@ -453,7 +462,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             n_bins=self.n_bins,
             bin_subsample=self.bin_subsample,
             bin_type=self.bin_type,
-            random_state=self.random_state
+            random_state=self.random_state,
         )
 
         # Bin the training data
@@ -479,7 +488,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             self.buffer_,
             self.n_jobs,
             self.random_state,
-            self.verbose
+            self.verbose,
         )
 
         if self.verbose > 0:
@@ -500,7 +509,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                     _utils.ctime(),
                     0,
                     self._repr_performance(pivot),
-                    training_time
+                    training_time,
                 )
             )
 
@@ -527,7 +536,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 n_bins=self.n_bins,
                 bin_subsample=self.bin_subsample,
                 bin_type=self.bin_type,
-                random_state=self.random_state
+                random_state=self.random_state,
             )
 
             X_binned_aug_train_ = self._bin_data(
@@ -535,7 +544,8 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             )
 
             X_middle_train_ = _utils.merge_array(
-                X_middle_train_, X_binned_aug_train_, self.n_features_)
+                X_middle_train_, X_binned_aug_train_, self.n_features_
+            )
 
             # Build a cascade layer
             layer_idx = self.n_layers_
@@ -550,7 +560,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 self.buffer_,
                 self.n_jobs,
                 self.random_state,
-                self.verbose
+                self.verbose,
             )
 
             X_middle_train_ = self.buffer_.cache_data(
@@ -563,9 +573,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
             tic = time.time()
             X_aug_train_ = layer_.fit_transform(
-                X_middle_train_,
-                y,
-                sample_weight
+                X_middle_train_, y, sample_weight
             )
             toc = time.time()
             training_time = toc - tic
@@ -579,7 +587,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                         _utils.ctime(),
                         layer_idx,
                         self._repr_performance(new_pivot),
-                        training_time
+                        training_time,
                     )
                 )
 
@@ -609,9 +617,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                     msg = "{} Early stopping counter: {} out of {}"
                     print(
                         msg.format(
-                            _utils.ctime(),
-                            n_counter,
-                            self.n_tolerant_rounds
+                            _utils.ctime(), n_counter, self.n_tolerant_rounds
                         )
                     )
 
@@ -651,7 +657,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 n_bins=self.n_bins,
                 bin_subsample=self.bin_subsample,
                 bin_type=self.bin_type,
-                random_state=self.random_state
+                random_state=self.random_state,
             )
 
             X_binned_aug_train_ = self._bin_data(
@@ -659,7 +665,8 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             )
 
             X_middle_train_ = _utils.merge_array(
-                X_middle_train_, X_binned_aug_train_, self.n_features_)
+                X_middle_train_, X_binned_aug_train_, self.n_features_
+            )
 
             if self.verbose > 0:
                 msg = "{} Fitting the concatenated predictor: {}"
@@ -667,9 +674,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
             tic = time.time()
             self.predictor_.fit(
-                X_middle_train_,
-                y,
-                sample_weight=sample_weight
+                X_middle_train_, y, sample_weight=sample_weight
             )
             toc = time.time()
 
@@ -751,8 +756,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         # Some checks after loading
         if len(self.layers_) != self.n_layers_:
-            msg = ("The size of the loaded dictionary of layers {} does not"
-                   " match n_layers_ {}.")
+            msg = (
+                "The size of the loaded dictionary of layers {} does not"
+                " match n_layers_ {}."
+            )
             raise RuntimeError(msg.format(len(self.layers_), self.n_layers_))
 
         self.is_fitted_ = True
@@ -769,25 +776,26 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     """Implementation of the deep forest for classification."""
 )
 class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
-
-    def __init__(self,
-                 n_bins=255,
-                 bin_subsample=2e5,
-                 bin_type="percentile",
-                 max_layers=20,
-                 n_estimators=2,
-                 n_trees=100,
-                 max_depth=None,
-                 min_samples_leaf=1,
-                 use_predictor=False,
-                 predictor="forest",
-                 predictor_kwargs={},
-                 n_tolerant_rounds=2,
-                 delta=1e-5,
-                 partial_mode=False,
-                 n_jobs=None,
-                 random_state=None,
-                 verbose=1):
+    def __init__(
+        self,
+        n_bins=255,
+        bin_subsample=2e5,
+        bin_type="percentile",
+        max_layers=20,
+        n_estimators=2,
+        n_trees=100,
+        max_depth=None,
+        min_samples_leaf=1,
+        use_predictor=False,
+        predictor="forest",
+        predictor_kwargs={},
+        n_tolerant_rounds=2,
+        delta=1e-5,
+        partial_mode=False,
+        n_jobs=None,
+        random_state=None,
+        verbose=1,
+    ):
         super().__init__(
             n_bins=n_bins,
             bin_subsample=bin_subsample,
@@ -905,7 +913,8 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
                     binner_, X_aug_test_, is_training_data=False
                 )
                 X_middle_test_ = _utils.merge_array(
-                    X_middle_test_, X_aug_test_, self.n_features_)
+                    X_middle_test_, X_aug_test_, self.n_features_
+                )
                 X_aug_test_ = layer.transform(X_middle_test_)
             else:
                 binner_ = self._get_binner(layer_idx)
@@ -913,7 +922,8 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
                     binner_, X_aug_test_, is_training_data=False
                 )
                 X_middle_test_ = _utils.merge_array(
-                    X_middle_test_, X_aug_test_, self.n_features_)
+                    X_middle_test_, X_aug_test_, self.n_features_
+                )
 
                 # Skip calling the `transform` if not using the predictor
                 if self.use_predictor:
@@ -926,9 +936,11 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
             binner_ = self._get_binner(self.n_layers_)
             X_aug_test_ = self._bin_data(
-                binner_, X_aug_test_, is_training_data=False)
+                binner_, X_aug_test_, is_training_data=False
+            )
             X_middle_test_ = _utils.merge_array(
-                X_middle_test_, X_aug_test_, self.n_features_)
+                X_middle_test_, X_aug_test_, self.n_features_
+            )
 
             predictor = self.buffer_.load_predictor(self.predictor_)
             proba = predictor.predict_proba(X_middle_test_)
