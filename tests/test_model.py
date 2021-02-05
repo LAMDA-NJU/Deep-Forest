@@ -60,14 +60,8 @@ kwargs = {
 @pytest.mark.parametrize(
     "test_input,expected",
     [
-        (
-            {"predictor_kwargs": {}, "n_job": 2},
-            {"n_job": 2},
-        ),
-        (
-            {"predictor_kwargs": {"n_job": 3}, "n_job": 2},
-            {"n_job": 3},
-        ),
+        ({"predictor_kwargs": {}, "n_job": 2}, {"n_job": 2},),
+        ({"predictor_kwargs": {"n_job": 3}, "n_job": 2}, {"n_job": 3},),
         (
             {"predictor_kwargs": {"iter": 4}, "n_job": 2},
             {"iter": 4, "n_job": 2},
