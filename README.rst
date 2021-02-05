@@ -18,7 +18,7 @@ Deep Forest (DF) 21
 .. |pypi| image:: https://img.shields.io/pypi/v/deep-forest?color=blue
 .. _pypi: https://pypi.org/project/deep-forest/
 
-.. |style| image;: https://img.shields.io/badge/code%20style-black-000000.svg
+.. |style| image:: https://img.shields.io/badge/code%20style-black-000000.svg
 .. _style: https://github.com/psf/black
 
 **DF21** is an implementation of `Deep Forest <https://arxiv.org/pdf/1702.08835.pdf>`__ 2021.2.1. It is designed to have the following advantages:
