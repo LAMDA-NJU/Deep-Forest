@@ -3,7 +3,7 @@
 
 __all__ = ["Estimator"]
 
-from .forest import RandomForestClassifier, ExtraTreesClassifier
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 
 
 def make_estimator(
@@ -20,6 +20,8 @@ def make_estimator(
             n_estimators=n_trees,
             max_depth=max_depth,
             min_samples_leaf=min_samples_leaf,
+            bootstrap=True,
+            oob_score=True,
             n_jobs=n_jobs,
             random_state=random_state,
         )
@@ -29,6 +31,8 @@ def make_estimator(
             n_estimators=n_trees,
             max_depth=max_depth,
             min_samples_leaf=min_samples_leaf,
+            bootstrap=True,
+            oob_score=True,
             n_jobs=n_jobs,
             random_state=random_state,
         )
