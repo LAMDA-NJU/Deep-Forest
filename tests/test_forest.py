@@ -7,12 +7,12 @@ from deepforest.forest import _get_n_samples_bootstrap
 # Load utils
 from sklearn.ensemble._hist_gradient_boosting.binning import _BinMapper
 from sklearn.datasets import load_iris, load_wine
-from sklearn.ensemble._forest import (_get_n_samples_bootstrap as
-                                      sklearn_get_n_samples_bootstrap)
+from sklearn.ensemble._forest import (
+    _get_n_samples_bootstrap as sklearn_get_n_samples_bootstrap,
+)
 
 
-@pytest.mark.parametrize("max_samples",
-                         [0.42, 42, None])
+@pytest.mark.parametrize("max_samples", [0.42, 42, None])
 def test_n_samples_bootstrap(max_samples):
     n_samples = 420
     actual = _get_n_samples_bootstrap(n_samples, max_samples)
@@ -43,8 +43,9 @@ def test_n_samples_bootstrap_invalid_type():
     n_samples = 42
     max_samples = "42"
 
-    err_msg = ("`max_samples` should be int or float, but got type"
-               " '<class 'str'>'")
+    err_msg = (
+        "`max_samples` should be int or float, but got type" " '<class 'str'>'"
+    )
     with pytest.raises(TypeError, match=err_msg):
         _get_n_samples_bootstrap(n_samples, max_samples)
 
@@ -62,15 +63,17 @@ def test_forest_workflow(load_func):
     X_binned = binner.fit_transform(X)
 
     # Random Forest
-    model = RandomForestClassifier(n_estimators=n_estimators,
-                                   random_state=random_state)
+    model = RandomForestClassifier(
+        n_estimators=n_estimators, random_state=random_state
+    )
 
     model.fit(X_binned, y)
     model.predict(X_binned)
 
     # Extremely Random Forest
-    model = ExtraTreesClassifier(n_estimators=n_estimators,
-                                 random_state=random_state)
+    model = ExtraTreesClassifier(
+        n_estimators=n_estimators, random_state=random_state
+    )
 
     model.fit(X_binned, y)
     model.predict(X_binned)

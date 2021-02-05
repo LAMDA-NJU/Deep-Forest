@@ -21,13 +21,14 @@ ALMOST_INF = 1e300
 
 
 def _find_binning_thresholds_per_feature(
-        col_data, n_bins, bin_type="percentile"
+    col_data, n_bins, bin_type="percentile"
 ):
     """
     Private function used to find midpoints for samples along a
     specific feature.
     """
     if len(col_data.shape) != 1:
+
         msg = (
             "Per-feature data should be of the shape (n_samples,), but"
             " got {}-dims instead."
@@ -72,17 +73,13 @@ def _find_binning_thresholds(
     rng = check_random_state(random_state)
 
     if n_samples > bin_subsample:
-        subset = rng.choice(
-            np.arange(n_samples), bin_subsample, replace=False
-        )
+        subset = rng.choice(np.arange(n_samples), bin_subsample, replace=False)
         X = X.take(subset, axis=0)
 
     binning_thresholds = []
     for f_idx in range(n_features):
         threshold = _find_binning_thresholds_per_feature(
-            X[:, f_idx],
-            n_bins,
-            bin_type
+            X[:, f_idx], n_bins, bin_type
         )
         binning_thresholds.append(threshold)
 
@@ -90,13 +87,12 @@ def _find_binning_thresholds(
 
 
 class Binner(TransformerMixin, BaseEstimator):
-
     def __init__(
         self,
         n_bins=255,
         bin_subsample=2e5,
         bin_type="percentile",
-        random_state=None
+        random_state=None,
     ):
         self.n_bins = n_bins + 1  # + 1 for missing values
         self.bin_subsample = int(bin_subsample)
@@ -107,8 +103,10 @@ class Binner(TransformerMixin, BaseEstimator):
     def _validate_params(self):
 
         if not 2 <= self.n_bins - 1 <= 255:
-            msg = ("`n_bins` should be in the range [2, 255], bug got"
-                   " {} instead.")
+            msg = (
+                "`n_bins` should be in the range [2, 255], bug got"
+                " {} instead."
+            )
             raise ValueError(msg.format(self.n_bins - 1))
 
         if not self.bin_subsample > 0:
@@ -119,8 +117,10 @@ class Binner(TransformerMixin, BaseEstimator):
             raise ValueError(msg.format(self.bin_subsample))
 
         if self.bin_type not in ("percentile", "interval"):
-            msg = ("The type of binner should be one of {{percentile, interval"
-                   "}}, bug got {} instead.")
+            msg = (
+                "The type of binner should be one of {{percentile, interval"
+                "}}, bug got {} instead."
+            )
             raise ValueError(msg.format(self.bin_type))
 
     def fit(self, X):

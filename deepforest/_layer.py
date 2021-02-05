@@ -21,7 +21,7 @@ def _build_estimator(
     partial_mode=True,
     buffer=None,
     verbose=1,
-    sample_weight=None
+    sample_weight=None,
 ):
     """Private function used to fit a single estimator."""
     if verbose > 1:
@@ -43,7 +43,6 @@ def _build_estimator(
 
 
 class Layer(object):
-
     def __init__(
         self,
         layer_idx,
@@ -81,9 +80,9 @@ class Layer(object):
         """Make and configure a copy of the estimator."""
         # Set the non-overlapped random state
         if self.random_state is not None:
-            random_state = (self.random_state +
-                            10 * estimator_idx +
-                            100 * self.layer_idx)
+            random_state = (
+                self.random_state + 10 * estimator_idx + 100 * self.layer_idx
+            )
         else:
             random_state = None
 
@@ -93,7 +92,7 @@ class Layer(object):
             max_depth=self.max_depth,
             min_samples_leaf=self.min_samples_leaf,
             n_jobs=self.n_jobs,
-            random_state=random_state
+            random_state=random_state,
         )
 
         return estimator
@@ -170,13 +169,13 @@ class Layer(object):
         for idx, (key, estimator) in enumerate(self.estimators_.items()):
             if self.verbose > 1:
                 msg = "{} - Evaluating estimator = {:<5} in layer = {}"
-                key = key.split('-')[-1] + "_" + str(key.split('-')[-2])
+                key = key.split("-")[-1] + "_" + str(key.split("-")[-2])
                 print(msg.format(_utils.ctime(), key, self.layer_idx))
             if self.partial_mode:
                 # Load the estimator from the buffer
                 estimator = self.buffer.load_estimator(estimator)
 
-            left, right = self.n_classes*idx, self.n_classes*(idx+1)
+            left, right = self.n_classes * idx, self.n_classes * (idx + 1)
             X_aug[:, left:right] += estimator.transform(X)
 
         return X_aug
@@ -188,13 +187,13 @@ class Layer(object):
         for idx, (key, estimator) in enumerate(self.estimators_.items()):
             if self.verbose > 1:
                 msg = "{} - Evaluating estimator = {:<5} in layer = {}"
-                key = key.split('-')[-1] + "_" + str(key.split('-')[-2])
+                key = key.split("-")[-1] + "_" + str(key.split("-")[-2])
                 print(msg.format(_utils.ctime(), key, self.layer_idx))
             if self.partial_mode:
                 # Load the estimator from the buffer
                 estimator = self.buffer.load_estimator(estimator)
 
-            left, right = self.n_classes*idx, self.n_classes*(idx+1)
+            left, right = self.n_classes * idx, self.n_classes * (idx + 1)
             pred[:, left:right] += estimator.predict(X)
 
         return pred

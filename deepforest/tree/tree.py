@@ -6,8 +6,7 @@ This class is modified from:
 """
 
 
-__all__ = ["DecisionTreeClassifier",
-           "ExtraTreeClassifier"]
+__all__ = ["DecisionTreeClassifier", "ExtraTreeClassifier"]
 
 import numbers
 import warnings
@@ -45,8 +44,10 @@ DOUBLE = _tree.DOUBLE
 
 CRITERIA_CLF = {"gini": _criterion.Gini, "entropy": _criterion.Entropy}
 
-DENSE_SPLITTERS = {"best": _splitter.BestSplitter,
-                   "random": _splitter.RandomSplitter}
+DENSE_SPLITTERS = {
+    "best": _splitter.BestSplitter,
+    "random": _splitter.RandomSplitter,
+}
 
 # =============================================================================
 # Base decision tree
@@ -59,21 +60,25 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
     Warning: This class should not be used directly.
     Use derived classes instead.
     """
+
     @abstractmethod
     @_deprecate_positional_args
-    def __init__(self, *,
-                 criterion,
-                 splitter,
-                 max_depth,
-                 min_samples_split,
-                 min_samples_leaf,
-                 min_weight_fraction_leaf,
-                 max_features,
-                 random_state,
-                 min_impurity_decrease,
-                 min_impurity_split,
-                 class_weight=None,
-                 presort='deprecated'):
+    def __init__(
+        self,
+        *,
+        criterion,
+        splitter,
+        max_depth,
+        min_samples_split,
+        min_samples_leaf,
+        min_weight_fraction_leaf,
+        max_features,
+        random_state,
+        min_impurity_decrease,
+        min_impurity_split,
+        class_weight=None,
+        presort="deprecated"
+    ):
         self.criterion = criterion
         self.splitter = splitter
         self.max_depth = max_depth
@@ -125,13 +130,14 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
         check_is_fitted(self)
         return self.tree_.n_internals
 
-    def fit(self, X, y, sample_weight=None, check_input=True,
-            X_idx_sorted=None):
+    def fit(
+        self, X, y, sample_weight=None, check_input=True, X_idx_sorted=None
+    ):
 
         random_state = check_random_state(self.random_state)
 
         if X.dtype != np.uint8:
-            msg = 'The dtype of `X` should be `np.uint8`, but got {} instead.'
+            msg = "The dtype of `X` should be `np.uint8`, but got {} instead."
             raise RuntimeError(msg.format(X.dtype))
 
         if check_input:
@@ -140,9 +146,9 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
             # csr.
             check_X_params = dict(dtype=DTYPE, accept_sparse="csc")
             check_y_params = dict(ensure_2d=False, dtype=None)
-            X, y = self._validate_data(X, y,
-                                       validate_separately=(check_X_params,
-                                                            check_y_params))
+            X, y = self._validate_data(
+                X, y, validate_separately=(check_X_params, check_y_params)
+            )
 
         # Determine output settings
         n_samples, self.n_features_ = X.shape
@@ -170,15 +176,17 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
 
             y_encoded = np.zeros(y.shape, dtype=np.int)
             for k in range(self.n_outputs_):
-                classes_k, y_encoded[:, k] = np.unique(y[:, k],
-                                                       return_inverse=True)
+                classes_k, y_encoded[:, k] = np.unique(
+                    y[:, k], return_inverse=True
+                )
                 self.classes_.append(classes_k)
                 self.n_classes_.append(classes_k.shape[0])
             y = y_encoded
 
             if self.class_weight is not None:
                 expanded_class_weight = compute_sample_weight(
-                    self.class_weight, y_original)
+                    self.class_weight, y_original
+                )
 
             self.n_classes_ = np.array(self.n_classes_, dtype=np.int32)
 
@@ -186,35 +194,42 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
             y = np.ascontiguousarray(y, dtype=DOUBLE)
 
         # Check parameters
-        max_depth = (np.iinfo(np.int32).max if self.max_depth is None
-                     else self.max_depth)
+        max_depth = (
+            np.iinfo(np.int32).max
+            if self.max_depth is None
+            else self.max_depth
+        )
 
         if isinstance(self.min_samples_leaf, numbers.Integral):
             if not 1 <= self.min_samples_leaf:
-                raise ValueError("min_samples_leaf must be at least 1 "
-                                 "or in (0, 0.5], got %s"
-                                 % self.min_samples_leaf)
+                raise ValueError(
+                    "min_samples_leaf must be at least 1 "
+                    "or in (0, 0.5], got %s" % self.min_samples_leaf
+                )
             min_samples_leaf = self.min_samples_leaf
         else:  # float
-            if not 0. < self.min_samples_leaf <= 0.5:
-                raise ValueError("min_samples_leaf must be at least 1 "
-                                 "or in (0, 0.5], got %s"
-                                 % self.min_samples_leaf)
+            if not 0.0 < self.min_samples_leaf <= 0.5:
+                raise ValueError(
+                    "min_samples_leaf must be at least 1 "
+                    "or in (0, 0.5], got %s" % self.min_samples_leaf
+                )
             min_samples_leaf = int(ceil(self.min_samples_leaf * n_samples))
 
         if isinstance(self.min_samples_split, numbers.Integral):
             if not 2 <= self.min_samples_split:
-                raise ValueError("min_samples_split must be an integer "
-                                 "greater than 1 or a float in (0.0, 1.0]; "
-                                 "got the integer %s"
-                                 % self.min_samples_split)
+                raise ValueError(
+                    "min_samples_split must be an integer "
+                    "greater than 1 or a float in (0.0, 1.0]; "
+                    "got the integer %s" % self.min_samples_split
+                )
             min_samples_split = self.min_samples_split
         else:  # float
-            if not 0. < self.min_samples_split <= 1.:
-                raise ValueError("min_samples_split must be an integer "
-                                 "greater than 1 or a float in (0.0, 1.0]; "
-                                 "got the float %s"
-                                 % self.min_samples_split)
+            if not 0.0 < self.min_samples_split <= 1.0:
+                raise ValueError(
+                    "min_samples_split must be an integer "
+                    "greater than 1 or a float in (0.0, 1.0]; "
+                    "got the float %s" % self.min_samples_split
+                )
             min_samples_split = int(ceil(self.min_samples_split * n_samples))
             min_samples_split = max(2, min_samples_split)
 
@@ -226,25 +241,30 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
             elif self.max_features == "log2":
                 max_features = max(1, int(np.log2(self.n_features_)))
             else:
-                raise ValueError("Invalid value for max_features. "
-                                 "Allowed string values are 'auto', "
-                                 "'sqrt' or 'log2'.")
+                raise ValueError(
+                    "Invalid value for max_features. "
+                    "Allowed string values are 'auto', "
+                    "'sqrt' or 'log2'."
+                )
         elif self.max_features is None:
             max_features = self.n_features_
         elif isinstance(self.max_features, numbers.Integral):
             max_features = self.max_features
         else:  # float
             if self.max_features > 0.0:
-                max_features = max(1,
-                                   int(self.max_features * self.n_features_))
+                max_features = max(
+                    1, int(self.max_features * self.n_features_)
+                )
             else:
                 max_features = 0
 
         self.max_features_ = max_features
 
         if len(y) != n_samples:
-            raise ValueError("Number of labels=%d does not match "
-                             "number of samples=%d" % (len(y), n_samples))
+            raise ValueError(
+                "Number of labels=%d does not match "
+                "number of samples=%d" % (len(y), n_samples)
+            )
         if not 0 <= self.min_weight_fraction_leaf <= 0.5:
             raise ValueError("min_weight_fraction_leaf must in [0, 0.5]")
         if max_depth <= 0:
@@ -263,61 +283,73 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
 
         # Set min_weight_leaf from min_weight_fraction_leaf
         if sample_weight is None:
-            min_weight_leaf = (self.min_weight_fraction_leaf *
-                               n_samples)
+            min_weight_leaf = self.min_weight_fraction_leaf * n_samples
         else:
-            min_weight_leaf = (self.min_weight_fraction_leaf *
-                               np.sum(sample_weight))
+            min_weight_leaf = self.min_weight_fraction_leaf * np.sum(
+                sample_weight
+            )
 
         min_impurity_split = self.min_impurity_split
         if min_impurity_split is not None:
-            warnings.warn("The min_impurity_split parameter is deprecated. "
-                          "Its default value has changed from 1e-7 to 0 in "
-                          "version 0.23, and it will be removed in 0.25. "
-                          "Use the min_impurity_decrease parameter instead.",
-                          FutureWarning)
+            warnings.warn(
+                "The min_impurity_split parameter is deprecated. "
+                "Its default value has changed from 1e-7 to 0 in "
+                "version 0.23, and it will be removed in 0.25. "
+                "Use the min_impurity_decrease parameter instead.",
+                FutureWarning,
+            )
 
-            if min_impurity_split < 0.:
-                raise ValueError("min_impurity_split must be greater than "
-                                 "or equal to 0")
+            if min_impurity_split < 0.0:
+                raise ValueError(
+                    "min_impurity_split must be greater than " "or equal to 0"
+                )
         else:
             min_impurity_split = 0
 
-        if self.min_impurity_decrease < 0.:
-            raise ValueError("min_impurity_decrease must be greater than "
-                             "or equal to 0")
+        if self.min_impurity_decrease < 0.0:
+            raise ValueError(
+                "min_impurity_decrease must be greater than " "or equal to 0"
+            )
 
-        if self.presort != 'deprecated':
-            warnings.warn("The parameter 'presort' is deprecated and has no "
-                          "effect. It will be removed in v0.24. You can "
-                          "suppress this warning by not passing any value "
-                          "to the 'presort' parameter.",
-                          FutureWarning)
+        if self.presort != "deprecated":
+            warnings.warn(
+                "The parameter 'presort' is deprecated and has no "
+                "effect. It will be removed in v0.24. You can "
+                "suppress this warning by not passing any value "
+                "to the 'presort' parameter.",
+                FutureWarning,
+            )
 
         # Build tree
         criterion = self.criterion
         if not isinstance(criterion, Criterion):
-            criterion = CRITERIA_CLF[self.criterion](self.n_outputs_,
-                                                     self.n_classes_)
+            criterion = CRITERIA_CLF[self.criterion](
+                self.n_outputs_, self.n_classes_
+            )
 
         SPLITTERS = DENSE_SPLITTERS
 
         splitter = self.splitter
         if not isinstance(self.splitter, Splitter):
-            splitter = SPLITTERS[self.splitter](criterion,
-                                                self.max_features_,
-                                                min_samples_leaf,
-                                                min_weight_leaf,
-                                                random_state)
+            splitter = SPLITTERS[self.splitter](
+                criterion,
+                self.max_features_,
+                min_samples_leaf,
+                min_weight_leaf,
+                random_state,
+            )
 
         self.tree_ = Tree(self.n_features_, self.n_classes_, self.n_outputs_)
 
-        builder = DepthFirstTreeBuilder(splitter, min_samples_split,
-                                        min_samples_leaf,
-                                        min_weight_leaf,
-                                        max_depth,
-                                        self.min_impurity_decrease,
-                                        min_impurity_split)
+        builder = DepthFirstTreeBuilder(
+            splitter,
+            min_samples_split,
+            min_samples_leaf,
+            min_weight_leaf,
+            max_depth,
+            self.min_impurity_decrease,
+            min_impurity_split,
+        )
 
         builder.build(self.tree_, X, y, sample_weight, X_idx_sorted)
 
@@ -328,8 +360,9 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
         # Only return the essential data for using a tree for prediction
         feature = self.tree_.feature
         threshold = self.tree_.threshold
-        children = np.vstack((self.tree_.children_left,
-                              self.tree_.children_right)).T
+        children = np.vstack(
+            (self.tree_.children_left, self.tree_.children_right)
+        ).T
         value = self.tree_.value
 
         return feature, threshold, children, value
@@ -341,10 +374,11 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
 
         n_features = X.shape[1]
         if self.n_features_ != n_features:
-            raise ValueError("Number of features of the model must "
-                             "match the input. Model n_features is %s and "
-                             "input n_features is %s "
-                             % (self.n_features_, n_features))
+            raise ValueError(
+                "Number of features of the model must "
+                "match the input. Model n_features is %s and "
+                "input n_features is %s " % (self.n_features_, n_features)
+            )
 
         return X
 
@@ -379,21 +413,23 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
 
 
 class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
-
     @_deprecate_positional_args
-    def __init__(self, *,
-                 criterion="gini",
-                 splitter="best",
-                 max_depth=None,
-                 min_samples_split=2,
-                 min_samples_leaf=1,
-                 min_weight_fraction_leaf=0.,
-                 max_features=None,
-                 random_state=None,
-                 min_impurity_decrease=0.,
-                 min_impurity_split=None,
-                 class_weight=None,
-                 presort='deprecated'):
+    def __init__(
+        self,
+        *,
+        criterion="gini",
+        splitter="best",
+        max_depth=None,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        min_weight_fraction_leaf=0.0,
+        max_features=None,
+        random_state=None,
+        min_impurity_decrease=0.0,
+        min_impurity_split=None,
+        class_weight=None,
+        presort="deprecated"
+    ):
 
         super().__init__(
             criterion=criterion,
@@ -407,16 +443,20 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
             random_state=random_state,
             min_impurity_decrease=min_impurity_decrease,
             min_impurity_split=min_impurity_split,
-            presort=presort)
+            presort=presort,
+        )
 
-    def fit(self, X, y, sample_weight=None, check_input=True,
-            X_idx_sorted=None):
+    def fit(
+        self, X, y, sample_weight=None, check_input=True, X_idx_sorted=None
+    ):
 
         return super().fit(
-            X, y,
+            X,
+            y,
             sample_weight=sample_weight,
             check_input=check_input,
-            X_idx_sorted=X_idx_sorted)
+            X_idx_sorted=X_idx_sorted,
+        )
 
     def predict_proba(self, X, check_input=True):
 
@@ -424,7 +464,7 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
         X = self._validate_X_predict(X, check_input)
 
         proba = self.tree_.predict(X)
-        proba = proba[:, :self.n_classes_]
+        proba = proba[:, : self.n_classes_]
         normalizer = proba.sum(axis=1)[:, np.newaxis]
         normalizer[normalizer == 0.0] = 1.0
         proba /= normalizer
@@ -433,20 +473,22 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
 
 
 class ExtraTreeClassifier(DecisionTreeClassifier):
-
     @_deprecate_positional_args
-    def __init__(self, *,
-                 criterion="gini",
-                 splitter="random",
-                 max_depth=None,
-                 min_samples_split=2,
-                 min_samples_leaf=1,
-                 min_weight_fraction_leaf=0.,
-                 max_features="auto",
-                 random_state=None,
-                 min_impurity_decrease=0.,
-                 min_impurity_split=None,
-                 class_weight=None):
+    def __init__(
+        self,
+        *,
+        criterion="gini",
+        splitter="random",
+        max_depth=None,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        min_weight_fraction_leaf=0.0,
+        max_features="auto",
+        random_state=None,
+        min_impurity_decrease=0.0,
+        min_impurity_split=None,
+        class_weight=None
+    ):
 
         super().__init__(
             criterion=criterion,
@@ -459,4 +501,5 @@ class ExtraTreeClassifier(DecisionTreeClassifier):
             class_weight=class_weight,
             min_impurity_decrease=min_impurity_decrease,
             min_impurity_split=min_impurity_split,
-            random_state=random_state)
+            random_state=random_state,
+        )
