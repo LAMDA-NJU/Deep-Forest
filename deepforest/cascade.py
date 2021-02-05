@@ -742,8 +742,15 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         d["buffer"] = self.buffer_
         d["verbose"] = self.verbose
         d["use_predictor"] = self.use_predictor
+        
         if self.use_predictor:
             d["predictor_name"] = self.predictor_name
+            
+        # Save label encoder if labels are encoded.            
+        if hasattr(self, "labels_are_encoded"):
+            d["labels_are_encoded"] = self.labels_are_encoded
+            d["label_encoder"] = self.label_encoder_
+            
         _io.model_saveobj(dirname, "param", d)
         _io.model_saveobj(dirname, "binner", self.binners_)
         _io.model_saveobj(dirname, "layer", self.layers_, self.partial_mode)
@@ -779,6 +786,11 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.partial_mode = d["partial_mode"]
         self.verbose = d["verbose"]
         self.use_predictor = d["use_predictor"]
+        
+        # Load label encoder if labels are encoded.
+        if "labels_are_encoded" in d:
+            self.labels_are_encoded = d["labels_are_encoded"]
+            self.label_encoder_ = d["label_encoder"]
 
         # Load internal containers
         self.binners_ = _io.model_loadobj(dirname, "binner")
