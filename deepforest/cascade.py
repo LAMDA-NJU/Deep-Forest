@@ -157,7 +157,6 @@ __model_doc = """
     partial_mode : :obj:`bool`, default=False
         Whether to train the deep forest in partial mode. For large
         datasets, it is recommended to use the partial mode.
-
         - If ``True``, the partial mode is activated and all fitted
           estimators will be dumped in a local buffer;
         - If ``False``, all fitted estimators are directly stored in the
@@ -174,7 +173,6 @@ __model_doc = """
           instance used by :mod:`np.random`.
     verbose : :obj:`int`, default=1
         Controls the verbosity when fitting and predicting.
-
         - If ``<= 0``, silent mode, which means no logging information will
           be displayed;
         - If ``1``, logging information on the cascade layer level will be
@@ -185,21 +183,17 @@ __model_doc = """
 
 __fit_doc = """
     .. note::
-
         Deep forest supports two kinds of modes for training:
-
         - **Full memory mode**, in which the training / testing data and
           all fitted estimators are directly stored in the memory.
         - **Partial mode**, in which after fitting each estimator using
           the training data, it will be dumped in the buffer. During the
           evaluating stage, the dumped estimators are reloaded into the
           memory sequentially to evaluate the testing data.
-
         By setting the ``partial_mode`` to ``True``, the partial mode is
         activated, and a local buffer will be created at the current
         directory. The partial mode is able to reduce the running memory
         cost when training the deep forest.
-
     Parameters
     ----------
     X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
@@ -215,7 +209,6 @@ __fit_doc = """
 def deepforest_model_doc(header, item):
     """
     Decorator on obtaining documentation for deep forest models.
-
     Parameters
     ----------
     header: string
@@ -466,7 +459,6 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def predict(self, X):
         """
         Predict class labels or regression values for X.
-
         For classification, the predicted class for each sample in X is
         returned. For regression, the predicted value based on X is returned.
         """
@@ -716,15 +708,11 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def save(self, dirname="model"):
         """
         Save the model to the specified directory.
-
         Parameters
         ----------
         dirname : :obj:`str`, default="model"
             The name of the output directory.
-
-
         .. warning::
-
             Other methods on model serialization such as :mod:`pickle` or
             :mod:`joblib` are not recommended, especially when ``partial_mode``
             is set to ``True``.
@@ -742,15 +730,15 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         d["buffer"] = self.buffer_
         d["verbose"] = self.verbose
         d["use_predictor"] = self.use_predictor
-        
+
         if self.use_predictor:
             d["predictor_name"] = self.predictor_name
-            
-        # Save label encoder if labels are encoded.            
+
+        # Save label encoder if labels are encoded.
         if hasattr(self, "labels_are_encoded"):
             d["labels_are_encoded"] = self.labels_are_encoded
             d["label_encoder"] = self.label_encoder_
-            
+
         _io.model_saveobj(dirname, "param", d)
         _io.model_saveobj(dirname, "binner", self.binners_)
         _io.model_saveobj(dirname, "layer", self.layers_, self.partial_mode)
@@ -763,15 +751,11 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def load(self, dirname):
         """
         Load the model from the specified directory.
-
         Parameters
         ----------
         dirname : :obj:`str`
             The name of the input directory.
-
-
         .. note::
-
             The dumped model after calling :meth:`load_model` is not exactly
             the same as the model before saving, because many objects
             irrelevant to model inference will not be saved.
@@ -786,7 +770,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.partial_mode = d["partial_mode"]
         self.verbose = d["verbose"]
         self.use_predictor = d["use_predictor"]
-        
+
         # Load label encoder if labels are encoded.
         if "labels_are_encoded" in d:
             self.labels_are_encoded = d["labels_are_encoded"]
@@ -912,13 +896,11 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def predict_proba(self, X):
         """
         Predict class probabilities for X.
-
         Parameters
         ----------
         X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
-
         Returns
         -------
         proba : :obj:`numpy.ndarray` of shape (n_samples, n_classes)
@@ -990,13 +972,11 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def predict(self, X):
         """
         Predict class for X.
-
         Parameters
         ----------
         X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
-
         Returns
         -------
         y : :obj:`numpy.ndarray` of shape (n_samples,)
