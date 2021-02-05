@@ -725,18 +725,24 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         # Check the given index
         if not 0 <= layer_idx < self.n_layers_:
-            msg = ("`layer_idx` should be in the range [0, {}), but got"
-                   " {} instead.")
+            msg = (
+                "`layer_idx` should be in the range [0, {}), but got"
+                " {} instead."
+            )
             raise ValueError(msg.format(self.n_layers_, layer_idx))
 
         if not 0 <= est_idx < self.n_estimators:
-            msg = ("`est_idx` should be in the range [0, {}), but got"
-                   " {} instead.")
+            msg = (
+                "`est_idx` should be in the range [0, {}), but got"
+                " {} instead."
+            )
             raise ValueError(msg.format(self.n_estimators, est_idx))
 
         if forest_type not in ("rf", "erf"):
-            msg = ("`forest_type` should be one of {{rf, erf}},"
-                   " but got {} instead.")
+            msg = (
+                "`forest_type` should be one of {{rf, erf}},"
+                " but got {} instead."
+            )
             raise ValueError(msg.format(forest_type))
 
         layer = self._get_layer(layer_idx)
