@@ -36,7 +36,7 @@ def init_array(X, n_aug_features):
     n_samples, n_features = X.shape
     n_dims = n_features + n_aug_features
     X_middle = np.zeros((n_samples, n_dims), dtype=np.uint8)
-    X_middle[:, : n_features] += X
+    X_middle[:, :n_features] += X
 
     return X_middle
 
@@ -59,5 +59,5 @@ def merge_array(X_middle, X_aug, n_features):
 
 def ctime():
     """A formatter on current time used for printing running status."""
-    ctime = '[' + datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + ']'
+    ctime = "[" + datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + "]"
     return ctime

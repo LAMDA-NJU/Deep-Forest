@@ -1,10 +1,13 @@
 Deep Forest (DF) 21
 ===================
 
-|github|_ |codecov|_ |python|_ |pypi|_
+|github|_ |readthedocs|_ |codecov|_ |python|_ |pypi|_ |style|_
 
 .. |github| image:: https://github.com/LAMDA-NJU/Deep-Forest/workflows/DeepForest-CI/badge.svg
 .. _github: https://github.com/LAMDA-NJU/Deep-Forest/actions
+
+.. |readthedocs| image:: https://readthedocs.org/projects/deep-forest/badge/?version=latest
+.. _readthedocs: https://deep-forest.readthedocs.io/en/latest/
 
 .. |codecov| image:: https://codecov.io/gh/LAMDA-NJU/Deep-Forest/branch/master/graph/badge.svg?token=5BVXOT8RPO
 .. _codecov: https://codecov.io/gh/LAMDA-NJU/Deep-Forest
@@ -15,7 +18,10 @@ Deep Forest (DF) 21
 .. |pypi| image:: https://img.shields.io/pypi/v/deep-forest?color=blue
 .. _pypi: https://pypi.org/project/deep-forest/
 
-**DF21** is an implementation of Deep Forest 2021.2.1. It is designed to have the following advantages:
+.. |style| image;: https://img.shields.io/badge/code%20style-black-000000.svg
+.. _style: https://github.com/psf/black
+
+**DF21** is an implementation of `Deep Forest <https://arxiv.org/pdf/1702.08835.pdf>`__ 2021.2.1. It is designed to have the following advantages:
 
 - **Powerful**: Better accuracy than existing tree-based ensemble methods.
 - **Easy to Use**: Less efforts on tunning parameters.
@@ -24,7 +30,7 @@ Deep Forest (DF) 21
 
 Whenever one used tree-based machine learning approaches such as Random Forest or GBDT, DF21 may offer a new powerful option.
 
-For a quick start, please refer to `How to Get Started <http://www.lamda.nju.edu.cn/deep-forest/how_to_get_started.html>`__. For a detailed guidance on parameter tunning, please refer to `Parameters Tunning <http://www.lamda.nju.edu.cn/deep-forest/parameters_tunning.html>`__.
+For a quick start, please refer to `How to Get Started <https://deep-forest.readthedocs.io/en/latest/how_to_get_started.html>`__. For a detailed guidance on parameter tunning, please refer to `Parameters Tunning <https://deep-forest.readthedocs.io/en/latest/parameters_tunning.html>`__.
 
 Installation
 ------------
@@ -58,7 +64,7 @@ Quickstart
 Resources
 ---------
 
-* `Documentation <http://www.lamda.nju.edu.cn/deep-forest>`__
+* `Documentation <https://deep-forest.readthedocs.io/en/latest/>`__
 * Deep Forest: `[Paper] <https://arxiv.org/pdf/1702.08835.pdf>`__
 * Keynote at AISTATS 2019: `[Slides] <https://aistats.org/aistats2019/0-AISTATS2019-slides-zhi-hua_zhou.pdf>`__
 

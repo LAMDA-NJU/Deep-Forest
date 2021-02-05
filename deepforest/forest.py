@@ -6,8 +6,7 @@ This class is modified from:
 """
 
 
-__all__ = ["RandomForestClassifier",
-           "ExtraTreesClassifier"]
+__all__ = ["RandomForestClassifier", "ExtraTreesClassifier"]
 
 import numbers
 from warnings import warn
@@ -24,8 +23,7 @@ from sklearn.base import clone
 from sklearn.base import BaseEstimator
 from sklearn.base import MetaEstimatorMixin
 from sklearn.base import ClassifierMixin, MultiOutputMixin
-from sklearn.utils import (check_random_state,
-                           compute_sample_weight)
+from sklearn.utils import check_random_state, compute_sample_weight
 from sklearn.exceptions import DataConversionWarning
 from sklearn.utils.fixes import _joblib_parallel_args
 from sklearn.utils.validation import check_is_fitted, _check_sample_weight
@@ -92,24 +90,31 @@ def _generate_sample_mask(random_state, n_samples, n_samples_bootstrap):
 
 
 def _parallel_build_trees(
-        tree,
-        X,
-        y,
-        n_samples_bootstrap,
-        out,
-        lock
+    tree,
+    X,
+    y,
+    n_samples_bootstrap,
+    sample_weight,
+    out,
+    lock,
 ):
     """
     Private function used to fit a single tree in parallel."""
     n_samples = X.shape[0]
 
-    sample_mask = _generate_sample_mask(tree.random_state, n_samples,
-                                        n_samples_bootstrap)
+    sample_mask = _generate_sample_mask(
+        tree.random_state, n_samples, n_samples_bootstrap
+    )
 
     # Fit the tree on the bootstrapped samples
-    feature, threshold, children, value = tree.fit(X[sample_mask],
-                                                   y[sample_mask],
-                                                   check_input=False)
+    if sample_weight is not None:
+        sample_weight = sample_weight[sample_mask]
+    feature, threshold, children, value = tree.fit(
+        X[sample_mask],
+        y[sample_mask],
+        sample_weight=sample_weight,
+        check_input=False,
+    )
 
     if not children.flags["C_CONTIGUOUS"]:
         children = np.ascontiguousarray(children)
@@ -121,11 +126,9 @@ def _parallel_build_trees(
     value /= value.sum(axis=1)[:, np.newaxis]
 
     # Set the OOB predictions
-    oob_prediction = _C_FOREST.predict(X[~sample_mask, :],
-                                       feature,
-                                       threshold,
-                                       children,
-                                       value)
+    oob_prediction = _C_FOREST.predict(
+        X[~sample_mask, :], feature, threshold, children, value
+    )
 
     with lock:
         out[~sample_mask, :] += oob_prediction
@@ -165,7 +168,7 @@ def _set_random_states(estimator, random_state=None):
     random_state = check_random_state(random_state)
     to_set = {}
     for key in sorted(estimator.get_params(deep=True)):
-        if key == 'random_state' or key.endswith('__random_state'):
+        if key == "random_state" or key.endswith("__random_state"):
             to_set[key] = random_state.randint(np.iinfo(np.int32).max)
 
     if to_set:
@@ -179,9 +182,10 @@ def _partition_estimators(n_estimators, n_jobs):
     n_jobs = min(effective_n_jobs(n_jobs), n_estimators)
 
     # Partition estimators between jobs
-    n_estimators_per_job = np.full(n_jobs, n_estimators // n_jobs,
-                                   dtype=np.int)
-    n_estimators_per_job[:n_estimators % n_jobs] += 1
+    n_estimators_per_job = np.full(
+        n_jobs, n_estimators // n_jobs, dtype=np.int
+    )
+    n_estimators_per_job[: n_estimators % n_jobs] += 1
     starts = np.cumsum(n_estimators_per_job)
 
     return n_jobs, n_estimators_per_job.tolist(), [0] + starts.tolist()
@@ -231,8 +235,9 @@ class BaseEnsemble(MetaEstimatorMixin, BaseEstimator, metaclass=ABCMeta):
     _required_parameters: List[str] = []
 
     @abstractmethod
-    def __init__(self, base_estimator, *, n_estimators=10,
-                 estimator_params=tuple()):
+    def __init__(
+        self, base_estimator, *, n_estimators=10, estimator_params=tuple()
+    ):
         # Set parameters
         self.base_estimator = base_estimator
         self.n_estimators = n_estimators
@@ -248,12 +253,16 @@ class BaseEnsemble(MetaEstimatorMixin, BaseEstimator, metaclass=ABCMeta):
         Sets the base_estimator_` attributes.
         """
         if not isinstance(self.n_estimators, numbers.Integral):
-            raise ValueError("n_estimators must be an integer, "
-                             "got {0}.".format(type(self.n_estimators)))
+            raise ValueError(
+                "n_estimators must be an integer, "
+                "got {0}.".format(type(self.n_estimators))
+            )
 
         if self.n_estimators <= 0:
-            raise ValueError("n_estimators must be greater than zero, "
-                             "got {0}.".format(self.n_estimators))
+            raise ValueError(
+                "n_estimators must be greater than zero, "
+                "got {0}.".format(self.n_estimators)
+            )
 
         if self.base_estimator is not None:
             self.base_estimator_ = self.base_estimator
@@ -270,8 +279,9 @@ class BaseEnsemble(MetaEstimatorMixin, BaseEstimator, metaclass=ABCMeta):
         sub-estimators.
         """
         estimator = clone(self.base_estimator_)
-        estimator.set_params(**{p: getattr(self, p)
-                                for p in self.estimator_params})
+        estimator.set_params(
+            **{p: getattr(self, p) for p in self.estimator_params}
+        )
 
         # Pass the inferred class information to avoid redudant finding.
         estimator.classes_ = self.classes_
@@ -307,19 +317,23 @@ class BaseForest(MultiOutputMixin, BaseEnsemble, metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def __init__(self,
-                 base_estimator,
-                 n_estimators=100, *,
-                 estimator_params=tuple(),
-                 n_jobs=None,
-                 random_state=None,
-                 verbose=0,
-                 class_weight=None,
-                 max_samples=None):
+    def __init__(
+        self,
+        base_estimator,
+        n_estimators=100,
+        *,
+        estimator_params=tuple(),
+        n_jobs=None,
+        random_state=None,
+        verbose=0,
+        class_weight=None,
+        max_samples=None
+    ):
         super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
-            estimator_params=estimator_params)
+            estimator_params=estimator_params,
+        )
 
         self.n_jobs = n_jobs
         self.random_state = random_state
@@ -378,10 +392,13 @@ class BaseForest(MultiOutputMixin, BaseEnsemble, metaclass=ABCMeta):
 
         y = np.atleast_1d(y)
         if y.ndim == 2 and y.shape[1] == 1:
-            warn("A column-vector y was passed when a 1d array was"
-                 " expected. Please change the shape of y to "
-                 "(n_samples,), for example using ravel().",
-                 DataConversionWarning, stacklevel=2)
+            warn(
+                "A column-vector y was passed when a 1d array was"
+                " expected. Please change the shape of y to "
+                "(n_samples,), for example using ravel().",
+                DataConversionWarning,
+                stacklevel=2,
+            )
 
         if y.ndim == 1:
             # reshape is necessary to preserve the data contiguity against vs
@@ -396,8 +413,7 @@ class BaseForest(MultiOutputMixin, BaseEnsemble, metaclass=ABCMeta):
 
         # Get bootstrap sample size
         n_samples_bootstrap = _get_n_samples_bootstrap(
-            n_samples=X.shape[0],
-            max_samples=self.max_samples
+            n_samples=X.shape[0], max_samples=self.max_samples
         )
 
         # Check parameters
@@ -405,26 +421,33 @@ class BaseForest(MultiOutputMixin, BaseEnsemble, metaclass=ABCMeta):
         random_state = check_random_state(self.random_state)
         n_jobs, _, _ = _partition_estimators(self.n_estimators, self.n_jobs)
 
-        trees = [self._make_estimator(append=False,
-                                      random_state=random_state)
-                 for i in range(self.n_estimators)]
+        trees = [
+            self._make_estimator(append=False, random_state=random_state)
+            for i in range(self.n_estimators)
+        ]
 
         # Pre-allocate OOB estimations
-        oob_decision_function = np.zeros((n_samples,
-                                          self.classes_[0].shape[0]))
+        oob_decision_function = np.zeros(
+            (n_samples, self.classes_[0].shape[0])
+        )
 
         lock = threading.Lock()
-        rets = Parallel(n_jobs=n_jobs, verbose=self.verbose,
-                        **_joblib_parallel_args(prefer='threads',
-                                                require="sharedmem"))(
+        rets = Parallel(
+            n_jobs=n_jobs,
+            verbose=self.verbose,
+            **_joblib_parallel_args(prefer="threads", require="sharedmem")
+        )(
             delayed(_parallel_build_trees)(
                 t,
                 X,
                 y,
                 n_samples_bootstrap,
+                sample_weight,
                 oob_decision_function,
-                lock)
-            for i, t in enumerate(trees))
+                lock,
+            )
+            for i, t in enumerate(trees)
+        )
 
         # Collect newly grown trees
         for feature, threshold, children, value in rets:
@@ -438,12 +461,16 @@ class BaseForest(MultiOutputMixin, BaseEnsemble, metaclass=ABCMeta):
 
         # Check the OOB predictions
         if (oob_decision_function.sum(axis=1) == 0).any():
-            warn("Some inputs do not have OOB predictions. "
-                 "This probably means too few trees were used "
-                 "to compute any reliable oob predictions.")
+            warn(
+                "Some inputs do not have OOB predictions. "
+                "This probably means too few trees were used "
+                "to compute any reliable oob predictions."
+            )
 
-        prediction = (oob_decision_function /
-                      oob_decision_function.sum(axis=1)[:, np.newaxis])
+        prediction = (
+            oob_decision_function
+            / oob_decision_function.sum(axis=1)[:, np.newaxis]
+        )
 
         self.oob_decision_function_ = prediction
 
@@ -468,15 +495,18 @@ class ForestClassifier(ClassifierMixin, BaseForest, metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def __init__(self,
-                 base_estimator,
-                 n_estimators=100, *,
-                 estimator_params=tuple(),
-                 n_jobs=None,
-                 random_state=None,
-                 verbose=0,
-                 class_weight=None,
-                 max_samples=None):
+    def __init__(
+        self,
+        base_estimator,
+        n_estimators=100,
+        *,
+        estimator_params=tuple(),
+        n_jobs=None,
+        random_state=None,
+        verbose=0,
+        class_weight=None,
+        max_samples=None
+    ):
         super().__init__(
             base_estimator,
             n_estimators=n_estimators,
@@ -485,7 +515,8 @@ class ForestClassifier(ClassifierMixin, BaseForest, metaclass=ABCMeta):
             random_state=random_state,
             verbose=verbose,
             class_weight=class_weight,
-            max_samples=max_samples)
+            max_samples=max_samples,
+        )
 
     def _validate_y_class_weight(self, y):
 
@@ -500,29 +531,31 @@ class ForestClassifier(ClassifierMixin, BaseForest, metaclass=ABCMeta):
 
         y_store_unique_indices = np.zeros(y.shape, dtype=np.int)
         for k in range(self.n_outputs_):
-            classes_k, y_store_unique_indices[:, k] = \
-                np.unique(y[:, k], return_inverse=True)
+            classes_k, y_store_unique_indices[:, k] = np.unique(
+                y[:, k], return_inverse=True
+            )
             self.classes_.append(classes_k)
             self.n_classes_.append(classes_k.shape[0])
         y = y_store_unique_indices
 
         if self.class_weight is not None:
-            valid_presets = ('balanced', 'balanced_subsample')
+            valid_presets = ("balanced", "balanced_subsample")
             if isinstance(self.class_weight, str):
                 if self.class_weight not in valid_presets:
-                    raise ValueError('Valid presets for class_weight include '
-                                     '"balanced" and "balanced_subsample".'
-                                     'Given "%s".'
-                                     % self.class_weight)
+                    raise ValueError(
+                        "Valid presets for class_weight include "
+                        '"balanced" and "balanced_subsample".'
+                        'Given "%s".' % self.class_weight
+                    )
 
-            if (self.class_weight != 'balanced_subsample' or
-                    not self.bootstrap):
+            if self.class_weight != "balanced_subsample" or not self.bootstrap:
                 if self.class_weight == "balanced_subsample":
                     class_weight = "balanced"
                 else:
                     class_weight = self.class_weight
-                expanded_class_weight = compute_sample_weight(class_weight,
-                                                              y_original)
+                expanded_class_weight = compute_sample_weight(
+                    class_weight, y_original
+                )
 
         return y, expanded_class_weight
 
@@ -537,11 +570,16 @@ class ForestClassifier(ClassifierMixin, BaseForest, metaclass=ABCMeta):
         n_jobs, _, _ = _partition_estimators(self.n_estimators, self.n_jobs)
 
         # Avoid storing the output of every estimator by summing them here
-        all_proba = [np.zeros((X.shape[0], j), dtype=np.float64)
-                     for j in np.atleast_1d(self.n_classes_)]
+        all_proba = [
+            np.zeros((X.shape[0], j), dtype=np.float64)
+            for j in np.atleast_1d(self.n_classes_)
+        ]
         lock = threading.Lock()
-        Parallel(n_jobs=n_jobs, verbose=self.verbose,
-                 **_joblib_parallel_args(require="sharedmem"))(
+        Parallel(
+            n_jobs=n_jobs,
+            verbose=self.verbose,
+            **_joblib_parallel_args(require="sharedmem")
+        )(
             delayed(_accumulate_prediction)(
                 self.features[i],
                 self.thresholds[i],
@@ -549,8 +587,10 @@ class ForestClassifier(ClassifierMixin, BaseForest, metaclass=ABCMeta):
                 self.values[i],
                 X,
                 all_proba,
-                lock)
-            for i in range(self.n_estimators))
+                lock,
+            )
+            for i in range(self.n_estimators)
+        )
 
         for proba in all_proba:
             proba /= len(self.features)
@@ -562,35 +602,45 @@ class ForestClassifier(ClassifierMixin, BaseForest, metaclass=ABCMeta):
 
 
 class RandomForestClassifier(ForestClassifier):
-
     @_deprecate_positional_args
-    def __init__(self,
-                 n_estimators=100, *,
-                 criterion="gini",
-                 max_depth=None,
-                 min_samples_split=2,
-                 min_samples_leaf=1,
-                 min_weight_fraction_leaf=0.,
-                 max_features="sqrt",
-                 min_impurity_decrease=0.,
-                 min_impurity_split=None,
-                 n_jobs=None,
-                 random_state=None,
-                 verbose=0,
-                 class_weight=None,
-                 max_samples=None):
+    def __init__(
+        self,
+        n_estimators=100,
+        *,
+        criterion="gini",
+        max_depth=None,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        min_weight_fraction_leaf=0.0,
+        max_features="sqrt",
+        min_impurity_decrease=0.0,
+        min_impurity_split=None,
+        n_jobs=None,
+        random_state=None,
+        verbose=0,
+        class_weight=None,
+        max_samples=None
+    ):
         super().__init__(
             base_estimator=DecisionTreeClassifier(),
             n_estimators=n_estimators,
-            estimator_params=("criterion", "max_depth", "min_samples_split",
-                              "min_samples_leaf", "min_weight_fraction_leaf",
-                              "max_features", "min_impurity_decrease",
-                              "min_impurity_split", "random_state"),
+            estimator_params=(
+                "criterion",
+                "max_depth",
+                "min_samples_split",
+                "min_samples_leaf",
+                "min_weight_fraction_leaf",
+                "max_features",
+                "min_impurity_decrease",
+                "min_impurity_split",
+                "random_state",
+            ),
             n_jobs=n_jobs,
             random_state=random_state,
             verbose=verbose,
             class_weight=class_weight,
-            max_samples=max_samples)
+            max_samples=max_samples,
+        )
 
         self.criterion = criterion
         self.max_depth = max_depth
@@ -603,35 +653,45 @@ class RandomForestClassifier(ForestClassifier):
 
 
 class ExtraTreesClassifier(ForestClassifier):
-
     @_deprecate_positional_args
-    def __init__(self,
-                 n_estimators=100, *,
-                 criterion="gini",
-                 max_depth=None,
-                 min_samples_split=2,
-                 min_samples_leaf=1,
-                 min_weight_fraction_leaf=0.,
-                 max_features="sqrt",
-                 min_impurity_decrease=0.,
-                 min_impurity_split=None,
-                 n_jobs=None,
-                 random_state=None,
-                 verbose=0,
-                 class_weight=None,
-                 max_samples=None):
+    def __init__(
+        self,
+        n_estimators=100,
+        *,
+        criterion="gini",
+        max_depth=None,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        min_weight_fraction_leaf=0.0,
+        max_features="sqrt",
+        min_impurity_decrease=0.0,
+        min_impurity_split=None,
+        n_jobs=None,
+        random_state=None,
+        verbose=0,
+        class_weight=None,
+        max_samples=None
+    ):
         super().__init__(
             base_estimator=ExtraTreeClassifier(),
             n_estimators=n_estimators,
-            estimator_params=("criterion", "max_depth", "min_samples_split",
-                              "min_samples_leaf", "min_weight_fraction_leaf",
-                              "max_features", "min_impurity_decrease",
-                              "min_impurity_split", "random_state"),
+            estimator_params=(
+                "criterion",
+                "max_depth",
+                "min_samples_split",
+                "min_samples_leaf",
+                "min_weight_fraction_leaf",
+                "max_features",
+                "min_impurity_decrease",
+                "min_impurity_split",
+                "random_state",
+            ),
             n_jobs=n_jobs,
             random_state=random_state,
             verbose=verbose,
             class_weight=class_weight,
-            max_samples=max_samples)
+            max_samples=max_samples,
+        )
 
         self.criterion = criterion
         self.max_depth = max_depth

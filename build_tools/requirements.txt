@@ -1,4 +1,8 @@
-flake8
+-r ../requirements.txt
+pytest
+pre-commit
+black==20.8b1
+flake8==3.8.4
 pytest-cov
 lightgbm
 xgboost
