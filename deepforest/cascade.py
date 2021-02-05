@@ -7,6 +7,8 @@ import time
 import numbers
 import numpy as np
 from abc import ABCMeta, abstractmethod
+from sklearn.preprocessing import LabelEncoder
+from sklearn.utils.multiclass import type_of_target
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 from . import _utils
@@ -155,6 +157,7 @@ __model_doc = """
     partial_mode : :obj:`bool`, default=False
         Whether to train the deep forest in partial mode. For large
         datasets, it is recommended to use the partial mode.
+
         - If ``True``, the partial mode is activated and all fitted
           estimators will be dumped in a local buffer;
         - If ``False``, all fitted estimators are directly stored in the
@@ -171,6 +174,7 @@ __model_doc = """
           instance used by :mod:`np.random`.
     verbose : :obj:`int`, default=1
         Controls the verbosity when fitting and predicting.
+
         - If ``<= 0``, silent mode, which means no logging information will
           be displayed;
         - If ``1``, logging information on the cascade layer level will be
@@ -179,14 +183,56 @@ __model_doc = """
 """
 
 
-def deepforest_model_doc(header):
-    """Decorator on obtaining documentation for deep forest models."""
+__fit_doc = """
+    .. note::
+
+        Deep forest supports two kinds of modes for training:
+
+        - **Full memory mode**, in which the training / testing data and
+          all fitted estimators are directly stored in the memory.
+        - **Partial mode**, in which after fitting each estimator using
+          the training data, it will be dumped in the buffer. During the
+          evaluating stage, the dumped estimators are reloaded into the
+          memory sequentially to evaluate the testing data.
+
+        By setting the ``partial_mode`` to ``True``, the partial mode is
+        activated, and a local buffer will be created at the current
+        directory. The partial mode is able to reduce the running memory
+        cost when training the deep forest.
+
+    Parameters
+    ----------
+    X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+        The training data. Internally, it will be converted to
+        ``np.uint8``.
+    y : :obj:`numpy.ndarray` of shape (n_samples,)
+        The class labels of input samples.
+    sample_weight : :obj:`numpy.ndarray` of shape (n_samples,), default=None
+        Sample weights. If ``None``, then samples are equally weighted.
+"""
+
+
+def deepforest_model_doc(header, item):
+    """
+    Decorator on obtaining documentation for deep forest models.
+
+    Parameters
+    ----------
+    header: string
+       Introduction to the decorated class or method.
+    item : string
+       Type of the docstring item.
+    """
+
+    def get_doc(item):
+        """Return the selected item."""
+        __doc = {"model": __model_doc, "fit": __fit_doc}
+        return __doc[item]
 
     def adddoc(cls):
         doc = [header + "\n\n"]
-        doc.extend([__model_doc])
+        doc.extend(get_doc(item))
         cls.__doc__ = "".join(doc)
-
         return cls
 
     return adddoc
@@ -420,6 +466,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def predict(self, X):
         """
         Predict class labels or regression values for X.
+
         For classification, the predicted class for each sample in X is
         returned. For regression, the predicted value based on X is returned.
         """
@@ -430,30 +477,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
-        """
-        Build a deep forest using the training data.
-        .. note::
-            Deep forest supports two kinds of modes for training:
-            - **Full memory mode**, in which the training / testing data and
-              all fitted estimators are directly stored in the memory.
-            - **Partial mode**, in which after fitting each estimator using
-              the training data, it will be dumped in the buffer. During the
-              evaluating stage, the dumped estimators are reloaded into the
-              memory sequentially to evaluate the testing data.
-            By setting the ``partial_mode`` to ``True``, the partial mode is
-            activated, and a local buffer will be created at the current
-            directory. The partial mode is able to reduce the running memory
-            cost when training the deep forest.
-        Parameters
-        ----------
-        X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
-            The training data. Internally, it will be converted to
-            ``np.uint8``.
-        y : :obj:`numpy.ndarray` of shape (n_samples,)
-            The class labels of input samples.
-        sample_weight : :obj:`numpy.ndarray` of shape (n_samples,), default=None
-            Sample weights. If ``None``, then samples are equally weighted.
-        """
+
         self._check_input(X, y)
         self._validate_params()
         n_counter = 0  # a counter controlling the early stopping
@@ -692,11 +716,15 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def save(self, dirname="model"):
         """
         Save the model to the specified directory.
+
         Parameters
         ----------
         dirname : :obj:`str`, default="model"
             The name of the output directory.
+
+
         .. warning::
+
             Other methods on model serialization such as :mod:`pickle` or
             :mod:`joblib` are not recommended, especially when ``partial_mode``
             is set to ``True``.
@@ -728,11 +756,15 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def load(self, dirname):
         """
         Load the model from the specified directory.
+
         Parameters
         ----------
         dirname : :obj:`str`
             The name of the input directory.
+
+
         .. note::
+
             The dumped model after calling :meth:`load_model` is not exactly
             the same as the model before saving, because many objects
             irrelevant to model inference will not be saved.
@@ -773,7 +805,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
 
 @deepforest_model_doc(
-    """Implementation of the deep forest for classification."""
+    """Implementation of the deep forest for classification.""", "model"
 )
 class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def __init__(
@@ -816,49 +848,36 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             verbose=verbose,
         )
 
-        # Utility Variables
+        # Used to deal with classification labels
         self.labels_are_encoded = False
         self.type_of_target_ = None
         self.label_encoder_ = None
 
     def _encode_class_labels(self, y):
         """
-        Docstring
+        Fit the internal label encoder and return encoded labels.
         """
-
-        from sklearn.utils.multiclass import type_of_target
-        from sklearn.preprocessing import LabelEncoder
-
         self.type_of_target_ = type_of_target(y)
-
-        # Label encoder deals with full-mode. Partial-mode support is WIP.
-        if not self.partial_mode:
-            # Label encoder deals with single output, multi-class. Multi-output support is WIP.
-            if self.type_of_target_ is "binary" or "multiclass":
-                self.labels_are_encoded = True
-                self.label_encoder_ = LabelEncoder()
-                encoded_y = self.label_encoder_.fit_transform(y)
-            else:
-                encoded_y = y
+        if self.type_of_target_ in ("binary", "multiclass"):
+            self.labels_are_encoded = True
+            self.label_encoder_ = LabelEncoder()
+            encoded_y = self.label_encoder_.fit_transform(y)
         else:
-            encoded_y = y
+            msg = (
+                "CascadeForestClassifier is used for binary and multiclass"
+                " classification, wheras the training labels seem not to"
+                " be any one of them."
+            )
+            raise ValueError(msg)
 
         return encoded_y
 
     def _decode_class_labels(self, y):
         """
-        Docstring
+        Transform the predicted labels back to original encoding.
         """
-
-        from sklearn.preprocessing import LabelEncoder
-
-        # Label encoder deals with full-mode. Partial-mode support is WIP.
-        if not self.partial_mode:
-            # Label encoder deals with single output, multi-class. Multi-output support is WIP.
-            if self.labels_are_encoded:
-                decoded_y = self.label_encoder_.inverse_transform(y)
-            else:
-                decoded_y = y
+        if self.labels_are_encoded:
+            decoded_y = self.label_encoder_.inverse_transform(y)
         else:
             decoded_y = y
 
@@ -868,20 +887,26 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         msg = "Val Acc = {:.3f} %"
         return msg.format(pivot * 100)
 
+    @deepforest_model_doc(
+        """Build a deep forest using the training data.""", "fit"
+    )
     def fit(self, X, y, sample_weight=None):
 
-        super().fit(
-            X=X, y=self._encode_class_labels(y), sample_weight=sample_weight
-        )
+        # Check the input for classification
+        y = self._encode_class_labels(y)
+
+        super().fit(X, y, sample_weight)
 
     def predict_proba(self, X):
         """
         Predict class probabilities for X.
+
         Parameters
         ----------
         X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
+
         Returns
         -------
         proba : :obj:`numpy.ndarray` of shape (n_samples, n_classes)
@@ -953,16 +978,18 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def predict(self, X):
         """
         Predict class for X.
+
         Parameters
         ----------
         X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
+
         Returns
         -------
         y : :obj:`numpy.ndarray` of shape (n_samples,)
             The predicted classes.
         """
         proba = self.predict_proba(X)
-
-        return self._decode_class_labels(np.argmax(proba, axis=1))
+        y = self._decode_class_labels(np.argmax(proba, axis=1))
+        return y
