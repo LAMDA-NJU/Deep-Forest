@@ -813,27 +813,28 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             partial_mode=partial_mode,
             n_jobs=n_jobs,
             random_state=random_state,
-            verbose=verbose)
-        
+            verbose=verbose,
+        )
+
         # Utility Variables
         self.labels_are_encoded = False
         self.type_of_target_ = None
         self.label_encoder_ = None
-        
+
     def _encode_class_labels(self, y):
         """
         Docstring
         """
-        
+
         from sklearn.utils.multiclass import type_of_target
         from sklearn.preprocessing import LabelEncoder
-        
+
         self.type_of_target_ = type_of_target(y)
-        
+
         # Label encoder deals with full-mode. Partial-mode support is WIP.
         if not self.partial_mode:
             # Label encoder deals with single output, multi-class. Multi-output support is WIP.
-            if self.type_of_target_ is 'binary' or 'multiclass':
+            if self.type_of_target_ is "binary" or "multiclass":
                 self.labels_are_encoded = True
                 self.label_encoder_ = LabelEncoder()
                 encoded_y = self.label_encoder_.fit_transform(y)
@@ -841,16 +842,16 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
                 encoded_y = y
         else:
             encoded_y = y
-            
+
         return encoded_y
-    
+
     def _decode_class_labels(self, y):
         """
         Docstring
         """
-        
+
         from sklearn.preprocessing import LabelEncoder
-        
+
         # Label encoder deals with full-mode. Partial-mode support is WIP.
         if not self.partial_mode:
             # Label encoder deals with single output, multi-class. Multi-output support is WIP.
@@ -860,19 +861,18 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
                 decoded_y = y
         else:
             decoded_y = y
-            
+
         return decoded_y
 
     def _repr_performance(self, pivot):
         msg = "Val Acc = {:.3f} %"
         return msg.format(pivot * 100)
-    
+
     def fit(self, X, y, sample_weight=None):
-        
+
         super().fit(
-            X=X, 
-            y=self._encode_class_labels(y),
-            sample_weight=sample_weight)
+            X=X, y=self._encode_class_labels(y), sample_weight=sample_weight
+        )
 
     def predict_proba(self, X):
         """
