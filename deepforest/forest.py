@@ -90,7 +90,13 @@ def _generate_sample_mask(random_state, n_samples, n_samples_bootstrap):
 
 
 def _parallel_build_trees(
-    tree, X, y, n_samples_bootstrap, sample_weight, out, lock,
+    tree,
+    X,
+    y,
+    n_samples_bootstrap,
+    sample_weight,
+    out,
+    lock,
 ):
     """
     Private function used to fit a single tree in parallel."""
