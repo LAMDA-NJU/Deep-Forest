@@ -103,6 +103,24 @@ def test_model_properties_after_fitting():
         model._set_binner(0, None)
     assert "already exists in the internal container" in str(excinfo.value)
 
+    # Test the hook on forest estimator
+    assert (
+        model.get_forest(0, 0, "rf")
+        is model._get_layer(0).estimators_["0-0-rf"].estimator_
+    )
+
+    with pytest.raises(ValueError) as excinfo:
+        model.get_forest(model.n_layers_, 0, "rf")
+    assert "`layer_idx` should be in the range" in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo:
+        model.get_forest(0, model.n_estimators, "rf")
+    assert "`est_idx` should be in the range" in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo:
+        model.get_forest(0, 0, "Unknown")
+    assert "`forest_type` should be one of" in str(excinfo.value)
+
 
 def test_model_workflow_partial_mode():
     """Run the workflow of deep forest with a local buffer."""

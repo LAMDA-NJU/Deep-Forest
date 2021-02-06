@@ -705,6 +705,64 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         return self
 
+    def get_forest(self, layer_idx, est_idx, forest_type):
+        """
+        Get the `est_idx`-th forest estimator from the `layer_idx`-th
+        cascade layer in the model.
+
+        Parameters
+        ----------
+        layer_idx : :obj:`int`
+            The index of the cascade layer, should be in the range
+            ``[0, self.n_layers_-1]``.
+        est_idx : :obj:`int`
+            The index of the forest estimator, should be in the range
+            ``[0, self.n_estimators]``.
+        forest_type : :obj:`{"rf", "erf"}`
+            Specify the forest type.
+
+            - If ``rf``, return the random forest.
+            - If ``erf``, return the extremely random forest.
+
+        Returns
+        -------
+        estimator : The forest estimator with the given index.
+        """
+        if not self.is_fitted_:
+            raise AttributeError("Please fit the model first.")
+
+        # Check the given index
+        if not 0 <= layer_idx < self.n_layers_:
+            msg = (
+                "`layer_idx` should be in the range [0, {}), but got"
+                " {} instead."
+            )
+            raise ValueError(msg.format(self.n_layers_, layer_idx))
+
+        if not 0 <= est_idx < self.n_estimators:
+            msg = (
+                "`est_idx` should be in the range [0, {}), but got"
+                " {} instead."
+            )
+            raise ValueError(msg.format(self.n_estimators, est_idx))
+
+        if forest_type not in ("rf", "erf"):
+            msg = (
+                "`forest_type` should be one of {{rf, erf}},"
+                " but got {} instead."
+            )
+            raise ValueError(msg.format(forest_type))
+
+        layer = self._get_layer(layer_idx)
+        est_key = "{}-{}-{}".format(layer_idx, est_idx, forest_type)
+        estimator = layer.estimators_[est_key]
+
+        # Load the model if in partial mode
+        if self.partial_mode:
+            estimator = self.buffer_.load_estimator(estimator)
+
+        return estimator.estimator_
+
     def save(self, dirname="model"):
         """
         Save the model to the specified directory.
