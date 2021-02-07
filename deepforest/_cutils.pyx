@@ -74,11 +74,11 @@ cpdef _map_to_bins(object X,
     """
     cdef:
         const X_DTYPE_C[:, :] X_ndarray = X
-        SIZE_t n_features = X_ndarray.shape[1]
+        SIZE_t n_features = X.shape[1]
         SIZE_t feature_idx
 
     for feature_idx in range(n_features):
-        _map_num_col_to_bins(X[:, feature_idx],
+        _map_num_col_to_bins(X_ndarray[:, feature_idx],
                              binning_thresholds[feature_idx],
                              missing_values_bin_idx,
                              binned[:, feature_idx])
