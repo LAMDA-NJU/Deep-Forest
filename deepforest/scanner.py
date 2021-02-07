@@ -10,12 +10,8 @@ class ImageScanner(object):
     """
     Image scanner used to extract local patches. By using the image scanner
     to pre-process the image datasets, the performance of decision-tree based
-    models, including but not limited to the deep forest, is expected to
+    ensemble, including but not limited to the deep forest, is expected to
     improve.
-
-    .. tip::
-        Please refer to PyTorch `Documentation <https://pytorch.org/docs/stable/generated/torch.nn.Unfold.html>`__
-        for a detailed introduction on how to extract local patches.
 
     Parameters
     ----------
