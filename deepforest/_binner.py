@@ -9,8 +9,8 @@ This class is modified from:
 __all__ = ["Binner"]
 
 import numpy as np
-from sklearn.utils import check_random_state
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.utils import check_random_state, check_array
 
 from . import _cutils as _LIB
 
@@ -162,7 +162,9 @@ class Binner(TransformerMixin, BaseEstimator):
                 msg.format(self.n_bins_non_missing_.shape[0], X.shape[1])
             )
 
+        X = check_array(X, dtype=X_DTYPE, force_all_finite=False)
         X_binned = np.zeros_like(X, dtype=X_BINNED_DTYPE, order="F")
+
         _LIB._map_to_bins(
             X, self.bin_thresholds_, self.missing_values_bin_idx_, X_binned
         )
