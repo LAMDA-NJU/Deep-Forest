@@ -12,7 +12,7 @@ def make_estimator(
     max_depth=None,
     min_samples_leaf=1,
     n_jobs=None,
-    random_state=None
+    random_state=None,
 ):
     # RandomForestClassifier
     if name == "rf":
@@ -30,7 +30,7 @@ def make_estimator(
             max_depth=max_depth,
             min_samples_leaf=min_samples_leaf,
             n_jobs=n_jobs,
-            random_state=random_state
+            random_state=random_state,
         )
     else:
         msg = "Unknown type of estimator, which should be one of {{rf, erf}}."
@@ -40,7 +40,6 @@ def make_estimator(
 
 
 class Estimator(object):
-
     def __init__(
         self,
         name,
@@ -48,14 +47,11 @@ class Estimator(object):
         max_depth=None,
         min_samples_leaf=1,
         n_jobs=None,
-        random_state=None
+        random_state=None,
     ):
-        self.estimator_ = make_estimator(name,
-                                         n_trees,
-                                         max_depth,
-                                         min_samples_leaf,
-                                         n_jobs,
-                                         random_state)
+        self.estimator_ = make_estimator(
+            name, n_trees, max_depth, min_samples_leaf, n_jobs, random_state
+        )
 
     @property
     def oob_decision_function_(self):

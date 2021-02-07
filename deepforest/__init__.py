@@ -5,8 +5,10 @@ from .tree import DecisionTreeClassifier
 from .tree import ExtraTreeClassifier
 
 
-__all__ = ["CascadeForestClassifier",
-           "RandomForestClassifier",
-           "ExtraTreesClassifier",
-           "DecisionTreeClassifier",
-           "ExtraTreeClassifier"]
+__all__ = [
+    "CascadeForestClassifier",
+    "RandomForestClassifier",
+    "ExtraTreesClassifier",
+    "DecisionTreeClassifier",
+    "ExtraTreeClassifier",
+]

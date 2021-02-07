@@ -16,40 +16,45 @@ save_dir = "./tmp"
 # Load data
 X, y = load_iris(return_X_y=True)
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.42, random_state=42)
+    X, y, test_size=0.42, random_state=42
+)
 
 # Parameters
-toy_kwargs = {"n_bins": 10,
-              "bin_subsample": 2e5,
-              "max_layers": 10,
-              "n_estimators": 1,
-              "n_trees": 100,
-              "max_depth": 3,
-              "min_samples_leaf": 1,
-              "use_predictor": True,
-              "predictor": "forest",
-              "predictor_kwargs": {},
-              "n_tolerant_rounds": 2,
-              "delta": 1e-5,
-              "n_jobs": -1,
-              "random_state": 0,
-              "verbose": 2}
+toy_kwargs = {
+    "n_bins": 10,
+    "bin_subsample": 2e5,
+    "max_layers": 10,
+    "n_estimators": 1,
+    "n_trees": 100,
+    "max_depth": 3,
+    "min_samples_leaf": 1,
+    "use_predictor": True,
+    "predictor": "forest",
+    "predictor_kwargs": {},
+    "n_tolerant_rounds": 2,
+    "delta": 1e-5,
+    "n_jobs": -1,
+    "random_state": 0,
+    "verbose": 2,
+}
 
-kwargs = {"n_bins": 255,
-          "bin_subsample": 2e5,
-          "max_layers": 10,
-          "n_estimators": 2,
-          "n_trees": 100,
-          "max_depth": None,
-          "min_samples_leaf": 1,
-          "use_predictor": True,
-          "predictor": "forest",
-          "predictor_kwargs": {},
-          "n_tolerant_rounds": 2,
-          "delta": 1e-5,
-          "n_jobs": -1,
-          "random_state": 0,
-          "verbose": 2}
+kwargs = {
+    "n_bins": 255,
+    "bin_subsample": 2e5,
+    "max_layers": 10,
+    "n_estimators": 2,
+    "n_trees": 100,
+    "max_depth": None,
+    "min_samples_leaf": 1,
+    "use_predictor": True,
+    "predictor": "forest",
+    "predictor_kwargs": {},
+    "n_tolerant_rounds": 2,
+    "delta": 1e-5,
+    "n_jobs": -1,
+    "random_state": 0,
+    "verbose": 2,
+}
 
 
 @pytest.mark.parametrize(
@@ -97,6 +102,24 @@ def test_model_properties_after_fitting():
     with pytest.raises(RuntimeError) as excinfo:
         model._set_binner(0, None)
     assert "already exists in the internal container" in str(excinfo.value)
+
+    # Test the hook on forest estimator
+    assert (
+        model.get_forest(0, 0, "rf")
+        is model._get_layer(0).estimators_["0-0-rf"].estimator_
+    )
+
+    with pytest.raises(ValueError) as excinfo:
+        model.get_forest(model.n_layers_, 0, "rf")
+    assert "`layer_idx` should be in the range" in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo:
+        model.get_forest(0, model.n_estimators, "rf")
+    assert "`est_idx` should be in the range" in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo:
+        model.get_forest(0, 0, "Unknown")
+    assert "`forest_type` should be one of" in str(excinfo.value)
 
 
 def test_model_workflow_partial_mode():
@@ -152,8 +175,12 @@ def test_model_sample_weight():
     y_pred_skewed_sample_weight = model.predict(X_test)
 
     # Make sure the different predictions with None and equal sample_weight
-    assert_raises(AssertionError, assert_array_equal,
-                  y_pred_skewed_sample_weight, y_pred_equal_sample_weight)
+    assert_raises(
+        AssertionError,
+        assert_array_equal,
+        y_pred_skewed_sample_weight,
+        y_pred_equal_sample_weight,
+    )
 
     model.clean()  # clear the buffer
 
@@ -184,10 +211,14 @@ def test_model_workflow_in_memory():
     shutil.rmtree(save_dir)
 
 
-@pytest.mark.parametrize('param',
-                         [(0, {"max_layers": 0}),
-                          (1, {"n_tolerant_rounds": 0}),
-                          (2, {"delta": -1})])
+@pytest.mark.parametrize(
+    "param",
+    [
+        (0, {"max_layers": 0}),
+        (1, {"n_tolerant_rounds": 0}),
+        (2, {"delta": -1}),
+    ],
+)
 def test_model_invalid_training_params(param):
     case_kwargs = copy.deepcopy(toy_kwargs)
     case_kwargs.update(param[1])
@@ -205,18 +236,16 @@ def test_model_invalid_training_params(param):
         assert "delta " in str(excinfo.value)
 
 
-@pytest.mark.parametrize('predictor', ['forest', 'xgboost', 'lightgbm'])
+@pytest.mark.parametrize("predictor", ["forest", "xgboost", "lightgbm"])
 def test_predictor_normal(predictor):
-    deepforest.cascade._build_predictor(predictor,
-                                        n_estimators=1,
-                                        n_outputs=2)
+    deepforest.cascade._build_predictor(predictor, n_estimators=1, n_outputs=2)
 
 
 def test_predictor_unknown():
     with pytest.raises(NotImplementedError) as excinfo:
-        deepforest.cascade._build_predictor("unknown",
-                                            n_estimators=1,
-                                            n_outputs=2)
+        deepforest.cascade._build_predictor(
+            "unknown", n_estimators=1, n_outputs=2
+        )
     assert "name of the predictor should be one of" in str(excinfo.value)
 
 
