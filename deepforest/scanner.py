@@ -2,7 +2,6 @@
 Implement methods on extracting structured data such as images or sequences.
 """
 
-import warnings
 import numpy as np
 
 
@@ -26,6 +25,8 @@ class ImageScanner(object):
     channels_first : :obj:`bool`, default=True
       Whether the channel dimension is ahead of the dimension on the height
       and width of the image.
+    use_gpu: :obj:`bool`, default=True
+      Whether the ImageScanner uses cpu mode or gpu mode.
     """
 
     def __init__(
@@ -35,12 +36,14 @@ class ImageScanner(object):
         padding=0,
         backend="numpy",
         channels_first=True,
+        use_gpu=False,
     ):
         self.kernel_size = kernel_size
         self.stride = stride
         self.padding = padding
         self.backend = backend
         self.channels_first = channels_first
+        self.use_gpu = use_gpu
 
     def _check_input(self, X):
         """Check the shape of input X."""
@@ -50,12 +53,6 @@ class ImageScanner(object):
                 "but got {} instead."
             )
             raise ValueError(err_msg.format(type(X)))
-
-        # Add the channel dim if missing
-        if len(X.shape) == 3:
-            X = np.expand_dims(X, axis=1)
-            msg = "Adding the channel dim to the input."
-            warnings.warn(msg, RuntimeWarning)
 
         if len(X.shape) != 4:
             shape_repr = "(num_samples, {}height, width{})".format(
@@ -98,6 +95,10 @@ class ImageScanner(object):
 
         X = torch.from_numpy(X)  # numpy.ndarry -> torch.tensor
 
+        if self.use_gpu:
+            # Move tensor to GPU memory
+            X = X.cuda()
+
         # Swap dims if not channels first
         if not self.channels_first:
             X = X.permute(0, 3, 1, 2)
@@ -116,12 +117,17 @@ class ImageScanner(object):
         ).contiguous()
         patch_sz = self.kernel_size
         patches = patches.view(n_samples, n_channels, -1, patch_sz, patch_sz)
-        patches = patches.permute(0, 2, 1, 3, 4)
+        patches = patches.permute(0, 2, 1, 3, 4).contiguous()
         patches = patches.view(-1, n_channels, patch_sz, patch_sz)
 
         length = patch_sz * patch_sz * n_channels  # patch size: c * W * W
         if not self.channels_first:
             patches = patches.permute(0, 2, 3, 1)
+
+        if self.use_gpu:
+            torch.cuda.synchronize()
+            # Move back
+            patches = patches.cpu()
 
         # Squeeze
         return patches.contiguous().view(-1, length).numpy()

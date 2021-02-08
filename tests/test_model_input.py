@@ -17,7 +17,8 @@ def test_model_input_label_encoder():
     model.fit(X, y)
     y_pred_int_labels = model.predict(X)
 
-    # Train model on string labels. Labels should look like: "label_1", "label_2", "label_3", ...
+    # Train model on string labels. Labels should look like:
+    #    "label_1", "label_2", "label_3", ...
     model = CascadeForestClassifier(random_state=1)
     model.fit(X, y_as_str)
     y_pred_str_labels = model.predict(X)

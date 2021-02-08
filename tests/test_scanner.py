@@ -13,7 +13,7 @@ def _prepare_data():
     results = np.zeros((9, 2, 3, 3), dtype=np.uint8)
     for i in range(3):
         for j in range(3):
-            sub_block = padding_mat[:, :, i : i + 3, j : j + 3]
+            sub_block = padding_mat[:, :, i:i + 3, j:j + 3]
             results[i * 3 + j, :, :, :] = sub_block.squeeze()
     return raw_mat, results
 
