@@ -12,3 +12,13 @@ CascadeForestClassifier
     :show-inheritance:
     :no-undoc-members:
     :member-order: bysource
+
+CascadeForestRegressor
+-----------------------
+
+.. autoclass:: deepforest.CascadeForestRegressor
+    :members:
+    :inherited-members:
+    :show-inheritance:
+    :no-undoc-members:
+    :member-order: bysource
