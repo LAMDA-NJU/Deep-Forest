@@ -296,29 +296,6 @@ __classifier_fit_doc = """
         Sample weights. If ``None``, then samples are equally weighted.
 """
 
-
-def deepforest_classifier_model_doc(header, item):
-    """
-    Decorator on obtaining documentation for deep forest models.
-
-    Parameters
-    ----------
-    header: string
-       Introduction to the decorated class or method.
-    item : string
-       Type of the docstring item.
-    """
-
-    def get_doc(item):
-        """Return the selected item."""
-        __doc = {"model": __classifier_model_doc, "fit": __classifier_fit_doc}
-        return __doc[item]
-
-    def adddoc(cls):
-        doc = [header + "\n\n"]
-        doc.extend(get_doc(item))
-
-
 __regressor_model_doc = """
     Parameters
     ----------
@@ -380,6 +357,7 @@ __regressor_model_doc = """
         :obj:`joblib.parallel_backend` context. ``-1`` means using all
         processors.
     random_state : :obj:`int` or ``None``, default=None
+
         - If :obj:``int``, ``random_state`` is the seed used by the random
           number generator;
         - If ``None``, the random number generator is the RandomState
@@ -424,7 +402,7 @@ __regressor_fit_doc = """
 """
 
 
-def deepforest_regressor_model_doc(header, item):
+def deepforest_model_doc(header, item):
     """
     Decorator on obtaining documentation for deep forest models.
 
@@ -438,12 +416,22 @@ def deepforest_regressor_model_doc(header, item):
 
     def get_doc(item):
         """Return the selected item."""
-        __doc = {"model": __regressor_model_doc, "fit": __regressor_fit_doc}
+        __doc = {
+            "regressor_model": __regressor_model_doc,
+            "regressor_fit": __regressor_fit_doc,
+            "classifier_model": __classifier_model_doc,
+            "classifier_fit": __classifier_fit_doc,
+        }
+
         return __doc[item]
 
     def adddoc(cls):
         doc = [header + "\n\n"]
         doc.extend(get_doc(item))
+        cls.__doc__ = "".join(doc)
+        return cls
+
+    return adddoc
 
 
 class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
@@ -1108,8 +1096,9 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             self.buffer_.close()
 
 
-@deepforest_classifier_model_doc(
-    """Implementation of the deep forest for classification.""", "model"
+@deepforest_model_doc(
+    """Implementation of the deep forest for classification.""",
+    "classifier_model",
 )
 class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def __init__(
@@ -1192,7 +1181,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         return msg.format(pivot * 100)
 
     @deepforest_model_doc(
-        """Build a deep forest using the training data.""", "fit"
+        """Build a deep forest using the training data.""", "classifier_fit"
     )
     def fit(self, X, y, sample_weight=None):
 
@@ -1303,8 +1292,8 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         return y
 
 
-@deepforest_regressor_model_doc(
-    """Implementation of the deep forest for regression."""
+@deepforest_model_doc(
+    """Implementation of the deep forest for regression.""", "regressor_model"
 )
 class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
     def __init__(
@@ -1350,6 +1339,12 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
     def _repr_performance(self, pivot):
         msg = "Val Acc = {:.3f}"
         return msg.format(pivot)
+
+    @deepforest_model_doc(
+        """Build a deep forest using the training data.""", "regressor_fit"
+    )
+    def fit(self, X, y, sample_weight=None):
+        super().fit(X, y, sample_weight)
 
     def predict(self, X):
         """
