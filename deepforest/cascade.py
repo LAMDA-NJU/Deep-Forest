@@ -142,8 +142,8 @@ __model_doc = """
     predictor_kwargs : :obj:`dict`, default={}
         The configuration of the predictor concatenated to the deep forest.
         Specifying this will extend/overwrite the original parameters inherit
-        from deep forest.
-        If ``use_predictor`` is False, this parameter will have no effect.
+        from deep forest. If ``use_predictor`` is False, this parameter will
+        have no effect.
     n_tolerant_rounds : :obj:`int`, default=2
         Specify when to conduct early stopping. The training process
         terminates when the validation performance on the training set does
@@ -157,6 +157,7 @@ __model_doc = """
     partial_mode : :obj:`bool`, default=False
         Whether to train the deep forest in partial mode. For large
         datasets, it is recommended to use the partial mode.
+
         - If ``True``, the partial mode is activated and all fitted
           estimators will be dumped in a local buffer;
         - If ``False``, all fitted estimators are directly stored in the
@@ -167,12 +168,14 @@ __model_doc = """
         :obj:`joblib.parallel_backend` context. ``-1`` means using all
         processors.
     random_state : :obj:`int` or ``None``, default=None
-        - If :obj:``int``, ``random_state`` is the seed used by the random
+
+        - If :obj:`int`, ``random_state`` is the seed used by the random
           number generator;
         - If ``None``, the random number generator is the RandomState
           instance used by :mod:`np.random`.
     verbose : :obj:`int`, default=1
         Controls the verbosity when fitting and predicting.
+
         - If ``<= 0``, silent mode, which means no logging information will
           be displayed;
         - If ``1``, logging information on the cascade layer level will be
@@ -182,18 +185,23 @@ __model_doc = """
 
 
 __fit_doc = """
+
     .. note::
+
         Deep forest supports two kinds of modes for training:
+
         - **Full memory mode**, in which the training / testing data and
           all fitted estimators are directly stored in the memory.
         - **Partial mode**, in which after fitting each estimator using
           the training data, it will be dumped in the buffer. During the
           evaluating stage, the dumped estimators are reloaded into the
           memory sequentially to evaluate the testing data.
+
         By setting the ``partial_mode`` to ``True``, the partial mode is
         activated, and a local buffer will be created at the current
         directory. The partial mode is able to reduce the running memory
         cost when training the deep forest.
+
     Parameters
     ----------
     X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
@@ -209,6 +217,7 @@ __fit_doc = """
 def deepforest_model_doc(header, item):
     """
     Decorator on obtaining documentation for deep forest models.
+
     Parameters
     ----------
     header: string
@@ -766,10 +775,13 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def save(self, dirname="model"):
         """
         Save the model to the specified directory.
+
         Parameters
         ----------
         dirname : :obj:`str`, default="model"
             The name of the output directory.
+
+
         .. warning::
             Other methods on model serialization such as :mod:`pickle` or
             :mod:`joblib` are not recommended, especially when ``partial_mode``
@@ -809,10 +821,13 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def load(self, dirname):
         """
         Load the model from the specified directory.
+
         Parameters
         ----------
         dirname : :obj:`str`
             The name of the input directory.
+
+
         .. note::
             The dumped model after calling :meth:`load_model` is not exactly
             the same as the model before saving, because many objects
@@ -954,11 +969,13 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def predict_proba(self, X):
         """
         Predict class probabilities for X.
+
         Parameters
         ----------
         X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
+
         Returns
         -------
         proba : :obj:`numpy.ndarray` of shape (n_samples, n_classes)
@@ -1030,11 +1047,13 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def predict(self, X):
         """
         Predict class for X.
+
         Parameters
         ----------
         X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
+
         Returns
         -------
         y : :obj:`numpy.ndarray` of shape (n_samples,)
