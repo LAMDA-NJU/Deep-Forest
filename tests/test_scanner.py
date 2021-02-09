@@ -18,9 +18,9 @@ def _prepare_data():
     return raw_mat, results
 
 
-def test_pytorch_channels_first():
+def test_numpy_backend():
 
-    scanner = ImageScanner(3, 1, 1, "torch", channels_first=True)
+    scanner = ImageScanner(3, 1, 1, "numpy")
 
     X, expected = _prepare_data()
     expected = expected.reshape(9, 18)
@@ -29,13 +29,12 @@ def test_pytorch_channels_first():
     assert_array_equal(output, expected)
 
 
-def test_pytorch_channels_last():
+def test_pytorch_backend():
 
-    scanner = ImageScanner(3, 1, 1, "torch", channels_first=False)
+    scanner = ImageScanner(3, 1, 1, "torch")
 
     X, expected = _prepare_data()
-    X = X.transpose((0, 2, 3, 1))
-    expected = expected.transpose((0, 2, 3, 1)).reshape(9, 18)
+    expected = expected.reshape(9, 18)
     output = scanner.fit_transform(X)
 
     assert_array_equal(output, expected)

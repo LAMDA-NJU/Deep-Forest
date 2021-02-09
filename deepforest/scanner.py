@@ -1,8 +1,48 @@
 """
-Implement methods on extracting structured data such as images or sequences.
+Implement methods on handling structured data such as images or sequences.
 """
 
 import numpy as np
+
+
+def _im2col_indices(X, kernel_size, stride=1, padding=1):
+    """
+    Generate image patches with fancy indexing, modified from the cs231n
+    course on computer vision.
+    """
+
+    def get_im2col_indices(shape, kernel_size, stride=1, padding=0):
+        N, C, H, W = shape
+        assert (H + 2 * padding - kernel_size) % stride == 0
+        assert (W + 2 * padding - kernel_size) % stride == 0
+        out_height = (H + 2 * padding - kernel_size) // stride + 1
+        out_width = (W + 2 * padding - kernel_size) // stride + 1
+
+        i0 = np.repeat(np.arange(kernel_size), kernel_size)
+        i0 = np.tile(i0, C)
+        i1 = stride * np.repeat(np.arange(out_height), out_width)
+        j0 = np.tile(np.arange(kernel_size), kernel_size * C)
+        j1 = stride * np.tile(np.arange(out_width), out_height)
+        i = i0.reshape(-1, 1) + i1.reshape(1, -1)
+        j = j0.reshape(-1, 1) + j1.reshape(1, -1)
+
+        k = np.repeat(np.arange(C), kernel_size * kernel_size).reshape(-1, 1)
+
+        return k, i, j
+
+    padding_X = np.pad(
+        X,
+        ((0, 0), (0, 0), (padding, padding), (padding, padding)),
+        mode='constant',
+    )
+
+    k, i, j = get_im2col_indices(X.shape, kernel_size, stride, padding)
+
+    cols = padding_X[:, k, i, j]
+    C = X.shape[1]
+    cols = cols.transpose(1, 2, 0).reshape(kernel_size * kernel_size * C, -1)
+
+    return cols
 
 
 class ImageScanner(object):
@@ -14,19 +54,17 @@ class ImageScanner(object):
 
     Parameters
     ----------
-    kernel_size : :obj:`int` or :obj:`tuple`
+    kernel_size : :obj:`int`
       The size of the sliding blocks.
-    stride : :obj:`int` or :obj:`tuple`, default=1
+    stride : :obj:`int`, default=1
       The stride of the sliding blocks in the input spatial dimensions.
-    padding : :obj:`int` or :obj:`tuple`, default=0
+    padding : :obj:`int`, default=0
       Implicit zero padding to be added on both sides of input.
     backend : :obj:`{"numpy", "torch"}`, default="numpy"
       The backend used to extract image patches.
-    channels_first : :obj:`bool`, default=True
-      Whether the channel dimension is ahead of the dimension on the height
-      and width of the image.
     use_gpu: :obj:`bool`, default=True
-      Whether the ImageScanner uses cpu mode or gpu mode.
+      Whether the ImageScanner uses cpu mode or gpu mode. This parameter has
+      no effect when using the ``numpy`` backend.
     """
 
     def __init__(
@@ -35,14 +73,12 @@ class ImageScanner(object):
         stride=1,
         padding=0,
         backend="numpy",
-        channels_first=True,
         use_gpu=False,
     ):
         self.kernel_size = kernel_size
         self.stride = stride
         self.padding = padding
         self.backend = backend
-        self.channels_first = channels_first
         self.use_gpu = use_gpu
 
     def _check_input(self, X):
@@ -54,19 +90,19 @@ class ImageScanner(object):
             )
             raise ValueError(err_msg.format(type(X)))
 
+        # Add the channel dimension if missing
+        if len(X.shape) == 3:
+            X = np.expand_dims(X, 1)
+
         if len(X.shape) != 4:
-            shape_repr = "(num_samples, {}height, width{})".format(
-                "channels, " if self.channels_first else "",
-                "" if self.channels_first else ", channels",
+            msg = (
+                "ImageScanner now only supports 4-dim data of shape:"
+                " (n_samples, n_channels, height, width)."
             )
-            msg = "ImageScanner now only supports 4-dim data of shape: {}"
-            raise ValueError(msg.format(shape_repr))
+            raise ValueError(msg)
 
         # Set attributes for the scanner
-        if self.channels_first:
-            _, self.n_channels, self.height, self.width = X.shape
-        else:
-            _, self.height, self.width, self.n_channels = X.shape
+        _, self.n_channels, self.height, self.width = X.shape
 
     def _torch_transform(self, X):
         """
@@ -74,13 +110,13 @@ class ImageScanner(object):
 
         Parameters
         ----------
-        X: :obj:`torch.Tensor`
+        X : :obj:`numpy.ndarray`
           The input image datasets, the shape should be ``(n_samples,
           n_channels, height, width)``.
 
         Returns
         -------
-        patches : obj:`numpy.ndarray
+        patches : obj:`numpy.ndarray`
           The generated image patches.
         """
         try:
@@ -98,10 +134,6 @@ class ImageScanner(object):
         if self.use_gpu:
             # Move tensor to GPU memory
             X = X.cuda()
-
-        # Swap dims if not channels first
-        if not self.channels_first:
-            X = X.permute(0, 3, 1, 2)
 
         # Padding with 0
         padding_wrapper = torch.nn.ZeroPad2d(self.padding)
@@ -121,8 +153,6 @@ class ImageScanner(object):
         patches = patches.view(-1, n_channels, patch_sz, patch_sz)
 
         length = patch_sz * patch_sz * n_channels  # patch size: c * W * W
-        if not self.channels_first:
-            patches = patches.permute(0, 2, 3, 1)
 
         if self.use_gpu:
             torch.cuda.synchronize()
@@ -138,11 +168,20 @@ class ImageScanner(object):
 
         Parameters
         ----------
-        X: :obj:`numpy.ndarray`
+        X : :obj:`numpy.ndarray`
           The input image datasets, the shape should be ``(n_samples,
           n_channels, height, width)``.
+
+        Returns
+        -------
+        patches : obj:`numpy.ndarray`
+          The generated image patches.
         """
-        pass
+        patches = _im2col_indices(
+            X, self.kernel_size, self.padding, self.stride
+        )
+
+        return np.transpose(patches, (1, 0))
 
     def fit_transform(self, X):
         """
@@ -151,15 +190,15 @@ class ImageScanner(object):
 
         Parameters
         ----------
-        X: :obj:`numpy.ndarray`
-          The input image datasets of the shape ``(N, H, W)``,
-          ``(N, C, H, W)``, or ``(N, H, W, C)``, where ``N`` is the number of
-          images, ``C`` is the number of color channels, ``H`` is the height
-          of image, and ``W`` is the width of image.
+        X : :obj:`numpy.ndarray`
+          The input image datasets of the shape ``(N, H, W)`` or
+          ``(N, C, H, W)``, where ``N`` is the number of images, ``C`` is the
+          number of color channels, ``H`` is the height of image, and ``W``
+          is the width of image.
 
         Returns
         -------
-        patches : obj:`numpy.ndarray
+        patches : :obj:`numpy.ndarray`
           The generated image patches.
         """
         self._check_input(X)
@@ -183,27 +222,20 @@ class ImageScanner(object):
 
         Parameters
         ----------
-        X: :obj:`numpy.ndarray`
-          The input image datasets of the shape ``(N, H, W)``,
-          ``(N, C, H, W)``, or ``(N, H, W, C)``, where ``N`` is the number of
-          images, ``C`` is the number of color channels, ``H`` is the height
-          of image, and ``W`` is the width of image.
+        X : :obj:`numpy.ndarray`
+          The input image datasets of the shape ``(N, H, W)`` or
+          ``(N, C, H, W)``, where ``N`` is the number of images, ``C`` is the
+          number of color channels, ``H`` is the height of image, and ``W``
+          is the width of image.
 
         Returns
         -------
-        patches : obj:`numpy.ndarray
+        patches : :obj:`numpy.ndarray`
           The generated image patches.
         """
         # Check the consistency between X and the training data on scanner.
         if not (
-            self.channels_first
-            and X.shape
-            == (X.shape[0], self.n_channels, self.height, self.width)
-            or (
-                (not self.channels_first)
-                and X.shape
-                == (X.shape[0], self.height, self.width, self.n_channels)
-            )
+            X.shape == (X.shape[0], self.n_channels, self.height, self.width)
         ):
             err_msg = (
                 "Invalid input to `transform`. Pleased check whether"
