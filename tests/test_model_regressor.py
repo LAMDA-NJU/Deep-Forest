@@ -2,19 +2,19 @@ import copy
 import pytest
 import shutil
 import numpy as np
-from numpy.testing import assert_array_equal, assert_raises
-from sklearn.datasets import load_iris
+from numpy.testing import assert_array_equal
+from sklearn.datasets import load_boston
 from sklearn.model_selection import train_test_split
 
 import deepforest
-from deepforest import CascadeForestClassifier
+from deepforest import CascadeForestRegressor
 from deepforest.cascade import _get_predictor_kwargs
 
 
 save_dir = "./tmp"
 
 # Load data
-X, y = load_iris(return_X_y=True)
+X, y = load_boston(return_X_y=True)
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.42, random_state=42
 )
@@ -80,7 +80,7 @@ def test_predictor_kwargs_overwrite(test_input, expected):
 
 def test_model_properties_after_fitting():
     """Check the model properties after fitting a deep forest model."""
-    model = CascadeForestClassifier(**toy_kwargs)
+    model = CascadeForestRegressor(**toy_kwargs)
     model.fit(X_train, y_train)
 
     assert len(model) == model.n_layers_
@@ -103,24 +103,6 @@ def test_model_properties_after_fitting():
         model._set_binner(0, None)
     assert "already exists in the internal container" in str(excinfo.value)
 
-    # Test the hook on forest estimator
-    assert (
-        model.get_forest(0, 0, "rf")
-        is model._get_layer(0).estimators_["0-0-rf"].estimator_
-    )
-
-    with pytest.raises(ValueError) as excinfo:
-        model.get_forest(model.n_layers_, 0, "rf")
-    assert "`layer_idx` should be in the range" in str(excinfo.value)
-
-    with pytest.raises(ValueError) as excinfo:
-        model.get_forest(0, model.n_estimators, "rf")
-    assert "`est_idx` should be in the range" in str(excinfo.value)
-
-    with pytest.raises(ValueError) as excinfo:
-        model.get_forest(0, 0, "Unknown")
-    assert "`forest_type` should be one of" in str(excinfo.value)
-
 
 def test_model_workflow_partial_mode():
     """Run the workflow of deep forest with a local buffer."""
@@ -128,20 +110,20 @@ def test_model_workflow_partial_mode():
     case_kwargs = copy.deepcopy(kwargs)
     case_kwargs.update({"partial_mode": True})
 
-    model = CascadeForestClassifier(**case_kwargs)
+    model = CascadeForestRegressor(**case_kwargs)
     model.fit(X_train, y_train)
 
     # Predictions before saving
-    y_pred_before = model.predict(X_test)
+    y_pred_before = model.predict(X_test).astype(np.float32)
 
     # Save and Reload
     model.save(save_dir)
 
-    model = CascadeForestClassifier(**case_kwargs)
+    model = CascadeForestRegressor(**case_kwargs)
     model.load(save_dir)
 
     # Predictions after loading
-    y_pred_after = model.predict(X_test)
+    y_pred_after = model.predict(X_test).astype(np.float32)
 
     # Make sure the same predictions before and after model serialization
     assert_array_equal(y_pred_before, y_pred_after)
@@ -150,61 +132,26 @@ def test_model_workflow_partial_mode():
     shutil.rmtree(save_dir)
 
 
-def test_model_sample_weight():
-    """Run the workflow of deep forest with a local buffer."""
-
-    case_kwargs = copy.deepcopy(kwargs)
-
-    # Training without sample_weight
-    model = CascadeForestClassifier(**case_kwargs)
-    model.fit(X_train, y_train)
-    y_pred_no_sample_weight = model.predict(X_test)
-
-    # Training with equal sample_weight
-    model = CascadeForestClassifier(**case_kwargs)
-    sample_weight = np.ones(y_train.size)
-    model.fit(X_train, y_train, sample_weight=sample_weight)
-    y_pred_equal_sample_weight = model.predict(X_test)
-
-    # Make sure the same predictions with None and equal sample_weight
-    assert_array_equal(y_pred_no_sample_weight, y_pred_equal_sample_weight)
-
-    model = CascadeForestClassifier(**case_kwargs)
-    sample_weight = np.where(y_train == 0, 0.1, y_train)
-    model.fit(X_train, y_train, sample_weight=y_train)
-    y_pred_skewed_sample_weight = model.predict(X_test)
-
-    # Make sure the different predictions with None and equal sample_weight
-    assert_raises(
-        AssertionError,
-        assert_array_equal,
-        y_pred_skewed_sample_weight,
-        y_pred_equal_sample_weight,
-    )
-
-    model.clean()  # clear the buffer
-
-
 def test_model_workflow_in_memory():
     """Run the workflow of deep forest with in-memory mode."""
 
     case_kwargs = copy.deepcopy(kwargs)
     case_kwargs.update({"partial_mode": False})
 
-    model = CascadeForestClassifier(**case_kwargs)
+    model = CascadeForestRegressor(**case_kwargs)
     model.fit(X_train, y_train)
 
     # Predictions before saving
-    y_pred_before = model.predict(X_test)
+    y_pred_before = model.predict(X_test).astype(np.float32)
 
     # Save and Reload
     model.save(save_dir)
 
-    model = CascadeForestClassifier(**case_kwargs)
+    model = CascadeForestRegressor(**case_kwargs)
     model.load(save_dir)
 
     # Make sure the same predictions before and after model serialization
-    y_pred_after = model.predict(X_test)
+    y_pred_after = model.predict(X_test).astype(np.float32)
 
     assert_array_equal(y_pred_before, y_pred_after)
 
@@ -223,7 +170,7 @@ def test_model_invalid_training_params(param):
     case_kwargs = copy.deepcopy(toy_kwargs)
     case_kwargs.update(param[1])
 
-    model = CascadeForestClassifier(**case_kwargs)
+    model = CascadeForestRegressor(**case_kwargs)
 
     with pytest.raises(ValueError) as excinfo:
         model.fit(X_train, y_train)
@@ -237,13 +184,15 @@ def test_model_invalid_training_params(param):
 
 
 @pytest.mark.parametrize("predictor", ["forest", "xgboost", "lightgbm"])
-def test_predictor_normal(predictor):
-    deepforest.cascade._build_predictor(predictor, n_estimators=1, n_outputs=2)
+def test_regressor_predictor_normal(predictor):
+    deepforest.cascade._build_regressor_predictor(
+        predictor, n_estimators=1, n_outputs=2
+    )
 
 
-def test_predictor_unknown():
+def test_regressor_predictor_unknown():
     with pytest.raises(NotImplementedError) as excinfo:
-        deepforest.cascade._build_predictor(
+        deepforest.cascade._build_regressor_predictor(
             "unknown", n_estimators=1, n_outputs=2
         )
     assert "name of the predictor should be one of" in str(excinfo.value)
@@ -252,7 +201,7 @@ def test_predictor_unknown():
 def test_model_n_trees_non_positive():
     case_kwargs = copy.deepcopy(toy_kwargs)
     case_kwargs.update({"n_trees": 0})
-    model = CascadeForestClassifier(**case_kwargs)
+    model = CascadeForestRegressor(**case_kwargs)
     with pytest.raises(ValueError) as excinfo:
         model._set_n_trees(0)
     assert "should be strictly positive." in str(excinfo.value)
@@ -261,7 +210,7 @@ def test_model_n_trees_non_positive():
 def test_model_n_trees_auto():
     case_kwargs = copy.deepcopy(toy_kwargs)
     case_kwargs.update({"n_trees": "auto"})
-    model = CascadeForestClassifier(**case_kwargs)
+    model = CascadeForestRegressor(**case_kwargs)
 
     n_trees = model._set_n_trees(0)
     assert n_trees == 100
@@ -276,7 +225,7 @@ def test_model_n_trees_auto():
 def test_model_n_trees_invalid():
     case_kwargs = copy.deepcopy(toy_kwargs)
     case_kwargs.update({"n_trees": [42]})
-    model = CascadeForestClassifier(**case_kwargs)
+    model = CascadeForestRegressor(**case_kwargs)
     with pytest.raises(ValueError) as excinfo:
         model._set_n_trees(0)
     assert "Invalid value for n_trees." in str(excinfo.value)

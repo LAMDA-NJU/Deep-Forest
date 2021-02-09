@@ -31,6 +31,7 @@ Version 0.1.*
 .. |Fix| replace:: :raw-html:`<span class="badge badge-danger">Fix</span>` :raw-latex:`{\small\sc [Fix]}`
 .. |API| replace:: :raw-html:`<span class="badge badge-warning">API Change</span>` :raw-latex:`{\small\sc [API Change]}`
 
+- |Feature| support regression prediction (`#25 <https://github.com/LAMDA-NJU/Deep-Forest/issues/25>`__) @tczhao
 - |Fix| fix accepted data types on the :obj:`binner` (`#23 <https://github.com/LAMDA-NJU/Deep-Forest/pull/23>`__) @xuyxu
 - |Feature| implement the :meth:`get_forest` method for efficient indexing (`#22 <https://github.com/LAMDA-NJU/Deep-Forest/pull/22>`__) @xuyxu
 - |Feature| support class label encoding (`#18 <https://github.com/LAMDA-NJU/Deep-Forest/pull/18>`__) @NiMaZi

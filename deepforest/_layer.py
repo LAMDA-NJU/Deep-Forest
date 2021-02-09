@@ -4,7 +4,7 @@
 __all__ = ["Layer"]
 
 import numpy as np
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, mean_squared_error
 
 from . import _utils
 from ._estimator import Estimator
@@ -56,6 +56,7 @@ class Layer(object):
         n_jobs=None,
         random_state=None,
         verbose=1,
+        is_classifier=True,
     ):
         self.layer_idx = layer_idx
         self.n_classes = n_classes
@@ -68,7 +69,7 @@ class Layer(object):
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.verbose = verbose
-
+        self.is_classifier = is_classifier
         # Internal container
         self.estimators_ = {}
 
@@ -93,6 +94,7 @@ class Layer(object):
             min_samples_leaf=self.min_samples_leaf,
             n_jobs=self.n_jobs,
             random_state=random_state,
+            is_classifier=self.is_classifier,
         )
 
         return estimator
@@ -113,7 +115,10 @@ class Layer(object):
         n_samples, _ = X.shape
 
         X_aug = []
-        oob_decision_function = np.zeros((n_samples, self.n_classes))
+        if self.is_classifier:
+            oob_decision_function = np.zeros((n_samples, self.n_classes))
+        else:
+            oob_decision_function = np.zeros((n_samples, 1))
 
         # A random forest and an extremely random forest will be fitted
         for estimator_idx in range(self.n_estimators // 2):
@@ -154,18 +159,29 @@ class Layer(object):
 
         # Set the OOB estimations and validation accuracy
         self.oob_decision_function_ = oob_decision_function / self.n_estimators
-        y_pred = np.argmax(oob_decision_function, axis=1)
-        self.val_acc_ = accuracy_score(y, y_pred, sample_weight=sample_weight)
+        if self.is_classifier:
+            y_pred = np.argmax(oob_decision_function, axis=1)
+            self.val_acc_ = accuracy_score(
+                y, y_pred, sample_weight=sample_weight
+            )
+        else:
+            y_pred = self.oob_decision_function_
+            self.val_acc_ = mean_squared_error(
+                y, y_pred, sample_weight=sample_weight
+            )
 
         X_aug = np.hstack(X_aug)
         return X_aug
 
-    def transform(self, X):
+    def transform(self, X, is_classifier):
         """
         Return the concatenated transformation results from all base
         estimators."""
         n_samples, _ = X.shape
-        X_aug = np.zeros((n_samples, self.n_classes * self.n_estimators))
+        if is_classifier:
+            X_aug = np.zeros((n_samples, self.n_classes * self.n_estimators))
+        else:
+            X_aug = np.zeros((n_samples, self.n_estimators))
         for idx, (key, estimator) in enumerate(self.estimators_.items()):
             if self.verbose > 1:
                 msg = "{} - Evaluating estimator = {:<5} in layer = {}"
@@ -175,8 +191,11 @@ class Layer(object):
                 # Load the estimator from the buffer
                 estimator = self.buffer.load_estimator(estimator)
 
-            left, right = self.n_classes * idx, self.n_classes * (idx + 1)
-            X_aug[:, left:right] += estimator.transform(X)
+            if is_classifier:
+                left, right = self.n_classes * idx, self.n_classes * (idx + 1)
+            else:
+                left, right = idx, (idx + 1)
+            X_aug[:, left:right] += estimator.predict(X)
 
         return X_aug
 
@@ -193,6 +212,8 @@ class Layer(object):
                 # Load the estimator from the buffer
                 estimator = self.buffer.load_estimator(estimator)
 
+            if not self.is_classifier:
+                return estimator.predict(X)
             left, right = self.n_classes * idx, self.n_classes * (idx + 1)
             pred[:, left:right] += estimator.predict(X)
 
