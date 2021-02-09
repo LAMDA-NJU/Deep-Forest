@@ -10,4 +10,5 @@ omit =
 	*/deepforest/tree/setup.py
 	*/deepforest/__init__.py
 	*/deepforest/tree/__init__.py
+	*/deepforest/preprocessing/__init__.py
     */deepforest/tests/*
