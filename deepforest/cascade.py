@@ -1348,7 +1348,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
 
     def predict(self, X):
         """
-        Predict class for X.
+        Predict regression target for X.
 
         Parameters
         ----------
