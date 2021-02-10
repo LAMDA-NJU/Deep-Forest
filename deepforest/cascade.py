@@ -495,7 +495,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         if is_classifier(self):
             n_output = np.unique(y).shape[0]  # classification
             return n_output
-        return y.shape[0]
+        return 1  # this parameter are not used in regression
 
     def _get_layer(self, layer_idx):
         """Get the layer from the internal container according to the index."""
