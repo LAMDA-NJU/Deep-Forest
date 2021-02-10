@@ -2,7 +2,7 @@ Experiments
 ===========
 
 Baseline
-********
+--------
 For all experiments, we used 5 popular tree-based ensemble methods as baselines. Details on the baselines are listed in the following table:
 
 +------------------+---------------------------------------------------------------+
@@ -20,7 +20,7 @@ For all experiments, we used 5 popular tree-based ensemble methods as baselines.
 +------------------+---------------------------------------------------------------+
 
 Environment
-***********
+-----------
 For all experiments, we used a single linux server. Details on the specifications are listed in the table below. All processors were used for training and evaluating.
 
 +------------------+-----------------+--------+
@@ -30,8 +30,11 @@ For all experiments, we used a single linux server. Details on the specification
 +------------------+-----------------+--------+
 
 Setting
-*******
+-------
 We kept the number of decision trees the same across all baselines, while remaining hyper-parameters were set to their default values. Running scripts on reproducing all experiment results are available, please refer to this `Repo`_.
+
+Classification
+--------------
 
 Dataset
 *******
@@ -137,6 +140,60 @@ Some observations are listed as follow:
 * Histogram-based GBDT (e.g., :class:`HGBDT`, :class:`XGB HIST`, :class:`LightGBM`) are typically faster mainly because decision tree in GBDT tends to have a much smaller tree depth;
 * With the number of input dimensions increasing (e.g., on mnist and fashion-mnist), random forest and deep forest can be faster.
 
+Regression
+----------
+
+Dataset
+*******
+
+We have also collected four datasets on univariate regression for a comparison on the regression problem.
+
++------------------+------------+-----------+------------+
+|       Name       | # Training | # Testing | # Features |
++==================+============+===========+============+
+|     `abalone`_   |    2,799   |   1,378   |      8     |
++------------------+------------+-----------+------------+
+|    `cpusmall`_   |    5,489   |   2,703   |     12     |
++------------------+------------+-----------+------------+
+|     `boston`_    |     379    |    127    |     13     |
++------------------+------------+-----------+------------+
+|    `diabetes`_   |     303    |    139    |     10     |
++------------------+------------+-----------+------------+
+
+Testing Mean Squared Error
+**************************
+
+The table below shows the testing mean squared error of each method, with the best result on each dataset **bolded**. Each experiment was conducted over 5 independently trials, and the average result was reported.
+
++----------+-----------+---------+-----------+----------+----------+-------------+
+|   Name   |     RF    |  HGBDT  | XGB EXACT | XGB HIST | LightGBM | Deep Forest |
++==========+===========+=========+===========+==========+==========+=============+
+|  abalone |    4.79   |   5.40  |    5.73   |   5.75   |   5.60   |   **4.66**  |
++----------+-----------+---------+-----------+----------+----------+-------------+
+| cpusmall |    8.31   |   9.01  |    9.86   |   11.82  |   8.99   |   **7.15**  |
++----------+-----------+---------+-----------+----------+----------+-------------+
+|  boston  | **16.61** |  20.68  |   20.61   |   19.65  |   20.27  |    19.87    |
++----------+-----------+---------+-----------+----------+----------+-------------+
+| diabetes |  3796.62  | 4333.66 |  4337.15  |  4303.96 |  4435.95 | **3431.01** |
++----------+-----------+---------+-----------+----------+----------+-------------+
+
+Runtime
+*******
+
+Runtime in seconds reported in the table below covers both the training stage and evaluating stage.
+
++----------+------+-------+-----------+----------+----------+-------------+
+|   Name   |  RF  | HGBDT | XGB EXACT | XGB HIST | LightGBM | Deep Forest |
++==========+======+=======+===========+==========+==========+=============+
+|  abalone | 0.53 |  1.57 |    0.47   |   0.50   |   0.17   |     1.29    |
++----------+------+-------+-----------+----------+----------+-------------+
+| cpusmall | 1.87 |  3.59 |    1.71   |   1.25   |   0.36   |     2.06    |
++----------+------+-------+-----------+----------+----------+-------------+
+|  boston  | 0.70 |  1.75 |    0.19   |   0.22   |   0.20   |     1.45    |
++----------+------+-------+-----------+----------+----------+-------------+
+| diabetes | 0.37 |  0.66 |    0.14   |   0.18   |   0.06   |     1.09    |
++----------+------+-------+-----------+----------+----------+-------------+
+
 .. _`Random Forest`: https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
 
 .. _`HGBDT`: https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html
@@ -170,3 +227,11 @@ Some observations are listed as follow:
 .. _`mnist`: https://keras.io/api/datasets/mnist/
 
 .. _`fashion mnist`: https://keras.io/api/datasets/fashion_mnist/
+
+.. _`abalone`: https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression.html#abalone
+
+.. _`cpusmall`: https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression.html#cpusmall
+
+.. _`boston`: https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_boston.html
+
+.. _`diabetes`: https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_diabetes.html
