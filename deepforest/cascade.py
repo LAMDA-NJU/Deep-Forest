@@ -1267,7 +1267,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             predictor = self.buffer_.load_predictor(self.predictor_)
             proba = predictor.predict_proba(X_middle_test_)
         else:
-            proba = layer.predict_full(X_middle_test_)
+            proba = layer.predict_full(X_middle_test_, is_classifier(self))
             proba = _utils.merge_proba(proba, self.n_outputs_)
 
         return proba
@@ -1423,8 +1423,6 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
             predictor = self.buffer_.load_predictor(self.predictor_)
             _y = predictor.predict(X_middle_test_)
         else:
-            _y = layer.predict_full(X_middle_test_)
-            if is_classifier(self):
-                _y = _utils.merge_proba(_y, self.n_outputs_)
-
+            _y = layer.predict_full(X_middle_test_, is_classifier(self))
+            _y = _y.sum(axis=1) / _y.shape[1]
         return _y

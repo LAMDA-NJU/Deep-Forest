@@ -5,7 +5,7 @@ from deepforest._estimator import Estimator
 
 # Load utils
 from sklearn.ensemble._hist_gradient_boosting.binning import _BinMapper
-from sklearn.datasets import load_digits
+from sklearn.datasets import load_digits, load_boston
 from sklearn.model_selection import train_test_split
 
 
@@ -43,11 +43,11 @@ estimator_kwargs = {
 }
 
 
-def test_layer_properties_after_fitting():
+def test_classifier_layer_properties_after_fitting():
 
     layer = Layer(**layer_kwargs)
     X_aug = layer.fit_transform(X_train, y_train)
-    y_pred_full = layer.predict_full(X_test)
+    y_pred_full = layer.predict_full(X_test, is_classifier=True)
 
     # n_trees
     assert (
@@ -57,6 +57,32 @@ def test_layer_properties_after_fitting():
 
     # Output dim
     expect_dim = 2 * layer_kwargs["n_classes"] * layer_kwargs["n_estimators"]
+    assert X_aug.shape[1] == expect_dim
+    assert y_pred_full.shape[1] == expect_dim
+
+
+def test_regressor_layer_properties_after_fitting():
+    # Load data and binning
+    X, y = load_boston(return_X_y=True)
+    binner = _BinMapper(random_state=142)
+    X_binned = binner.fit_transform(X)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_binned, y, test_size=0.42, random_state=42
+    )
+    layer = Layer(**layer_kwargs)
+    layer.is_classifier = False
+    X_aug = layer.fit_transform(X_train, y_train)
+    y_pred_full = layer.predict_full(X_test, is_classifier=False)
+
+    # n_trees
+    assert (
+        layer.n_trees_
+        == 2 * layer_kwargs["n_estimators"] * layer_kwargs["n_trees"]
+    )
+
+    # Output dim
+    expect_dim = 2 * layer_kwargs["n_estimators"]
     assert X_aug.shape[1] == expect_dim
     assert y_pred_full.shape[1] == expect_dim
 

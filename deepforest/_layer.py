@@ -199,10 +199,13 @@ class Layer(object):
 
         return X_aug
 
-    def predict_full(self, X):
+    def predict_full(self, X, is_classifier):
         """Return the concatenated predictions from all base estimators."""
         n_samples, _ = X.shape
-        pred = np.zeros((n_samples, self.n_classes * self.n_estimators))
+        if is_classifier:
+            pred = np.zeros((n_samples, self.n_classes * self.n_estimators))
+        else:
+            pred = np.zeros((n_samples, self.n_estimators))
         for idx, (key, estimator) in enumerate(self.estimators_.items()):
             if self.verbose > 1:
                 msg = "{} - Evaluating estimator = {:<5} in layer = {}"
@@ -212,9 +215,10 @@ class Layer(object):
                 # Load the estimator from the buffer
                 estimator = self.buffer.load_estimator(estimator)
 
-            if not self.is_classifier:
-                return estimator.predict(X)
-            left, right = self.n_classes * idx, self.n_classes * (idx + 1)
+            if is_classifier:
+                left, right = self.n_classes * idx, self.n_classes * (idx + 1)
+            else:
+                left, right = idx, (idx + 1)
             pred[:, left:right] += estimator.predict(X)
 
         return pred

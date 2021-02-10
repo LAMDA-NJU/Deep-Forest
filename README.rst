@@ -74,11 +74,9 @@ Quickstart
     model = CascadeForestRegressor(random_state=1)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    print(y_pred.shape)
-    print(y_test.shape)
     acc = mean_squared_error(y_test, y_pred)
     print("\nTesting MSE: {:.3f}".format(acc))
-    >>> Testing MSE: 9.245
+    >>> Testing MSE: 8.068
 
 Resources
 ---------
