@@ -358,7 +358,7 @@ __regressor_model_doc = """
         processors.
     random_state : :obj:`int` or ``None``, default=None
 
-        - If :obj:``int``, ``random_state`` is the seed used by the random
+        - If :obj:`int`, ``random_state`` is the seed used by the random
           number generator;
         - If ``None``, the random number generator is the RandomState
           instance used by :mod:`np.random`.
