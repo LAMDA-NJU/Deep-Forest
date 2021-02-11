@@ -1,7 +1,7 @@
 """Implementation of Deep Forest."""
 
 
-__all__ = ["CascadeForestClassifier"]
+__all__ = ["CascadeForestClassifier", "CascadeForestRegressor"]
 
 import time
 import numbers
@@ -9,7 +9,8 @@ import numpy as np
 from abc import ABCMeta, abstractmethod
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.multiclass import type_of_target
-from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
+from sklearn.base import is_classifier
 
 from . import _utils
 from . import _io
@@ -25,7 +26,7 @@ def _get_predictor_kwargs(predictor_kwargs, **kwargs) -> dict:
     return predictor_kwargs
 
 
-def _build_predictor(
+def _build_classifier_predictor(
     predictor_name,
     n_estimators,
     n_outputs,
@@ -107,7 +108,89 @@ def _build_predictor(
     return predictor
 
 
-__model_doc = """
+def _build_regressor_predictor(
+    predictor_name,
+    n_estimators,
+    n_outputs,
+    max_depth=None,
+    min_samples_leaf=1,
+    n_jobs=None,
+    random_state=None,
+    predictor_kwargs={},
+):
+    """Build the predictor concatenated to the deep forest."""
+    predictor_name = predictor_name.lower()
+
+    # Random Forest
+    if predictor_name == "forest":
+        from .forest import RandomForestRegressor
+
+        predictor = RandomForestRegressor(
+            **_get_predictor_kwargs(
+                predictor_kwargs,
+                n_estimators=n_estimators,
+                max_depth=max_depth,
+                min_samples_leaf=min_samples_leaf,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
+        )
+    # XGBoost
+    elif predictor_name == "xgboost":
+        try:
+            xgb = __import__("xgboost.sklearn")
+        except ModuleNotFoundError:
+            msg = (
+                "Cannot load the module XGBoost when building the predictor."
+                " Please make sure that XGBoost is installed."
+            )
+            raise ModuleNotFoundError(msg)
+
+        # The argument `tree_method` is always set as `hist` for XGBoost,
+        # because the exact mode of XGBoost is too slow.
+        objective = "reg:squarederror"
+        predictor = xgb.sklearn.XGBRegressor(
+            **_get_predictor_kwargs(
+                predictor_kwargs,
+                objective=objective,
+                n_estimators=n_estimators,
+                tree_method="hist",
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
+        )
+    # LightGBM
+    elif predictor_name == "lightgbm":
+        try:
+            lgb = __import__("lightgbm.sklearn")
+        except ModuleNotFoundError:
+            msg = (
+                "Cannot load the module LightGBM when building the predictor."
+                " Please make sure that LightGBM is installed."
+            )
+            raise ModuleNotFoundError(msg)
+
+        objective = "regression"
+        predictor = lgb.LGBMRegressor(
+            **_get_predictor_kwargs(
+                predictor_kwargs,
+                objective=objective,
+                n_estimators=n_estimators,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
+        )
+    else:
+        msg = (
+            "The name of the predictor should be one of {{forest, xgboost,"
+            " lightgbm}}, but got {} instead."
+        )
+        raise NotImplementedError(msg.format(predictor_name))
+
+    return predictor
+
+
+__classifier_model_doc = """
     Parameters
     ----------
     n_bins : :obj:`int`, default=255
@@ -184,7 +267,7 @@ __model_doc = """
 """
 
 
-__fit_doc = """
+__classifier_fit_doc = """
 
     .. note::
 
@@ -213,6 +296,111 @@ __fit_doc = """
         Sample weights. If ``None``, then samples are equally weighted.
 """
 
+__regressor_model_doc = """
+    Parameters
+    ----------
+    n_bins : :obj:`int`, default=255
+        The number of bins used for non-missing values. In addition to the
+        ``n_bins`` bins, one more bin is reserved for missing values. Its
+        value must be no smaller than 2 and no greater than 255.
+    bin_subsample : :obj:`int`, default=2e5
+        The number of samples used to construct feature discrete bins. If
+        the size of training set is smaller than ``bin_subsample``, then all
+        training samples will be used.
+    max_layers : :obj:`int`, default=20
+        The maximum number of cascade layers in the deep forest. Notice that
+        the actual number of layers can be smaller than ``max_layers`` because
+        of the internal early stopping stage.
+    n_estimators : :obj:`int`, default=2
+        The number of estimator in each cascade layer. It will be multiplied
+        by 2 internally because each estimator contains a
+        :class:`RandomForestRegressor` and a :class:`ExtraTreesRegressor`,
+        respectively.
+    n_trees : :obj:`int`, default=100
+        The number of trees in each estimator.
+    max_depth : :obj:`int`, default=None
+        The maximum depth of each tree. ``None`` indicates no constraint.
+    min_samples_leaf : :obj:`int`, default=1
+        The minimum number of samples required to be at a leaf node.
+    use_predictor : :obj:`bool`, default=False
+        Whether to build the predictor concatenated to the deep forest. Using
+        the predictor may improve the performance of deep forest.
+    predictor : :obj:`{"forest", "xgboost", "lightgbm"}`, default="forest"
+        The type of the predictor concatenated to the deep forest. If
+        ``use_predictor`` is False, this parameter will have no effect.
+    predictor_kwargs : :obj:`dict`, default={}
+        The configuration of the predictor concatenated to the deep forest.
+        Specifying this will extend/overwrite the original parameters inherit
+        from deep forest.
+        If ``use_predictor`` is False, this parameter will have no effect.
+    n_tolerant_rounds : :obj:`int`, default=2
+        Specify when to conduct early stopping. The training process
+        terminates when the validation performance on the training set does
+        not improve compared against the best validation performance achieved
+        so far for ``n_tolerant_rounds`` rounds.
+    delta : :obj:`float`, default=1e-5
+        Specify the threshold on early stopping. The counting on
+        ``n_tolerant_rounds`` is triggered if the performance of a fitted
+        cascade layer does not improve by ``delta`` compared against the best
+        validation performance achieved so far.
+    partial_mode : :obj:`bool`, default=False
+        Whether to train the deep forest in partial mode. For large
+        datasets, it is recommended to use the partial mode.
+
+        - If ``True``, the partial mode is activated and all fitted
+          estimators will be dumped in a local buffer;
+        - If ``False``, all fitted estimators are directly stored in the
+          memory.
+    n_jobs : :obj:`int` or ``None``, default=None
+        The number of jobs to run in parallel for both :meth:`fit` and
+        :meth:`predict`. None means 1 unless in a
+        :obj:`joblib.parallel_backend` context. ``-1`` means using all
+        processors.
+    random_state : :obj:`int` or ``None``, default=None
+
+        - If :obj:`int`, ``random_state`` is the seed used by the random
+          number generator;
+        - If ``None``, the random number generator is the RandomState
+          instance used by :mod:`np.random`.
+    verbose : :obj:`int`, default=1
+        Controls the verbosity when fitting and predicting.
+
+        - If ``<= 0``, silent mode, which means no logging information will
+          be displayed;
+        - If ``1``, logging information on the cascade layer level will be
+          displayed;
+        - If ``> 1``, full logging information will be displayed.
+"""
+
+__regressor_fit_doc = """
+
+    .. note::
+
+        Deep forest supports two kinds of modes for training:
+
+        - **Full memory mode**, in which the training / testing data and
+          all fitted estimators are directly stored in the memory.
+        - **Partial mode**, in which after fitting each estimator using
+          the training data, it will be dumped in the buffer. During the
+          evaluating stage, the dumped estimators are reloaded into the
+          memory sequentially to evaluate the testing data.
+
+        By setting the ``partial_mode`` to ``True``, the partial mode is
+        activated, and a local buffer will be created at the current
+        directory. The partial mode is able to reduce the running memory
+        cost when training the deep forest.
+
+    Parameters
+    ----------
+    X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+        The training data. Internally, it will be converted to
+        ``np.uint8``.
+    y : :obj:`numpy.ndarray` of shape (n_samples,)
+        The target of input samples.
+    sample_weight : :obj:`numpy.ndarray` of shape (n_samples,), default=None
+        Sample weights. If ``None``, then samples are equally weighted.
+"""
+
 
 def deepforest_model_doc(header, item):
     """
@@ -228,7 +416,13 @@ def deepforest_model_doc(header, item):
 
     def get_doc(item):
         """Return the selected item."""
-        __doc = {"model": __model_doc, "fit": __fit_doc}
+        __doc = {
+            "regressor_model": __regressor_model_doc,
+            "regressor_fit": __regressor_fit_doc,
+            "classifier_model": __classifier_model_doc,
+            "classifier_fit": __classifier_fit_doc,
+        }
+
         return __doc[item]
 
     def adddoc(cls):
@@ -298,8 +492,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def _get_n_output(self, y):
         """Return the number of output inferred from the training labels."""
-        n_output = np.unique(y).shape[0]  # classification
-        return n_output
+        if is_classifier(self):
+            n_output = np.unique(y).shape[0]  # classification
+            return n_output
+        return 1  # this parameter are not used in regression
 
     def _get_layer(self, layer_idx):
         """Get the layer from the internal container according to the index."""
@@ -460,6 +656,13 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             msg = "{} The optimal number of layers: {}"
             print(msg.format(_utils.ctime(), self.n_layers_))
 
+    def _if_improved(self, new_pivot, pivot, delta, is_classifier):
+        """
+        Return true if new vlidation result is better than previous"""
+        if is_classifier:
+            return new_pivot >= pivot + delta
+        return new_pivot <= pivot - delta
+
     @abstractmethod
     def _repr_performance(self, pivot):
         """Format the printting information on training performance."""
@@ -474,7 +677,9 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     @property
     def n_aug_features_(self):
-        return 2 * self.n_estimators * self.n_outputs_
+        if is_classifier(self):
+            return 2 * self.n_estimators * self.n_outputs_
+        return 2 * self.n_estimators
 
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
@@ -514,13 +719,16 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             self.n_jobs,
             self.random_state,
             self.verbose,
+            is_classifier(self),
         )
 
         if self.verbose > 0:
             print("{} Fitting cascade layer = {:<2}".format(_utils.ctime(), 0))
 
         tic = time.time()
-        X_aug_train_ = layer_.fit_transform(X_train_, y, sample_weight)
+        X_aug_train_ = layer_.fit_transform(
+            X_train_, y, sample_weight=sample_weight
+        )
         toc = time.time()
         training_time = toc - tic
 
@@ -586,6 +794,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 self.n_jobs,
                 self.random_state,
                 self.verbose,
+                is_classifier(self),
             )
 
             X_middle_train_ = self.buffer_.cache_data(
@@ -598,7 +807,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
             tic = time.time()
             X_aug_train_ = layer_.fit_transform(
-                X_middle_train_, y, sample_weight
+                X_middle_train_, y, sample_weight=sample_weight
             )
             toc = time.time()
             training_time = toc - tic
@@ -622,7 +831,9 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             # training stage will terminate before reaching the maximum number
             # of layers.
 
-            if new_pivot >= pivot + self.delta:
+            if self._if_improved(
+                new_pivot, pivot, self.delta, is_classifier(self)
+            ):
 
                 # Update the cascade layer
                 self._set_layer(layer_idx, layer_)
@@ -667,16 +878,28 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         # Build the predictor if `self.use_predictor` is True
         if self.use_predictor:
-            self.predictor_ = _build_predictor(
-                self.predictor_name,
-                self.n_trees,
-                self.n_outputs_,
-                self.max_depth,
-                self.min_samples_leaf,
-                self.n_jobs,
-                self.random_state,
-                self.predictor_kwargs,
-            )
+            if is_classifier(self):
+                self.predictor_ = _build_classifier_predictor(
+                    self.predictor_name,
+                    self.n_trees,
+                    self.n_outputs_,
+                    self.max_depth,
+                    self.min_samples_leaf,
+                    self.n_jobs,
+                    self.random_state,
+                    self.predictor_kwargs,
+                )
+            else:
+                self.predictor_ = _build_regressor_predictor(
+                    self.predictor_name,
+                    self.n_trees,
+                    self.n_outputs_,
+                    self.max_depth,
+                    self.min_samples_leaf,
+                    self.n_jobs,
+                    self.random_state,
+                    self.predictor_kwargs,
+                )
 
             binner_ = Binner(
                 n_bins=self.n_bins,
@@ -874,7 +1097,8 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
 
 @deepforest_model_doc(
-    """Implementation of the deep forest for classification.""", "model"
+    """Implementation of the deep forest for classification.""",
+    "classifier_model",
 )
 class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def __init__(
@@ -957,7 +1181,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         return msg.format(pivot * 100)
 
     @deepforest_model_doc(
-        """Build a deep forest using the training data.""", "fit"
+        """Build a deep forest using the training data.""", "classifier_fit"
     )
     def fit(self, X, y, sample_weight=None):
 
@@ -1000,7 +1224,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
                 print(msg.format(_utils.ctime(), layer_idx))
 
             if layer_idx == 0:
-                X_aug_test_ = layer.transform(X_test)
+                X_aug_test_ = layer.transform(X_test, is_classifier(self))
             elif layer_idx < self.n_layers_ - 1:
                 binner_ = self._get_binner(layer_idx)
                 X_aug_test_ = self._bin_data(
@@ -1009,7 +1233,9 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
                 X_middle_test_ = _utils.merge_array(
                     X_middle_test_, X_aug_test_, self.n_features_
                 )
-                X_aug_test_ = layer.transform(X_middle_test_)
+                X_aug_test_ = layer.transform(
+                    X_middle_test_, is_classifier(self)
+                )
             else:
                 binner_ = self._get_binner(layer_idx)
                 X_aug_test_ = self._bin_data(
@@ -1021,7 +1247,9 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
                 # Skip calling the `transform` if not using the predictor
                 if self.use_predictor:
-                    X_aug_test_ = layer.transform(X_middle_test_)
+                    X_aug_test_ = layer.transform(
+                        X_middle_test_, is_classifier(self)
+                    )
 
         if self.use_predictor:
 
@@ -1039,7 +1267,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             predictor = self.buffer_.load_predictor(self.predictor_)
             proba = predictor.predict_proba(X_middle_test_)
         else:
-            proba = layer.predict_full(X_middle_test_)
+            proba = layer.predict_full(X_middle_test_, is_classifier(self))
             proba = _utils.merge_proba(proba, self.n_outputs_)
 
         return proba
@@ -1062,3 +1290,139 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         proba = self.predict_proba(X)
         y = self._decode_class_labels(np.argmax(proba, axis=1))
         return y
+
+
+@deepforest_model_doc(
+    """Implementation of the deep forest for regression.""", "regressor_model"
+)
+class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
+    def __init__(
+        self,
+        n_bins=255,
+        bin_subsample=2e5,
+        bin_type="percentile",
+        max_layers=20,
+        n_estimators=2,
+        n_trees=100,
+        max_depth=None,
+        min_samples_leaf=1,
+        use_predictor=False,
+        predictor="forest",
+        predictor_kwargs={},
+        n_tolerant_rounds=2,
+        delta=1e-5,
+        partial_mode=False,
+        n_jobs=None,
+        random_state=None,
+        verbose=1,
+    ):
+        super().__init__(
+            n_bins=n_bins,
+            bin_subsample=bin_subsample,
+            bin_type=bin_type,
+            max_layers=max_layers,
+            n_estimators=n_estimators,
+            n_trees=n_trees,
+            max_depth=max_depth,
+            min_samples_leaf=min_samples_leaf,
+            use_predictor=use_predictor,
+            predictor=predictor,
+            predictor_kwargs=predictor_kwargs,
+            n_tolerant_rounds=n_tolerant_rounds,
+            delta=delta,
+            partial_mode=partial_mode,
+            n_jobs=n_jobs,
+            random_state=random_state,
+            verbose=verbose,
+        )
+
+    def _repr_performance(self, pivot):
+        msg = "Val Acc = {:.3f}"
+        return msg.format(pivot)
+
+    @deepforest_model_doc(
+        """Build a deep forest using the training data.""", "regressor_fit"
+    )
+    def fit(self, X, y, sample_weight=None):
+        super().fit(X, y, sample_weight)
+
+    def predict(self, X):
+        """
+        Predict regression target for X.
+
+        Parameters
+        ----------
+        X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+            The input samples. Internally, its dtype will be converted to
+            ``np.uint8``.
+
+        Returns
+        -------
+        y : :obj:`numpy.ndarray` of shape (n_samples,)
+            The predicted values.
+        """
+        if not self.is_fitted_:
+            raise AttributeError("Please fit the model first.")
+        self._check_input(X)
+
+        if self.verbose > 0:
+            print("{} Start to evalute the model:".format(_utils.ctime()))
+
+        binner_ = self._get_binner(0)
+        X_test = self._bin_data(binner_, X, is_training_data=False)
+        X_middle_test_ = _utils.init_array(X_test, self.n_aug_features_)
+
+        for layer_idx in range(self.n_layers_):
+            layer = self._get_layer(layer_idx)
+
+            if self.verbose > 0:
+                msg = "{} Evaluating cascade layer = {:<2}"
+                print(msg.format(_utils.ctime(), layer_idx))
+
+            if layer_idx == 0:
+                X_aug_test_ = layer.transform(X_test, is_classifier(self))
+            elif layer_idx < self.n_layers_ - 1:
+                binner_ = self._get_binner(layer_idx)
+                X_aug_test_ = self._bin_data(
+                    binner_, X_aug_test_, is_training_data=False
+                )
+                X_middle_test_ = _utils.merge_array(
+                    X_middle_test_, X_aug_test_, self.n_features_
+                )
+                X_aug_test_ = layer.transform(
+                    X_middle_test_, is_classifier(self)
+                )
+            else:
+                binner_ = self._get_binner(layer_idx)
+                X_aug_test_ = self._bin_data(
+                    binner_, X_aug_test_, is_training_data=False
+                )
+                X_middle_test_ = _utils.merge_array(
+                    X_middle_test_, X_aug_test_, self.n_features_
+                )
+
+                # Skip calling the `transform` if not using the predictor
+                if self.use_predictor:
+                    X_aug_test_ = layer.transform(
+                        X_middle_test_, is_classifier(self)
+                    )
+
+        if self.use_predictor:
+
+            if self.verbose > 0:
+                print("{} Evaluating the predictor".format(_utils.ctime()))
+
+            binner_ = self._get_binner(self.n_layers_)
+            X_aug_test_ = self._bin_data(
+                binner_, X_aug_test_, is_training_data=False
+            )
+            X_middle_test_ = _utils.merge_array(
+                X_middle_test_, X_aug_test_, self.n_features_
+            )
+
+            predictor = self.buffer_.load_predictor(self.predictor_)
+            _y = predictor.predict(X_middle_test_)
+        else:
+            _y = layer.predict_full(X_middle_test_, is_classifier(self))
+            _y = _y.sum(axis=1) / _y.shape[1]
+        return _y

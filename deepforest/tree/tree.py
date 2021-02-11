@@ -6,7 +6,12 @@ This class is modified from:
 """
 
 
-__all__ = ["DecisionTreeClassifier", "ExtraTreeClassifier"]
+__all__ = [
+    "DecisionTreeClassifier",
+    "DecisionTreeRegressor",
+    "ExtraTreeClassifier",
+    "ExtraTreeRegressor",
+]
 
 import numbers
 import warnings
@@ -18,6 +23,7 @@ import numpy as np
 
 from sklearn.base import BaseEstimator
 from sklearn.base import ClassifierMixin
+from sklearn.base import RegressorMixin
 from sklearn.base import is_classifier
 from sklearn.base import MultiOutputMixin
 from sklearn.utils import check_array
@@ -43,6 +49,7 @@ DTYPE = _tree.DTYPE
 DOUBLE = _tree.DOUBLE
 
 CRITERIA_CLF = {"gini": _criterion.Gini, "entropy": _criterion.Entropy}
+CRITERIA_REG = {"mse": _criterion.MSE}
 
 DENSE_SPLITTERS = {
     "best": _splitter.BestSplitter,
@@ -77,7 +84,7 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
         min_impurity_decrease,
         min_impurity_split,
         class_weight=None,
-        presort="deprecated"
+        presort="deprecated",
     ):
         self.criterion = criterion
         self.splitter = splitter
@@ -164,7 +171,7 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
         self.n_outputs_ = y.shape[1]
 
         # `classes_` and `n_classes_` were set by the forest.
-        if not hasattr(self, "classes_"):
+        if not hasattr(self, "classes_") and is_classifier(self):
             check_classification_targets(y)
             y = np.copy(y)
 
@@ -323,9 +330,14 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
         # Build tree
         criterion = self.criterion
         if not isinstance(criterion, Criterion):
-            criterion = CRITERIA_CLF[self.criterion](
-                self.n_outputs_, self.n_classes_
-            )
+            if is_classifier(self):
+                criterion = CRITERIA_CLF[self.criterion](
+                    self.n_outputs_, self.n_classes_
+                )
+            else:
+                criterion = CRITERIA_REG[self.criterion](
+                    self.n_outputs_, n_samples
+                )
 
         SPLITTERS = DENSE_SPLITTERS
 
@@ -339,7 +351,17 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
                 random_state,
             )
 
-        self.tree_ = Tree(self.n_features_, self.n_classes_, self.n_outputs_)
+        if is_classifier(self):
+            self.tree_ = Tree(
+                self.n_features_, self.n_classes_, self.n_outputs_
+            )
+        else:
+            self.tree_ = Tree(
+                self.n_features_,
+                # TODO: tree should't need this in this case
+                np.array([1] * self.n_outputs_, dtype=np.int32),
+                self.n_outputs_,
+            )
 
         builder = DepthFirstTreeBuilder(
             splitter,
@@ -409,7 +431,12 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
         X = self._validate_X_predict(X, check_input)
         proba = self.tree_.predict(X)
 
-        return self.classes_.take(np.argmax(proba, axis=1), axis=0)
+        # Classification
+        if is_classifier(self):
+            return self.classes_.take(np.argmax(proba, axis=1), axis=0)
+        # Regression
+        else:
+            return proba[:, 0]
 
 
 class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
@@ -428,7 +455,7 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
         min_impurity_decrease=0.0,
         min_impurity_split=None,
         class_weight=None,
-        presort="deprecated"
+        presort="deprecated",
     ):
 
         super().__init__(
@@ -472,6 +499,49 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
         return proba
 
 
+class DecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
+    @_deprecate_positional_args
+    def __init__(
+        self,
+        *,
+        criterion="mse",
+        splitter="best",
+        max_depth=None,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        min_weight_fraction_leaf=0.0,
+        max_features=None,
+        random_state=None,
+        min_impurity_decrease=0.0,
+        min_impurity_split=None,
+        presort="deprecated",
+    ):
+        super().__init__(
+            criterion=criterion,
+            splitter=splitter,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            min_weight_fraction_leaf=min_weight_fraction_leaf,
+            max_features=max_features,
+            min_impurity_decrease=min_impurity_decrease,
+            min_impurity_split=min_impurity_split,
+            random_state=random_state,
+        )
+
+    def fit(
+        self, X, y, sample_weight=None, check_input=True, X_idx_sorted=None
+    ):
+
+        return super().fit(
+            X,
+            y,
+            sample_weight=sample_weight,
+            check_input=check_input,
+            X_idx_sorted=X_idx_sorted,
+        )
+
+
 class ExtraTreeClassifier(DecisionTreeClassifier):
     @_deprecate_positional_args
     def __init__(
@@ -487,7 +557,7 @@ class ExtraTreeClassifier(DecisionTreeClassifier):
         random_state=None,
         min_impurity_decrease=0.0,
         min_impurity_split=None,
-        class_weight=None
+        class_weight=None,
     ):
 
         super().__init__(
@@ -499,6 +569,37 @@ class ExtraTreeClassifier(DecisionTreeClassifier):
             min_weight_fraction_leaf=min_weight_fraction_leaf,
             max_features=max_features,
             class_weight=class_weight,
+            min_impurity_decrease=min_impurity_decrease,
+            min_impurity_split=min_impurity_split,
+            random_state=random_state,
+        )
+
+
+class ExtraTreeRegressor(DecisionTreeRegressor):
+    @_deprecate_positional_args
+    def __init__(
+        self,
+        *,
+        criterion="mse",
+        splitter="random",
+        max_depth=None,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        min_weight_fraction_leaf=0.0,
+        max_features=None,
+        random_state=None,
+        min_impurity_decrease=0.0,
+        min_impurity_split=None,
+    ):
+
+        super().__init__(
+            criterion=criterion,
+            splitter=splitter,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            min_weight_fraction_leaf=min_weight_fraction_leaf,
+            max_features=max_features,
             min_impurity_decrease=min_impurity_decrease,
             min_impurity_split=min_impurity_split,
             random_state=random_state,
