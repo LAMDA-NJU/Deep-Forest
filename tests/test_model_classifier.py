@@ -25,6 +25,7 @@ toy_kwargs = {
     "bin_subsample": 2e5,
     "max_layers": 10,
     "n_estimators": 1,
+    "criterion": "gini",
     "n_trees": 100,
     "max_depth": 3,
     "min_samples_leaf": 1,
@@ -43,6 +44,7 @@ kwargs = {
     "bin_subsample": 2e5,
     "max_layers": 10,
     "n_estimators": 2,
+    "criterion": "gini",
     "n_trees": 100,
     "max_depth": None,
     "min_samples_leaf": 1,
@@ -239,14 +241,14 @@ def test_model_invalid_training_params(param):
 @pytest.mark.parametrize("predictor", ["forest", "xgboost", "lightgbm"])
 def test_classifier_predictor_normal(predictor):
     deepforest.cascade._build_classifier_predictor(
-        predictor, n_estimators=1, n_outputs=2
+        predictor, criterion="gini", n_estimators=1, n_outputs=2
     )
 
 
 def test_classifier_predictor_unknown():
     with pytest.raises(NotImplementedError) as excinfo:
         deepforest.cascade._build_classifier_predictor(
-            "unknown", n_estimators=1, n_outputs=2
+            "unknown", criterion="gini", n_estimators=1, n_outputs=2
         )
     assert "name of the predictor should be one of" in str(excinfo.value)
 

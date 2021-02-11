@@ -28,6 +28,7 @@ def _get_predictor_kwargs(predictor_kwargs, **kwargs) -> dict:
 
 def _build_classifier_predictor(
     predictor_name,
+    criterion,
     n_estimators,
     n_outputs,
     max_depth=None,
@@ -46,6 +47,7 @@ def _build_classifier_predictor(
         predictor = RandomForestClassifier(
             **_get_predictor_kwargs(
                 predictor_kwargs,
+                criterion=criterion,
                 n_estimators=n_estimators,
                 max_depth=max_depth,
                 min_samples_leaf=min_samples_leaf,
@@ -110,6 +112,7 @@ def _build_classifier_predictor(
 
 def _build_regressor_predictor(
     predictor_name,
+    criterion,
     n_estimators,
     n_outputs,
     max_depth=None,
@@ -128,6 +131,7 @@ def _build_regressor_predictor(
         predictor = RandomForestRegressor(
             **_get_predictor_kwargs(
                 predictor_kwargs,
+                criterion=criterion,
                 n_estimators=n_estimators,
                 max_depth=max_depth,
                 min_samples_leaf=min_samples_leaf,
@@ -205,6 +209,10 @@ __classifier_model_doc = """
         The maximum number of cascade layers in the deep forest. Notice that
         the actual number of layers can be smaller than ``max_layers`` because
         of the internal early stopping stage.
+    criterion : :obj:`{"gini", "entropy"}`, default="gini"
+        The function to measure the quality of a split. Supported criteria 
+        are ``gini`` for the Gini impurity and ``entropy`` for the information 
+        gain. Note: this parameter is tree-specific.
     n_estimators : :obj:`int`, default=2
         The number of estimator in each cascade layer. It will be multiplied
         by 2 internally because each estimator contains a
@@ -311,6 +319,10 @@ __regressor_model_doc = """
         The maximum number of cascade layers in the deep forest. Notice that
         the actual number of layers can be smaller than ``max_layers`` because
         of the internal early stopping stage.
+    criterion : :obj:`{"mse", "mae"}`, default="mse"
+        The function to measure the quality of a split. Supported criteria are 
+        ``mse`` for the mean squared error, which is equal to variance reduction 
+        as feature selection criterion, and ``mae`` for the mean absolute error.
     n_estimators : :obj:`int`, default=2
         The number of estimator in each cascade layer. It will be multiplied
         by 2 internally because each estimator contains a
@@ -441,6 +453,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         bin_subsample=2e5,
         bin_type="percentile",
         max_layers=20,
+        criterion="",
         n_estimators=2,
         n_trees=100,
         max_depth=None,
@@ -459,6 +472,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.bin_subsample = bin_subsample
         self.bin_type = bin_type
         self.max_layers = max_layers
+        self.criterion = criterion
         self.n_estimators = n_estimators
         self.n_trees = n_trees
         self.max_depth = max_depth
@@ -710,6 +724,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         layer_ = Layer(
             0,
             self.n_outputs_,
+            self.criterion,
             self.n_estimators,
             self._set_n_trees(0),
             self.max_depth,
@@ -785,6 +800,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             layer_ = Layer(
                 layer_idx,
                 self.n_outputs_,
+                self.criterion,
                 self.n_estimators,
                 self._set_n_trees(layer_idx),
                 self.max_depth,
@@ -881,6 +897,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             if is_classifier(self):
                 self.predictor_ = _build_classifier_predictor(
                     self.predictor_name,
+                    self.criterion,
                     self.n_trees,
                     self.n_outputs_,
                     self.max_depth,
@@ -892,6 +909,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             else:
                 self.predictor_ = _build_regressor_predictor(
                     self.predictor_name,
+                    self.criterion,
                     self.n_trees,
                     self.n_outputs_,
                     self.max_depth,
@@ -1016,6 +1034,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         # Save each object sequentially
         d = {}
         d["n_estimators"] = self.n_estimators
+        d["criterion"] = self.criterion
         d["n_layers"] = self.n_layers_
         d["n_features"] = self.n_features_
         d["n_outputs"] = self.n_outputs_
@@ -1107,6 +1126,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         bin_subsample=2e5,
         bin_type="percentile",
         max_layers=20,
+        criterion="gini",
         n_estimators=2,
         n_trees=100,
         max_depth=None,
@@ -1126,6 +1146,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             bin_subsample=bin_subsample,
             bin_type=bin_type,
             max_layers=max_layers,
+            criterion=criterion,
             n_estimators=n_estimators,
             n_trees=n_trees,
             max_depth=max_depth,
@@ -1302,6 +1323,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         bin_subsample=2e5,
         bin_type="percentile",
         max_layers=20,
+        criterion="mse",
         n_estimators=2,
         n_trees=100,
         max_depth=None,
@@ -1321,6 +1343,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
             bin_subsample=bin_subsample,
             bin_type=bin_type,
             max_layers=max_layers,
+            criterion=criterion,
             n_estimators=n_estimators,
             n_trees=n_trees,
             max_depth=max_depth,

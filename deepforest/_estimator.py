@@ -13,6 +13,7 @@ from .forest import (
 
 def make_classifier_estimator(
     name,
+    criterion,
     n_trees=100,
     max_depth=None,
     min_samples_leaf=1,
@@ -22,6 +23,7 @@ def make_classifier_estimator(
     # RandomForestClassifier
     if name == "rf":
         estimator = RandomForestClassifier(
+            criterion=criterion,
             n_estimators=n_trees,
             max_depth=max_depth,
             min_samples_leaf=min_samples_leaf,
@@ -31,6 +33,7 @@ def make_classifier_estimator(
     # ExtraTreesClassifier
     elif name == "erf":
         estimator = ExtraTreesClassifier(
+            criterion=criterion,
             n_estimators=n_trees,
             max_depth=max_depth,
             min_samples_leaf=min_samples_leaf,
@@ -46,6 +49,7 @@ def make_classifier_estimator(
 
 def make_regressor_estimator(
     name,
+    criterion,
     n_trees=100,
     max_depth=None,
     min_samples_leaf=1,
@@ -55,6 +59,7 @@ def make_regressor_estimator(
     # RandomForestRegressor
     if name == "rf":
         estimator = RandomForestRegressor(
+            criterion=criterion,
             n_estimators=n_trees,
             max_depth=max_depth,
             min_samples_leaf=min_samples_leaf,
@@ -64,6 +69,7 @@ def make_regressor_estimator(
     # ExtraTreesRegressor
     elif name == "erf":
         estimator = ExtraTreesRegressor(
+            criterion=criterion,
             n_estimators=n_trees,
             max_depth=max_depth,
             min_samples_leaf=min_samples_leaf,
@@ -81,6 +87,7 @@ class Estimator(object):
     def __init__(
         self,
         name,
+        criterion,
         n_trees=100,
         max_depth=None,
         min_samples_leaf=1,
@@ -93,6 +100,7 @@ class Estimator(object):
         if self.is_classifier:
             self.estimator_ = make_classifier_estimator(
                 name,
+                criterion,
                 n_trees,
                 max_depth,
                 min_samples_leaf,
@@ -102,6 +110,7 @@ class Estimator(object):
         else:
             self.estimator_ = make_regressor_estimator(
                 name,
+                criterion,
                 n_trees,
                 max_depth,
                 min_samples_leaf,
