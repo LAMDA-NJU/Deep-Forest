@@ -44,6 +44,9 @@ The package is available via PyPI using:
 Quickstart
 ----------
 
+Classification
+**************
+
 .. code-block:: python
 
     from sklearn.datasets import load_digits
@@ -60,6 +63,9 @@ Quickstart
     acc = accuracy_score(y_test, y_pred) * 100
     print("\nTesting Accuracy: {:.3f} %".format(acc))
     >>> Testing Accuracy: 98.667 %
+
+Regression
+**********
 
 .. code-block:: python
 
