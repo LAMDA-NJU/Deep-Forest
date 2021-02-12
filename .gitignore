@@ -11,8 +11,9 @@
 *.html
 *.xml
 .coverage
-
 .DS_Store
+package-lock.json
+node_modules/
 .idea/
 .vscode/
 .pytest_cache/
