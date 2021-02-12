@@ -1,4 +1,4 @@
-name: DeepForest-CI
+name: DeepForest-CI-MacOS
 
 on:
   push:
