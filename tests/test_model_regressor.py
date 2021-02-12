@@ -24,6 +24,7 @@ toy_kwargs = {
     "n_bins": 10,
     "bin_subsample": 2e5,
     "max_layers": 10,
+    "criterion": "mse",
     "n_estimators": 1,
     "n_trees": 100,
     "max_depth": 3,
@@ -42,6 +43,7 @@ kwargs = {
     "n_bins": 255,
     "bin_subsample": 2e5,
     "max_layers": 10,
+    "criterion": "mse",
     "n_estimators": 2,
     "n_trees": 100,
     "max_depth": None,
@@ -186,14 +188,14 @@ def test_model_invalid_training_params(param):
 @pytest.mark.parametrize("predictor", ["forest", "xgboost", "lightgbm"])
 def test_regressor_predictor_normal(predictor):
     deepforest.cascade._build_regressor_predictor(
-        predictor, n_estimators=1, n_outputs=2
+        predictor, criterion="mse", n_estimators=1, n_outputs=2
     )
 
 
 def test_regressor_predictor_unknown():
     with pytest.raises(NotImplementedError) as excinfo:
         deepforest.cascade._build_regressor_predictor(
-            "unknown", n_estimators=1, n_outputs=2
+            "unknown", criterion="mse", n_estimators=1, n_outputs=2
         )
     assert "name of the predictor should be one of" in str(excinfo.value)
 

@@ -47,6 +47,7 @@ class Layer(object):
         self,
         layer_idx,
         n_classes,
+        criterion,
         n_estimators=2,
         n_trees=100,
         max_depth=None,
@@ -60,6 +61,7 @@ class Layer(object):
     ):
         self.layer_idx = layer_idx
         self.n_classes = n_classes
+        self.criterion = criterion
         self.n_estimators = n_estimators * 2  # internal conversion
         self.n_trees = n_trees
         self.max_depth = max_depth
@@ -89,6 +91,7 @@ class Layer(object):
 
         estimator = Estimator(
             name=estimator_name,
+            criterion=self.criterion,
             n_trees=self.n_trees,
             max_depth=self.max_depth,
             min_samples_leaf=self.min_samples_leaf,

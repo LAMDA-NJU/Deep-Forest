@@ -49,7 +49,7 @@ DTYPE = _tree.DTYPE
 DOUBLE = _tree.DOUBLE
 
 CRITERIA_CLF = {"gini": _criterion.Gini, "entropy": _criterion.Entropy}
-CRITERIA_REG = {"mse": _criterion.MSE}
+CRITERIA_REG = {"mse": _criterion.MSE, "mae": _criterion.MAE}
 
 DENSE_SPLITTERS = {
     "best": _splitter.BestSplitter,
