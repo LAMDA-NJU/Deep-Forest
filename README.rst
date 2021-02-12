@@ -35,7 +35,7 @@ For a quick start, please refer to `How to Get Started <https://deep-forest.read
 Installation
 ------------
 
-DF21 can be installed using pip which is the package installer for Python. You can use pip to install packages from the Python Package Index and other indexes. Refer `this <https://pypi.org/project/pip/>`__ for the documentation of pip
+DF21 can be installed using pip via `PyPI <https://pypi.org/project/deep-forest/>`__  which is the package installer for Python. You can use pip to install packages from the Python Package Index and other indexes. Refer `this <https://pypi.org/project/pip/>`__ for the documentation of pip. Use this command to download DF21 :
 
 .. code-block:: bash
 
