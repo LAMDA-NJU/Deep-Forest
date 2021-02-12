@@ -110,6 +110,7 @@ Reference
    :maxdepth: 1
    :caption: For Developers
 
+   Contributors <contributors>
    Changelog <changelog>
 
 .. toctree::

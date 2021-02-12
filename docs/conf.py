@@ -45,8 +45,11 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.napoleon',
     'sphinx_panels',
-    'sphinx_copybutton'
+    'sphinx_copybutton',
+    "m2r2"
 ]
+
+source_suffix = ['.rst', '.md']
 
 autoapi_dirs = ['../deepforest']
 
