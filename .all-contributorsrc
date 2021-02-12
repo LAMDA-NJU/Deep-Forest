@@ -68,6 +68,16 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "T-Allen-sudo",
+      "name": "T-Allen-sudo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/65913092?v=4",
+      "profile": "https://github.com/T-Allen-sudo",
+      "contributions": [
+        "maintenance",
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7,
