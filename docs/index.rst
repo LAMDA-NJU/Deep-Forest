@@ -8,7 +8,7 @@ DF21 Documentation
 - **Efficient**: Fast training speed and high efficiency.
 - **Scalable**: Capable of handling large-scale data.
 
-Whenever one used tree-based machine learning approaches such as Random Forest or GBDT, DF21 may offer a new powerful option. This package is actively being developed, and any help would be welcomed. Please check the homepage on `Gitee <https://gitee.com/lamda-nju/deep-forest>`__ or `Github <https://github.com/LAMDA-NJU/Deep-Forest>`__ for details.
+DF21 offers an effective & powerful option to the tree-based machine learning algorithms such as Random Forest or GBDT. This package is actively being developed, and any help would be welcomed. Please check the homepage on `Gitee <https://gitee.com/lamda-nju/deep-forest>`__ or `Github <https://github.com/LAMDA-NJU/Deep-Forest>`__ for details.
 
 Guidepost
 ---------
@@ -19,7 +19,7 @@ Guidepost
 Installation
 ------------
 
-The package is available via `PyPI <https://pypi.org/project/deep-forest/>`__ using:
+DF21 can be installed using pip via `PyPI <https://pypi.org/project/deep-forest/>`__  which is the package installer for Python. You can use pip to install packages from the Python Package Index and other indexes. Refer `this <https://pypi.org/project/pip/>`__ for the documentation of pip. Use this command to download DF21 :
 
 .. code-block:: bash
 
