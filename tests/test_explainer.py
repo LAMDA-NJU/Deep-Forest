@@ -1,4 +1,5 @@
 import shap
+import numpy as np
 from deepforest import CascadeForestClassifier
 from sklearn.model_selection import train_test_split
 
@@ -6,6 +7,9 @@ from sklearn.model_selection import train_test_split
 shap.initjs()
 
 X, y = shap.datasets.iris()
+
+X = np.array(X)
+y = np.array(y)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
