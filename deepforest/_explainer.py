@@ -29,16 +29,13 @@ def get_shap_explainer_forest(forest):
     """
 
     # Pull the info of the first tree
-    tree_tmp = forest.estimators_[0][0].tree_
-
-    # extract the arrays that define the tree
-    children_left1      = tree_tmp.children_left
-    children_right1     = tree_tmp.children_right
-    children_default1   = children_right1.copy() # because sklearn does not use missing values
-    features1           = tree_tmp.feature
-    thresholds1         = tree_tmp.threshold
-    values1             = tree_tmp.value.reshape(tree_tmp.value.shape[0], 1)
-    node_sample_weight1 = tree_tmp.weighted_n_node_samples
+    children_left1     = forest.childrens[0][:, 0]
+    children_right1    = forest.childrens[0][:, 1]
+    children_default1  = children_right1.copy() # because sklearn does not use missing values
+    features1          = forest.features[0]
+    thresholds1        = forest.thresholds[0]
+    values1            = forest.values[0]
+    # node_sample_weight1 = forest.weighted_n_node_samples
 
     # Create a list of SHAP Trees
     # First we need to define a custom tree model
@@ -50,7 +47,7 @@ def get_shap_explainer_forest(forest):
             "features": features1,
             "thresholds": thresholds1,
             "values": values1 * forest.learning_rate,
-            "node_sample_weight": node_sample_weight1
+            # "node_sample_weight": node_sample_weight1
         },
     ]
     model = {
