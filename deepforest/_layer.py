@@ -52,6 +52,7 @@ class Layer(object):
         n_trees=100,
         max_depth=None,
         min_samples_leaf=1,
+        backend="custom",
         partial_mode=False,
         buffer=None,
         n_jobs=None,
@@ -66,6 +67,7 @@ class Layer(object):
         self.n_trees = n_trees
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
+        self.backend = backend
         self.partial_mode = partial_mode
         self.buffer = buffer
         self.n_jobs = n_jobs
@@ -95,6 +97,7 @@ class Layer(object):
             n_trees=self.n_trees,
             max_depth=self.max_depth,
             min_samples_leaf=self.min_samples_leaf,
+            backend=self.backend,
             n_jobs=self.n_jobs,
             random_state=random_state,
             is_classifier=self.is_classifier,

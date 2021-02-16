@@ -64,8 +64,3 @@ def test_tree_fit_invalid_training_params():
     with pytest.raises(ValueError) as execinfo:
         tree.fit(X_binned, y)
     assert "max_depth must be greater than zero." in str(execinfo.value)
-
-
-if __name__ == "__main__":
-
-    test_tree_properties_after_fitting()
