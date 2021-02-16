@@ -10,6 +10,13 @@ from .forest import (
     ExtraTreesRegressor,
 )
 
+from sklearn.ensemble import (
+    RandomForestClassifier as sklearn_RandomForestClassifier,
+    ExtraTreesClassifier as sklearn_ExtraTreesClassifier,
+    RandomForestRegressor as sklearn_RandomForestRegressor,
+    ExtraTreesRegressor as sklearn_ExtraTreesRegressor,
+)
+
 
 def make_classifier_estimator(
     name,
@@ -17,29 +24,54 @@ def make_classifier_estimator(
     n_trees=100,
     max_depth=None,
     min_samples_leaf=1,
+    backend="custom",
     n_jobs=None,
     random_state=None,
 ):
     # RandomForestClassifier
     if name == "rf":
-        estimator = RandomForestClassifier(
-            criterion=criterion,
-            n_estimators=n_trees,
-            max_depth=max_depth,
-            min_samples_leaf=min_samples_leaf,
-            n_jobs=n_jobs,
-            random_state=random_state,
-        )
+        if backend == "custom":
+            estimator = RandomForestClassifier(
+                criterion=criterion,
+                n_estimators=n_trees,
+                max_depth=max_depth,
+                min_samples_leaf=min_samples_leaf,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
+        elif backend == "sklearn":
+            estimator = sklearn_RandomForestClassifier(
+                criterion=criterion,
+                n_estimators=n_trees,
+                max_depth=max_depth,
+                min_samples_leaf=min_samples_leaf,
+                bootstrap=True,
+                oob_score=True,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
     # ExtraTreesClassifier
     elif name == "erf":
-        estimator = ExtraTreesClassifier(
-            criterion=criterion,
-            n_estimators=n_trees,
-            max_depth=max_depth,
-            min_samples_leaf=min_samples_leaf,
-            n_jobs=n_jobs,
-            random_state=random_state,
-        )
+        if backend == "custom":
+            estimator = ExtraTreesClassifier(
+                criterion=criterion,
+                n_estimators=n_trees,
+                max_depth=max_depth,
+                min_samples_leaf=min_samples_leaf,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
+        elif backend == "sklearn":
+            estimator = sklearn_ExtraTreesClassifier(
+                criterion=criterion,
+                n_estimators=n_trees,
+                max_depth=max_depth,
+                min_samples_leaf=min_samples_leaf,
+                bootstrap=True,
+                oob_score=True,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
     else:
         msg = "Unknown type of estimator, which should be one of {{rf, erf}}."
         raise NotImplementedError(msg)
@@ -53,29 +85,54 @@ def make_regressor_estimator(
     n_trees=100,
     max_depth=None,
     min_samples_leaf=1,
+    backend="custom",
     n_jobs=None,
     random_state=None,
 ):
     # RandomForestRegressor
     if name == "rf":
-        estimator = RandomForestRegressor(
-            criterion=criterion,
-            n_estimators=n_trees,
-            max_depth=max_depth,
-            min_samples_leaf=min_samples_leaf,
-            n_jobs=n_jobs,
-            random_state=random_state,
-        )
+        if backend == "custom":
+            estimator = RandomForestRegressor(
+                criterion=criterion,
+                n_estimators=n_trees,
+                max_depth=max_depth,
+                min_samples_leaf=min_samples_leaf,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
+        elif backend == "sklearn":
+            estimator = sklearn_RandomForestRegressor(
+                criterion=criterion,
+                n_estimators=n_trees,
+                max_depth=max_depth,
+                min_samples_leaf=min_samples_leaf,
+                bootstrap=True,
+                oob_score=True,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
     # ExtraTreesRegressor
     elif name == "erf":
-        estimator = ExtraTreesRegressor(
-            criterion=criterion,
-            n_estimators=n_trees,
-            max_depth=max_depth,
-            min_samples_leaf=min_samples_leaf,
-            n_jobs=n_jobs,
-            random_state=random_state,
-        )
+        if backend == "custom":
+            estimator = ExtraTreesRegressor(
+                criterion=criterion,
+                n_estimators=n_trees,
+                max_depth=max_depth,
+                min_samples_leaf=min_samples_leaf,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
+        elif backend == "sklearn":
+            estimator = sklearn_ExtraTreesRegressor(
+                criterion=criterion,
+                n_estimators=n_trees,
+                max_depth=max_depth,
+                min_samples_leaf=min_samples_leaf,
+                bootstrap=True,
+                oob_score=True,
+                n_jobs=n_jobs,
+                random_state=random_state,
+            )
     else:
         msg = "Unknown type of estimator, which should be one of {{rf, erf}}."
         raise NotImplementedError(msg)
@@ -91,6 +148,7 @@ class Estimator(object):
         n_trees=100,
         max_depth=None,
         min_samples_leaf=1,
+        backend="custom",
         n_jobs=None,
         random_state=None,
         is_classifier=True,
@@ -104,6 +162,7 @@ class Estimator(object):
                 n_trees,
                 max_depth,
                 min_samples_leaf,
+                backend,
                 n_jobs,
                 random_state,
             )
@@ -114,6 +173,7 @@ class Estimator(object):
                 n_trees,
                 max_depth,
                 min_samples_leaf,
+                backend,
                 n_jobs,
                 random_state,
             )
