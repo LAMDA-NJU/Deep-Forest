@@ -235,6 +235,10 @@ __classifier_model_doc = """
         Specifying this will extend/overwrite the original parameters inherit
         from deep forest. If ``use_predictor`` is False, this parameter will
         have no effect.
+    backend : :obj:`{"custom", "sklearn"}`, default="custom"
+        The backend of the forest estimator. Supported backends are ``custom``
+        for higher time and memory efficiency and ``sklearn`` for additional
+        functionality.
     n_tolerant_rounds : :obj:`int`, default=2
         Specify when to conduct early stopping. The training process
         terminates when the validation performance on the training set does
@@ -345,6 +349,10 @@ __regressor_model_doc = """
         Specifying this will extend/overwrite the original parameters inherit
         from deep forest.
         If ``use_predictor`` is False, this parameter will have no effect.
+    backend : :obj:`{"custom", "sklearn"}`, default="custom"
+        The backend of the forest estimator. Supported backends are ``custom``
+        for higher time and memory efficiency and ``sklearn`` for additional
+        functionality.
     n_tolerant_rounds : :obj:`int`, default=2
         Specify when to conduct early stopping. The training process
         terminates when the validation performance on the training set does
@@ -461,6 +469,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         use_predictor=False,
         predictor="forest",
         predictor_kwargs={},
+        backend="custom",
         n_tolerant_rounds=2,
         delta=1e-5,
         partial_mode=False,
@@ -478,6 +487,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
         self.predictor_kwargs = predictor_kwargs
+        self.backend = backend
         self.n_tolerant_rounds = n_tolerant_rounds
         self.delta = delta
         self.partial_mode = partial_mode
@@ -607,6 +617,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             msg = "max_layers = {} should be strictly positive."
             raise ValueError(msg.format(self.max_layers))
 
+        if not self.backend in ("custom", "sklearn"):
+            msg = "backend = {} should be one of {{custom, sklearn}}."
+            raise ValueError(msg.format(self.backend))
+
         if not self.n_tolerant_rounds > 0:
             msg = "n_tolerant_rounds = {} should be strictly positive."
             raise ValueError(msg.format(self.n_tolerant_rounds))
@@ -729,6 +743,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             self._set_n_trees(0),
             self.max_depth,
             self.min_samples_leaf,
+            self.backend,
             self.partial_mode,
             self.buffer_,
             self.n_jobs,
@@ -805,6 +820,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 self._set_n_trees(layer_idx),
                 self.max_depth,
                 self.min_samples_leaf,
+                self.backend,
                 self.partial_mode,
                 self.buffer_,
                 self.n_jobs,
@@ -1134,6 +1150,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         use_predictor=False,
         predictor="forest",
         predictor_kwargs={},
+        backend="custom",
         n_tolerant_rounds=2,
         delta=1e-5,
         partial_mode=False,
@@ -1154,6 +1171,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             use_predictor=use_predictor,
             predictor=predictor,
             predictor_kwargs=predictor_kwargs,
+            backend=backend,
             n_tolerant_rounds=n_tolerant_rounds,
             delta=delta,
             partial_mode=partial_mode,
@@ -1331,6 +1349,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         use_predictor=False,
         predictor="forest",
         predictor_kwargs={},
+        backend="custom",
         n_tolerant_rounds=2,
         delta=1e-5,
         partial_mode=False,
@@ -1351,6 +1370,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
             use_predictor=use_predictor,
             predictor=predictor,
             predictor_kwargs=predictor_kwargs,
+            backend=backend,
             n_tolerant_rounds=n_tolerant_rounds,
             delta=delta,
             partial_mode=partial_mode,
