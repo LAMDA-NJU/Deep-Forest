@@ -124,11 +124,13 @@ def test_model_properties_after_fitting():
     assert "`forest_type` should be one of" in str(excinfo.value)
 
 
-def test_model_workflow_partial_mode():
+@pytest.mark.parametrize("backend", ["custom", "sklearn"])
+def test_model_workflow_partial_mode(backend):
     """Run the workflow of deep forest with a local buffer."""
 
     case_kwargs = copy.deepcopy(kwargs)
     case_kwargs.update({"partial_mode": True})
+    case_kwargs.update({"backend": backend})
 
     model = CascadeForestClassifier(**case_kwargs)
     model.fit(X_train, y_train)
@@ -187,11 +189,13 @@ def test_model_sample_weight():
     model.clean()  # clear the buffer
 
 
-def test_model_workflow_in_memory():
+@pytest.mark.parametrize("backend", ["custom", "sklearn"])
+def test_model_workflow_in_memory(backend):
     """Run the workflow of deep forest with in-memory mode."""
 
     case_kwargs = copy.deepcopy(kwargs)
     case_kwargs.update({"partial_mode": False})
+    case_kwargs.update({"backend": backend})
 
     model = CascadeForestClassifier(**case_kwargs)
     model.fit(X_train, y_train)
@@ -219,6 +223,7 @@ def test_model_workflow_in_memory():
         (0, {"max_layers": 0}),
         (1, {"n_tolerant_rounds": 0}),
         (2, {"delta": -1}),
+        (3, {"backend": "unknown"}),
     ],
 )
 def test_model_invalid_training_params(param):
@@ -236,6 +241,8 @@ def test_model_invalid_training_params(param):
         assert "n_tolerant_rounds" in str(excinfo.value)
     elif param[0] == 2:
         assert "delta " in str(excinfo.value)
+    elif param[0] == 3:
+        assert "backend" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("predictor", ["forest", "xgboost", "lightgbm"])

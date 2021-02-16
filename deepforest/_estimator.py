@@ -3,13 +3,13 @@
 
 __all__ = ["Estimator"]
 
+import numpy as np
 from .forest import (
     RandomForestClassifier,
     ExtraTreesClassifier,
     RandomForestRegressor,
     ExtraTreesRegressor,
 )
-
 from sklearn.ensemble import (
     RandomForestClassifier as sklearn_RandomForestClassifier,
     ExtraTreesClassifier as sklearn_ExtraTreesClassifier,
@@ -154,6 +154,7 @@ class Estimator(object):
         is_classifier=True,
     ):
 
+        self.backend = backend
         self.is_classifier = is_classifier
         if self.is_classifier:
             self.estimator_ = make_classifier_estimator(
@@ -180,20 +181,26 @@ class Estimator(object):
 
     @property
     def oob_decision_function_(self):
+        # Scikit-Learn uses `oob_prediction_` for ForestRegressor
+        if self.backend == "sklearn" and not self.is_classifier:
+            oob_prediction = self.estimator_.oob_prediction_
+            if len(oob_prediction.shape) == 1:
+                oob_prediction = np.expand_dims(oob_prediction, 1)
+            return oob_prediction
         return self.estimator_.oob_decision_function_
 
     def fit_transform(self, X, y, sample_weight=None):
         self.estimator_.fit(X, y, sample_weight)
-        X_aug = self.estimator_.oob_decision_function_
-
-        return X_aug
+        return self.oob_decision_function_
 
     def transform(self, X):
-        if self.is_classifier:
-            return self.estimator_.predict_proba(X)
-        return self.estimator_.predict(X)
+        """Preserved for the naming consistency."""
+        return self.predict(X)
 
     def predict(self, X):
         if self.is_classifier:
             return self.estimator_.predict_proba(X)
-        return self.estimator_.predict(X)
+        pred = self.estimator_.predict(X)
+        if len(pred.shape) == 1:
+            pred = np.expand_dims(pred, 1)
+        return pred
