@@ -11,6 +11,7 @@ CascadeForestClassifier
     :inherited-members:
     :show-inheritance:
     :no-undoc-members:
+    :exclude-members: set_params, get_params, score
     :member-order: bysource
 
 CascadeForestRegressor
@@ -21,4 +22,5 @@ CascadeForestRegressor
     :inherited-members:
     :show-inheritance:
     :no-undoc-members:
+    :exclude-members: set_params, get_params, score
     :member-order: bysource

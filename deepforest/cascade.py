@@ -201,7 +201,7 @@ __classifier_model_doc = """
         The number of bins used for non-missing values. In addition to the
         ``n_bins`` bins, one more bin is reserved for missing values. Its
         value must be no smaller than 2 and no greater than 255.
-    bin_subsample : :obj:`int`, default=2e5
+    bin_subsample : :obj:`int`, default=200,000
         The number of samples used to construct feature discrete bins. If
         the size of training set is smaller than ``bin_subsample``, then all
         training samples will be used.
@@ -209,7 +209,7 @@ __classifier_model_doc = """
         The maximum number of cascade layers in the deep forest. Notice that
         the actual number of layers can be smaller than ``max_layers`` because
         of the internal early stopping stage.
-    criterion : :obj:`{"gini", "entropy"}`, default="gini"
+    criterion : :obj:`{"gini", "entropy"}`, default= :obj:`"gini"`
         The function to measure the quality of a split. Supported criteria 
         are ``gini`` for the Gini impurity and ``entropy`` for the information 
         gain. Note: this parameter is tree-specific.
@@ -227,7 +227,7 @@ __classifier_model_doc = """
     use_predictor : :obj:`bool`, default=False
         Whether to build the predictor concatenated to the deep forest. Using
         the predictor may improve the performance of deep forest.
-    predictor : :obj:`{"forest", "xgboost", "lightgbm"}`, default="forest"
+    predictor : :obj:`{"forest", "xgboost", "lightgbm"}`, default= :obj:`"forest"`
         The type of the predictor concatenated to the deep forest. If
         ``use_predictor`` is False, this parameter will have no effect.
     predictor_kwargs : :obj:`dict`, default={}
@@ -235,7 +235,7 @@ __classifier_model_doc = """
         Specifying this will extend/overwrite the original parameters inherit
         from deep forest. If ``use_predictor`` is False, this parameter will
         have no effect.
-    backend : :obj:`{"custom", "sklearn"}`, default="custom"
+    backend : :obj:`{"custom", "sklearn"}`, default= :obj:`"custom"`
         The backend of the forest estimator. Supported backends are ``custom``
         for higher time and memory efficiency and ``sklearn`` for additional
         functionality.
@@ -315,7 +315,7 @@ __regressor_model_doc = """
         The number of bins used for non-missing values. In addition to the
         ``n_bins`` bins, one more bin is reserved for missing values. Its
         value must be no smaller than 2 and no greater than 255.
-    bin_subsample : :obj:`int`, default=2e5
+    bin_subsample : :obj:`int`, default=200,000
         The number of samples used to construct feature discrete bins. If
         the size of training set is smaller than ``bin_subsample``, then all
         training samples will be used.
@@ -323,7 +323,7 @@ __regressor_model_doc = """
         The maximum number of cascade layers in the deep forest. Notice that
         the actual number of layers can be smaller than ``max_layers`` because
         of the internal early stopping stage.
-    criterion : :obj:`{"mse", "mae"}`, default="mse"
+    criterion : :obj:`{"mse", "mae"}`, default= :obj:`"mse"`
         The function to measure the quality of a split. Supported criteria are 
         ``mse`` for the mean squared error, which is equal to variance reduction 
         as feature selection criterion, and ``mae`` for the mean absolute error.
@@ -341,7 +341,7 @@ __regressor_model_doc = """
     use_predictor : :obj:`bool`, default=False
         Whether to build the predictor concatenated to the deep forest. Using
         the predictor may improve the performance of deep forest.
-    predictor : :obj:`{"forest", "xgboost", "lightgbm"}`, default="forest"
+    predictor : :obj:`{"forest", "xgboost", "lightgbm"}`, default= :obj:`"forest"`
         The type of the predictor concatenated to the deep forest. If
         ``use_predictor`` is False, this parameter will have no effect.
     predictor_kwargs : :obj:`dict`, default={}
@@ -349,7 +349,7 @@ __regressor_model_doc = """
         Specifying this will extend/overwrite the original parameters inherit
         from deep forest.
         If ``use_predictor`` is False, this parameter will have no effect.
-    backend : :obj:`{"custom", "sklearn"}`, default="custom"
+    backend : :obj:`{"custom", "sklearn"}`, default= :obj:`"custom"`
         The backend of the forest estimator. Supported backends are ``custom``
         for higher time and memory efficiency and ``sklearn`` for additional
         functionality.
@@ -458,7 +458,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def __init__(
         self,
         n_bins=255,
-        bin_subsample=2e5,
+        bin_subsample=200000,
         bin_type="percentile",
         max_layers=20,
         criterion="",
@@ -686,7 +686,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def _if_improved(self, new_pivot, pivot, delta, is_classifier):
         """
-        Return true if new vlidation result is better than previous"""
+        Return true if new validation result is better than previous"""
         if is_classifier:
             return new_pivot >= pivot + delta
         return new_pivot <= pivot - delta
@@ -1070,7 +1070,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         .. warning::
             Other methods on model serialization such as :mod:`pickle` or
             :mod:`joblib` are not recommended, especially when ``partial_mode``
-            is set to ``True``.
+            is set to True.
         """
         # Create the output directory
         _io.model_mkdir(dirname)
@@ -1153,7 +1153,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def clean(self):
         """
-        Clean the buffer created by the model if ``partial_mode`` is ``True``.
+        Clean the buffer created by the model if ``partial_mode`` is True.
         """
         if self.partial_mode:
             self.buffer_.close()
@@ -1167,7 +1167,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def __init__(
         self,
         n_bins=255,
-        bin_subsample=2e5,
+        bin_subsample=200000,
         bin_type="percentile",
         max_layers=20,
         criterion="gini",
@@ -1366,7 +1366,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
     def __init__(
         self,
         n_bins=255,
-        bin_subsample=2e5,
+        bin_subsample=200000,
         bin_type="percentile",
         max_layers=20,
         criterion="mse",
