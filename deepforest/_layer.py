@@ -81,6 +81,20 @@ class Layer(object):
     def n_trees_(self):
         return self.n_estimators * self.n_trees
 
+    @property
+    def feature_importances_(self):
+        feature_importances_ = np.zeros((self.n_features,))
+        for idx, (key, estimator) in enumerate(self.estimators_.items()):
+            # Partial mode
+            if isinstance(estimator, str):
+                estimator_ = self.buffer.load_estimator(estimator)
+                feature_importances_ += estimator_.feature_importances_
+            # In-memory mode
+            else:
+                feature_importances_ += estimator.feature_importances_
+
+        return feature_importances_ / len(self.estimators_)
+
     def _make_estimator(self, estimator_idx, estimator_name):
         """Make and configure a copy of the estimator."""
         # Set the non-overlapped random state
@@ -118,7 +132,7 @@ class Layer(object):
     def fit_transform(self, X, y, sample_weight=None):
 
         self._validate_params()
-        n_samples, _ = X.shape
+        n_samples, self.n_features = X.shape
 
         X_aug = []
         if self.is_classifier:
