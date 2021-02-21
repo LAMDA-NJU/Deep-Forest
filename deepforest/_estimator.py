@@ -189,6 +189,12 @@ class Estimator(object):
             return oob_prediction
         return self.estimator_.oob_decision_function_
 
+    @property
+    def feature_importances_(self):
+        """Return the impurity-based feature importances from the estimator."""
+
+        return self.estimator_.feature_importances_
+
     def fit_transform(self, X, y, sample_weight=None):
         self.estimator_.fit(X, y, sample_weight)
         return self.oob_decision_function_

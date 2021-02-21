@@ -971,6 +971,29 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         return self
 
+    def get_layer_feature_importances(self, layer_idx):
+        """
+        Return the impurity-based feature importances of the ``layer_idx``-th
+        cascade layer, defined as the average over feature importances from
+        all base estimators in the cascade layer.
+
+        Parameters
+        ----------
+        layer_idx : :obj:`int`
+            The index of the cascade layer, should be in the range
+            ``[0, self.n_layers_-1]``.
+
+        Returns
+        -------
+        feature_importances_: :obj:`numpy.ndarray` of shape (n_features,)
+            The impurity-based feature importances of the cascade layer.
+            Notice that the number of input features are different between the
+            first cascade layer and remaining cascade layers.
+        """
+        layer = self._get_layer(layer_idx)
+        return layer.feature_importances_
+
+
     def get_forest(self, layer_idx, est_idx, forest_type):
         """
         Get the `est_idx`-th forest estimator from the `layer_idx`-th
