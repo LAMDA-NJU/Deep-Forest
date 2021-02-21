@@ -135,6 +135,14 @@ def test_model_workflow_partial_mode(backend):
     model = CascadeForestClassifier(**case_kwargs)
     model.fit(X_train, y_train)
 
+    # Test feature_importances_
+    if backend == "sklearn":
+        model.get_layer_feature_importances(0)
+    else:
+        with pytest.raises(RuntimeError) as excinfo:
+            model.get_layer_feature_importances(0)
+        assert "Please use the sklearn backend" in str(excinfo.value)
+
     # Predictions before saving
     y_pred_before = model.predict(X_test)
 
@@ -199,6 +207,14 @@ def test_model_workflow_in_memory(backend):
 
     model = CascadeForestClassifier(**case_kwargs)
     model.fit(X_train, y_train)
+
+    # Test feature_importances_
+    if backend == "sklearn":
+        model.get_layer_feature_importances(0)
+    else:
+        with pytest.raises(RuntimeError) as excinfo:
+            model.get_layer_feature_importances(0)
+        assert "Please use the sklearn backend" in str(excinfo.value)
 
     # Predictions before saving
     y_pred_before = model.predict(X_test)
