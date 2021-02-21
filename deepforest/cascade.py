@@ -990,9 +990,14 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             Notice that the number of input features are different between the
             first cascade layer and remaining cascade layers.
         """
+        if self.backend == "custom":
+            msg = (
+                "Please use the sklearn backend to get the feature"
+                " importances property for each cascade layer."
+            )
+            raise RuntimeError(msg)
         layer = self._get_layer(layer_idx)
         return layer.feature_importances_
-
 
     def get_forest(self, layer_idx, est_idx, forest_type):
         """
