@@ -519,7 +519,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         if is_classifier(self):
             n_output = np.unique(y).shape[0]  # classification
             return n_output
-        return 1  # this parameter are not used in regression
+        return y.shape[1] if len(y.shape) > 1 else 1  # regression
 
     def _get_layer(self, layer_idx):
         """Get the layer from the internal container according to the index."""
@@ -705,9 +705,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     @property
     def n_aug_features_(self):
-        if is_classifier(self):
-            return 2 * self.n_estimators * self.n_outputs_
-        return 2 * self.n_estimators
+        return 2 * self.n_estimators * self.n_outputs_
 
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
@@ -763,7 +761,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         training_time = toc - tic
 
         # Set the reference performance
-        pivot = layer_.val_acc_
+        pivot = layer_.val_performance_
 
         if self.verbose > 0:
             msg = "{} layer = {:<2} | {} | Elapsed = {:.3f} s"
@@ -844,7 +842,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             toc = time.time()
             training_time = toc - tic
 
-            new_pivot = layer_.val_acc_
+            new_pivot = layer_.val_performance_
 
             if self.verbose > 0:
                 msg = "{} layer = {:<2} | {} | Elapsed = {:.3f} s"
@@ -1408,7 +1406,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         )
 
     def _repr_performance(self, pivot):
-        msg = "Val Acc = {:.3f}"
+        msg = "Val MSE = {:.5f}"
         return msg.format(pivot)
 
     @deepforest_model_doc(
@@ -1495,5 +1493,5 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
             _y = predictor.predict(X_middle_test_)
         else:
             _y = layer.predict_full(X_middle_test_, is_classifier(self))
-            _y = _y.sum(axis=1) / _y.shape[1]
+            _y = _utils.merge_proba(_y, self.n_outputs_)
         return _y

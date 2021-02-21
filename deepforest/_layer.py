@@ -46,7 +46,7 @@ class Layer(object):
     def __init__(
         self,
         layer_idx,
-        n_classes,
+        n_outputs,
         criterion,
         n_estimators=2,
         n_trees=100,
@@ -61,7 +61,7 @@ class Layer(object):
         is_classifier=True,
     ):
         self.layer_idx = layer_idx
-        self.n_classes = n_classes
+        self.n_outputs = n_outputs
         self.criterion = criterion
         self.n_estimators = n_estimators * 2  # internal conversion
         self.n_trees = n_trees
@@ -135,10 +135,7 @@ class Layer(object):
         n_samples, self.n_features = X.shape
 
         X_aug = []
-        if self.is_classifier:
-            oob_decision_function = np.zeros((n_samples, self.n_classes))
-        else:
-            oob_decision_function = np.zeros((n_samples, 1))
+        oob_decision_function = np.zeros((n_samples, self.n_outputs))
 
         # A random forest and an extremely random forest will be fitted
         for estimator_idx in range(self.n_estimators // 2):
@@ -181,12 +178,12 @@ class Layer(object):
         self.oob_decision_function_ = oob_decision_function / self.n_estimators
         if self.is_classifier:
             y_pred = np.argmax(oob_decision_function, axis=1)
-            self.val_acc_ = accuracy_score(
+            self.val_performance_ = accuracy_score(
                 y, y_pred, sample_weight=sample_weight
             )
         else:
             y_pred = self.oob_decision_function_
-            self.val_acc_ = mean_squared_error(
+            self.val_performance_ = mean_squared_error(
                 y, y_pred, sample_weight=sample_weight
             )
 
@@ -198,10 +195,7 @@ class Layer(object):
         Return the concatenated transformation results from all base
         estimators."""
         n_samples, _ = X.shape
-        if is_classifier:
-            X_aug = np.zeros((n_samples, self.n_classes * self.n_estimators))
-        else:
-            X_aug = np.zeros((n_samples, self.n_estimators))
+        X_aug = np.zeros((n_samples, self.n_outputs * self.n_estimators))
         for idx, (key, estimator) in enumerate(self.estimators_.items()):
             if self.verbose > 1:
                 msg = "{} - Evaluating estimator = {:<5} in layer = {}"
@@ -211,10 +205,7 @@ class Layer(object):
                 # Load the estimator from the buffer
                 estimator = self.buffer.load_estimator(estimator)
 
-            if is_classifier:
-                left, right = self.n_classes * idx, self.n_classes * (idx + 1)
-            else:
-                left, right = idx, (idx + 1)
+            left, right = self.n_outputs * idx, self.n_outputs * (idx + 1)
             X_aug[:, left:right] += estimator.predict(X)
 
         return X_aug
@@ -222,10 +213,7 @@ class Layer(object):
     def predict_full(self, X, is_classifier):
         """Return the concatenated predictions from all base estimators."""
         n_samples, _ = X.shape
-        if is_classifier:
-            pred = np.zeros((n_samples, self.n_classes * self.n_estimators))
-        else:
-            pred = np.zeros((n_samples, self.n_estimators))
+        pred = np.zeros((n_samples, self.n_outputs * self.n_estimators))
         for idx, (key, estimator) in enumerate(self.estimators_.items()):
             if self.verbose > 1:
                 msg = "{} - Evaluating estimator = {:<5} in layer = {}"
@@ -235,10 +223,7 @@ class Layer(object):
                 # Load the estimator from the buffer
                 estimator = self.buffer.load_estimator(estimator)
 
-            if is_classifier:
-                left, right = self.n_classes * idx, self.n_classes * (idx + 1)
-            else:
-                left, right = idx, (idx + 1)
+            left, right = self.n_outputs * idx, self.n_outputs * (idx + 1)
             pred[:, left:right] += estimator.predict(X)
 
         return pred

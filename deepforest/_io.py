@@ -318,7 +318,7 @@ def model_loadobj(dirname, obj_type, d=None):
             # Build a temporary layer
             layer_ = Layer(
                 layer_idx=layer_idx,
-                n_classes=d["n_outputs"],
+                n_outputs=d["n_outputs"],
                 criterion=d["criterion"],
                 n_estimators=d["n_estimators"],
                 partial_mode=d["partial_mode"],

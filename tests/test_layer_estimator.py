@@ -21,7 +21,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 # Parameters
 classifier_layer_kwargs = {
     "layer_idx": 0,
-    "n_classes": 10,
+    "n_outputs": 10,
     "criterion": "gini",
     "n_estimators": 1,
     "n_trees": 10,
@@ -46,7 +46,7 @@ classifier_estimator_kwargs = {
 
 regressor_layer_kwargs = {
     "layer_idx": 0,
-    "n_classes": 1,
+    "n_outputs": 1,
     "criterion": "mse",
     "n_estimators": 1,
     "n_trees": 10,
@@ -87,7 +87,7 @@ def test_classifier_layer_properties_after_fitting():
     # Output dim
     expect_dim = (
         2
-        * classifier_layer_kwargs["n_classes"]
+        * classifier_layer_kwargs["n_outputs"]
         * classifier_layer_kwargs["n_estimators"]
     )
     assert X_aug.shape[1] == expect_dim
