@@ -16,6 +16,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/xuyxu"><img src="https://avatars.githubusercontent.com/u/22359569?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Yi-Xuan Xu</b></sub></a><br /><a href="https://github.com/LAMDA-NJU/Deep-Forest/commits?author=xuyxu" title="Code">💻</a> <a href="https://github.com/LAMDA-NJU/Deep-Forest/commits?author=xuyxu" title="Documentation">📖</a> <a href="https://github.com/LAMDA-NJU/Deep-Forest/commits?author=xuyxu" title="Tests">⚠️</a></td>
     <td align="center"><a href="https://www.linkedin.com/in/tczhao/"><img src="https://avatars.githubusercontent.com/u/20961507?v=4?s=100" width="100px;" alt=""/><br /><sub><b>tczhao</b></sub></a><br /><a href="https://github.com/LAMDA-NJU/Deep-Forest/commits?author=tczhao" title="Code">💻</a> <a href="https://github.com/LAMDA-NJU/Deep-Forest/commits?author=tczhao" title="Documentation">📖</a> <a href="https://github.com/LAMDA-NJU/Deep-Forest/commits?author=tczhao" title="Tests">⚠️</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/zhenlingcn"><img src="https://avatars.githubusercontent.com/u/18747119?v=4?s=100" width="100px;" alt=""/><br /><sub><b>zhenlingcn</b></sub></a><br /><a href="https://github.com/LAMDA-NJU/Deep-Forest/issues?q=author%3Azhenlingcn" title="Bug reports">🐛</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->
