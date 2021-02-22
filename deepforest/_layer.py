@@ -49,7 +49,6 @@ def _build_estimator(
 
 
 class BaseCascadeLayer(BaseEstimator):
-
     def __init__(
         self,
         layer_idx,
