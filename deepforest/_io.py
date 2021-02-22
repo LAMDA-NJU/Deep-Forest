@@ -303,7 +303,7 @@ def model_loadobj(dirname, obj_type, d=None):
         obj = load(os.path.join(dirname, "{}.pkl".format(obj_type)))
         return obj
     elif obj_type == "layer":
-        from ._layer import Layer  # avoid circular import
+        from ._layer import ClassificationCascadeLayer, RegressionCascadeLayer
 
         if not isinstance(d, dict):
             msg = "Loading layers requires the dict from `param.pkl`."
@@ -316,15 +316,26 @@ def model_loadobj(dirname, obj_type, d=None):
         for layer_idx in range(n_layers):
 
             # Build a temporary layer
-            layer_ = Layer(
-                layer_idx=layer_idx,
-                n_classes=d["n_outputs"],
-                criterion=d["criterion"],
-                n_estimators=d["n_estimators"],
-                partial_mode=d["partial_mode"],
-                buffer=d["buffer"],
-                verbose=d["verbose"],
-            )
+            if d["is_classifier"]:
+                layer_ = ClassificationCascadeLayer(
+                    layer_idx=layer_idx,
+                    n_outputs=d["n_outputs"],
+                    criterion=d["criterion"],
+                    n_estimators=d["n_estimators"],
+                    partial_mode=d["partial_mode"],
+                    buffer=d["buffer"],
+                    verbose=d["verbose"],
+                )
+            else:
+                layer_ = RegressionCascadeLayer(
+                    layer_idx=layer_idx,
+                    n_outputs=d["n_outputs"],
+                    criterion=d["criterion"],
+                    n_estimators=d["n_estimators"],
+                    partial_mode=d["partial_mode"],
+                    buffer=d["buffer"],
+                    verbose=d["verbose"],
+                )
 
             for est_type in ("rf", "erf"):
                 for est_idx in range(n_estimators):

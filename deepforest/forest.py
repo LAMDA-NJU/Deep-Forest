@@ -135,10 +135,12 @@ def _parallel_build_trees(
     if not value.flags["C_CONTIGUOUS"]:
         value = np.ascontiguousarray(value)
 
-    value = np.squeeze(value, axis=1)
-
     if is_classifier:
+        value = np.squeeze(value, axis=1)
         value /= value.sum(axis=1)[:, np.newaxis]
+    else:
+        if len(value.shape) == 3:
+            value = np.squeeze(value, axis=2)
 
     # Set the OOB predictions
     oob_prediction = _C_FOREST.predict(
@@ -454,7 +456,7 @@ class BaseForest(MultiOutputMixin, BaseEnsemble, metaclass=ABCMeta):
                 (n_samples, self.classes_[0].shape[0])
             )
         else:
-            oob_decision_function = np.zeros((n_samples, 1))
+            oob_decision_function = np.zeros((n_samples, self.n_outputs_))
         mask = np.zeros(n_samples)
 
         lock = threading.Lock()
@@ -790,7 +792,7 @@ class ForestRegressor(RegressorMixin, BaseForest, metaclass=ABCMeta):
         n_jobs, _, _ = _partition_estimators(self.n_estimators, self.n_jobs)
 
         # avoid storing the output of every estimator by summing them here
-        y_hat = np.zeros((X.shape[0], 1), dtype=np.float64)
+        y_hat = np.zeros((X.shape[0], self.n_outputs_), dtype=np.float64)
 
         # Parallel loop
         lock = threading.Lock()

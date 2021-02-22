@@ -1,10 +1,11 @@
 """
-Testing cases here make sure that the outputs of the reduced implementation
-on `DecisionTreeClassifier` and `ExtraTreeClassifier` are exactly the same as
-the original version in Scikit-Learn after the data binning.
+Testing cases here make sure that predictions of the reduced implementation
+on decision tree is exactly the same as the original version in Scikit-Learn
+after data binning.
 """
 
 import pytest
+import numpy as np
 from numpy.testing import assert_array_equal
 from sklearn.tree import (
     DecisionTreeClassifier as sklearn_DecisionTreeClassifier,
@@ -19,7 +20,7 @@ from sklearn.tree import ExtraTreeRegressor as sklearn_ExtraTreeRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble._hist_gradient_boosting.binning import _BinMapper
 
-# Toy classification datasets
+# Toy datasets
 from sklearn.datasets import load_iris, load_wine, load_boston
 
 from deepforest import DecisionTreeClassifier
@@ -117,6 +118,67 @@ def test_tree_regressor_pred(load_func):
 @pytest.mark.parametrize("load_func", [load_boston])
 def test_extra_tree_regressor_pred(load_func):
     X, y = load_func(return_X_y=True)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state
+    )
+
+    # Data binning
+    binner = _BinMapper(random_state=random_state)
+    X_train_binned = binner.fit_transform(X_train)
+    X_test_binned = binner.transform(X_test)
+
+    # Ours
+    model = ExtraTreeRegressor(random_state=random_state)
+    model.fit(X_train_binned, y_train)
+    actual_pred = model.predict(X_test_binned)
+
+    # Sklearn
+    model = sklearn_ExtraTreeRegressor(random_state=random_state)
+    model.fit(X_train_binned, y_train)
+    expected_pred = model.predict(X_test_binned)
+
+    assert_array_equal(actual_pred, expected_pred)
+
+
+@pytest.mark.parametrize("load_func", [load_boston])
+def test_tree_regressor_multi_output_pred(load_func):
+
+    X, y = load_func(return_X_y=True)
+
+    # Generate pseudo multi output targets
+    y = np.expand_dims(y, axis=1)
+    y = np.concatenate((y, -y), axis=1)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state
+    )
+
+    # Data binning
+    binner = _BinMapper(random_state=random_state)
+    X_train_binned = binner.fit_transform(X_train)
+    X_test_binned = binner.transform(X_test)
+
+    # Ours
+    model = DecisionTreeRegressor(random_state=random_state)
+    model.fit(X_train_binned, y_train)
+    actual_pred = model.predict(X_test_binned)
+
+    # Sklearn
+    model = sklearn_DecisionTreeRegressor(random_state=random_state)
+    model.fit(X_train_binned, y_train)
+    expected_pred = model.predict(X_test_binned)
+
+    assert_array_equal(actual_pred, expected_pred)
+
+
+@pytest.mark.parametrize("load_func", [load_boston])
+def test_extra_tree_regressor_multi_output_pred(load_func):
+    X, y = load_func(return_X_y=True)
+
+    # Generate pseudo multi output targets
+    y = np.expand_dims(y, axis=1)
+    y = np.concatenate((y, -y), axis=1)
+
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state
     )

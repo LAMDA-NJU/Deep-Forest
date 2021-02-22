@@ -1,10 +1,16 @@
 """Implementation of the forest-based cascade layer."""
 
 
-__all__ = ["Layer"]
+__all__ = [
+    "BaseCascadeLayer",
+    "ClassificationCascadeLayer",
+    "RegressionCascadeLayer",
+]
 
 import numpy as np
+from sklearn.base import is_classifier
 from sklearn.metrics import accuracy_score, mean_squared_error
+from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 
 from . import _utils
 from ._estimator import Estimator
@@ -42,11 +48,11 @@ def _build_estimator(
         return X_aug_train, estimator
 
 
-class Layer(object):
+class BaseCascadeLayer(BaseEstimator):
     def __init__(
         self,
         layer_idx,
-        n_classes,
+        n_outputs,
         criterion,
         n_estimators=2,
         n_trees=100,
@@ -58,10 +64,9 @@ class Layer(object):
         n_jobs=None,
         random_state=None,
         verbose=1,
-        is_classifier=True,
     ):
         self.layer_idx = layer_idx
-        self.n_classes = n_classes
+        self.n_outputs = n_outputs
         self.criterion = criterion
         self.n_estimators = n_estimators * 2  # internal conversion
         self.n_trees = n_trees
@@ -73,7 +78,6 @@ class Layer(object):
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.verbose = verbose
-        self.is_classifier = is_classifier
         # Internal container
         self.estimators_ = {}
 
@@ -114,7 +118,7 @@ class Layer(object):
             backend=self.backend,
             n_jobs=self.n_jobs,
             random_state=random_state,
-            is_classifier=self.is_classifier,
+            is_classifier=is_classifier(self),
         )
 
         return estimator
@@ -129,16 +133,87 @@ class Layer(object):
             msg = "`n_trees` = {} should be strictly positive."
             raise ValueError(msg.format(self.n_trees))
 
+    def transform(self, X):
+        """
+        Return the concatenated transformation results from all base
+        estimators."""
+        n_samples, _ = X.shape
+        X_aug = np.zeros((n_samples, self.n_outputs * self.n_estimators))
+        for idx, (key, estimator) in enumerate(self.estimators_.items()):
+            if self.verbose > 1:
+                msg = "{} - Evaluating estimator = {:<5} in layer = {}"
+                key = key.split("-")[-1] + "_" + str(key.split("-")[-2])
+                print(msg.format(_utils.ctime(), key, self.layer_idx))
+            if self.partial_mode:
+                # Load the estimator from the buffer
+                estimator = self.buffer.load_estimator(estimator)
+
+            left, right = self.n_outputs * idx, self.n_outputs * (idx + 1)
+            X_aug[:, left:right] += estimator.predict(X)
+
+        return X_aug
+
+    def predict_full(self, X):
+        """Return the concatenated predictions from all base estimators."""
+        n_samples, _ = X.shape
+        pred = np.zeros((n_samples, self.n_outputs * self.n_estimators))
+        for idx, (key, estimator) in enumerate(self.estimators_.items()):
+            if self.verbose > 1:
+                msg = "{} - Evaluating estimator = {:<5} in layer = {}"
+                key = key.split("-")[-1] + "_" + str(key.split("-")[-2])
+                print(msg.format(_utils.ctime(), key, self.layer_idx))
+            if self.partial_mode:
+                # Load the estimator from the buffer
+                estimator = self.buffer.load_estimator(estimator)
+
+            left, right = self.n_outputs * idx, self.n_outputs * (idx + 1)
+            pred[:, left:right] += estimator.predict(X)
+
+        return pred
+
+
+class ClassificationCascadeLayer(BaseCascadeLayer, ClassifierMixin):
+    """Implementation of the cascade forest layer for classification."""
+
+    def __init__(
+        self,
+        layer_idx,
+        n_outputs,
+        criterion,
+        n_estimators=2,
+        n_trees=100,
+        max_depth=None,
+        min_samples_leaf=1,
+        backend="custom",
+        partial_mode=False,
+        buffer=None,
+        n_jobs=None,
+        random_state=None,
+        verbose=1,
+    ):
+        super().__init__(
+            layer_idx=layer_idx,
+            n_outputs=n_outputs,
+            criterion=criterion,
+            n_estimators=n_estimators,
+            n_trees=n_trees,
+            max_depth=max_depth,
+            min_samples_leaf=min_samples_leaf,
+            backend=backend,
+            partial_mode=partial_mode,
+            buffer=buffer,
+            n_jobs=n_jobs,
+            random_state=random_state,
+            verbose=verbose,
+        )
+
     def fit_transform(self, X, y, sample_weight=None):
 
         self._validate_params()
         n_samples, self.n_features = X.shape
 
         X_aug = []
-        if self.is_classifier:
-            oob_decision_function = np.zeros((n_samples, self.n_classes))
-        else:
-            oob_decision_function = np.zeros((n_samples, 1))
+        oob_decision_function = np.zeros((n_samples, self.n_outputs))
 
         # A random forest and an extremely random forest will be fitted
         for estimator_idx in range(self.n_estimators // 2):
@@ -179,66 +254,101 @@ class Layer(object):
 
         # Set the OOB estimations and validation accuracy
         self.oob_decision_function_ = oob_decision_function / self.n_estimators
-        if self.is_classifier:
-            y_pred = np.argmax(oob_decision_function, axis=1)
-            self.val_acc_ = accuracy_score(
-                y, y_pred, sample_weight=sample_weight
-            )
-        else:
-            y_pred = self.oob_decision_function_
-            self.val_acc_ = mean_squared_error(
-                y, y_pred, sample_weight=sample_weight
-            )
+        y_pred = np.argmax(oob_decision_function, axis=1)
+        self.val_performance_ = accuracy_score(
+            y, y_pred, sample_weight=sample_weight
+        )
 
         X_aug = np.hstack(X_aug)
         return X_aug
 
-    def transform(self, X, is_classifier):
-        """
-        Return the concatenated transformation results from all base
-        estimators."""
-        n_samples, _ = X.shape
-        if is_classifier:
-            X_aug = np.zeros((n_samples, self.n_classes * self.n_estimators))
-        else:
-            X_aug = np.zeros((n_samples, self.n_estimators))
-        for idx, (key, estimator) in enumerate(self.estimators_.items()):
-            if self.verbose > 1:
-                msg = "{} - Evaluating estimator = {:<5} in layer = {}"
-                key = key.split("-")[-1] + "_" + str(key.split("-")[-2])
-                print(msg.format(_utils.ctime(), key, self.layer_idx))
-            if self.partial_mode:
-                # Load the estimator from the buffer
-                estimator = self.buffer.load_estimator(estimator)
 
-            if is_classifier:
-                left, right = self.n_classes * idx, self.n_classes * (idx + 1)
-            else:
-                left, right = idx, (idx + 1)
-            X_aug[:, left:right] += estimator.predict(X)
+class RegressionCascadeLayer(BaseCascadeLayer, RegressorMixin):
+    """Implementation of the cascade forest layer for regression."""
 
+    def __init__(
+        self,
+        layer_idx,
+        n_outputs,
+        criterion,
+        n_estimators=2,
+        n_trees=100,
+        max_depth=None,
+        min_samples_leaf=1,
+        backend="custom",
+        partial_mode=False,
+        buffer=None,
+        n_jobs=None,
+        random_state=None,
+        verbose=1,
+    ):
+        super().__init__(
+            layer_idx=layer_idx,
+            n_outputs=n_outputs,
+            criterion=criterion,
+            n_estimators=n_estimators,
+            n_trees=n_trees,
+            max_depth=max_depth,
+            min_samples_leaf=min_samples_leaf,
+            backend=backend,
+            partial_mode=partial_mode,
+            buffer=buffer,
+            n_jobs=n_jobs,
+            random_state=random_state,
+            verbose=verbose,
+        )
+
+    def fit_transform(self, X, y, sample_weight=None):
+
+        self._validate_params()
+        n_samples, self.n_features = X.shape
+
+        X_aug = []
+        oob_decision_function = np.zeros((n_samples, self.n_outputs))
+
+        # A random forest and an extremely random forest will be fitted
+        for estimator_idx in range(self.n_estimators // 2):
+            X_aug_, _estimator = _build_estimator(
+                X,
+                y,
+                self.layer_idx,
+                estimator_idx,
+                "rf",
+                self._make_estimator(estimator_idx, "rf"),
+                oob_decision_function,
+                self.partial_mode,
+                self.buffer,
+                self.verbose,
+                sample_weight,
+            )
+            X_aug.append(X_aug_)
+            key = "{}-{}-{}".format(self.layer_idx, estimator_idx, "rf")
+            self.estimators_.update({key: _estimator})
+
+        for estimator_idx in range(self.n_estimators // 2):
+            X_aug_, _estimator = _build_estimator(
+                X,
+                y,
+                self.layer_idx,
+                estimator_idx,
+                "erf",
+                self._make_estimator(estimator_idx, "erf"),
+                oob_decision_function,
+                self.partial_mode,
+                self.buffer,
+                self.verbose,
+                sample_weight,
+            )
+            X_aug.append(X_aug_)
+            key = "{}-{}-{}".format(self.layer_idx, estimator_idx, "erf")
+            self.estimators_.update({key: _estimator})
+
+        # Set the OOB estimations and validation mean squared error
+        self.oob_decision_function_ = oob_decision_function / self.n_estimators
+        y_pred = self.oob_decision_function_
+        self.val_performance_ = mean_squared_error(
+            y, y_pred, sample_weight=sample_weight
+        )
+
+        X_aug = np.hstack(X_aug)
         return X_aug
-
-    def predict_full(self, X, is_classifier):
-        """Return the concatenated predictions from all base estimators."""
-        n_samples, _ = X.shape
-        if is_classifier:
-            pred = np.zeros((n_samples, self.n_classes * self.n_estimators))
-        else:
-            pred = np.zeros((n_samples, self.n_estimators))
-        for idx, (key, estimator) in enumerate(self.estimators_.items()):
-            if self.verbose > 1:
-                msg = "{} - Evaluating estimator = {:<5} in layer = {}"
-                key = key.split("-")[-1] + "_" + str(key.split("-")[-2])
-                print(msg.format(_utils.ctime(), key, self.layer_idx))
-            if self.partial_mode:
-                # Load the estimator from the buffer
-                estimator = self.buffer.load_estimator(estimator)
-
-            if is_classifier:
-                left, right = self.n_classes * idx, self.n_classes * (idx + 1)
-            else:
-                left, right = idx, (idx + 1)
-            pred[:, left:right] += estimator.predict(X)
-
-        return pred

@@ -14,7 +14,7 @@ from sklearn.base import is_classifier
 
 from . import _utils
 from . import _io
-from ._layer import Layer
+from ._layer import ClassificationCascadeLayer, RegressionCascadeLayer
 from ._binner import Binner
 
 
@@ -415,8 +415,8 @@ __regressor_fit_doc = """
     X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
         The training data. Internally, it will be converted to
         ``np.uint8``.
-    y : :obj:`numpy.ndarray` of shape (n_samples,)
-        The target of input samples.
+    y : :obj:`numpy.ndarray` of shape (n_samples,) or (n_samples, n_outputs)
+        The target values of input samples.
     sample_weight : :obj:`numpy.ndarray` of shape (n_samples,), default=None
         Sample weights. If ``None``, then samples are equally weighted.
 """
@@ -519,7 +519,16 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         if is_classifier(self):
             n_output = np.unique(y).shape[0]  # classification
             return n_output
-        return 1  # this parameter are not used in regression
+        return y.shape[1] if len(y.shape) > 1 else 1  # regression
+
+    def _make_layer(self, **layer_args):
+        """Make and configure a cascade layer."""
+        if is_classifier(self):
+            layer = ClassificationCascadeLayer(**layer_args)
+        else:
+            layer = RegressionCascadeLayer(**layer_args)
+
+        return layer
 
     def _get_layer(self, layer_idx):
         """Get the layer from the internal container according to the index."""
@@ -684,10 +693,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             msg = "{} The optimal number of layers: {}"
             print(msg.format(_utils.ctime(), self.n_layers_))
 
-    def _if_improved(self, new_pivot, pivot, delta, is_classifier):
+    def _if_improved(self, new_pivot, pivot, delta):
         """
         Return true if new validation result is better than previous"""
-        if is_classifier:
+        if is_classifier(self):
             return new_pivot >= pivot + delta
         return new_pivot <= pivot - delta
 
@@ -705,9 +714,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     @property
     def n_aug_features_(self):
-        if is_classifier(self):
-            return 2 * self.n_estimators * self.n_outputs_
-        return 2 * self.n_estimators
+        return 2 * self.n_estimators * self.n_outputs_
 
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
@@ -735,21 +742,20 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             print("{} Start to fit the model:".format(_utils.ctime()))
 
         # Build the first cascade layer
-        layer_ = Layer(
-            0,
-            self.n_outputs_,
-            self.criterion,
-            self.n_estimators,
-            self._set_n_trees(0),
-            self.max_depth,
-            self.min_samples_leaf,
-            self.backend,
-            self.partial_mode,
-            self.buffer_,
-            self.n_jobs,
-            self.random_state,
-            self.verbose,
-            is_classifier(self),
+        layer_ = self._make_layer(
+            layer_idx=0,
+            n_outputs=self.n_outputs_,
+            criterion=self.criterion,
+            n_estimators=self.n_estimators,
+            n_trees=self._set_n_trees(0),
+            max_depth=self.max_depth,
+            min_samples_leaf=self.min_samples_leaf,
+            backend=self.backend,
+            partial_mode=self.partial_mode,
+            buffer=self.buffer_,
+            n_jobs=self.n_jobs,
+            random_state=self.random_state,
+            verbose=self.verbose,
         )
 
         if self.verbose > 0:
@@ -763,7 +769,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         training_time = toc - tic
 
         # Set the reference performance
-        pivot = layer_.val_acc_
+        pivot = layer_.val_performance_
 
         if self.verbose > 0:
             msg = "{} layer = {:<2} | {} | Elapsed = {:.3f} s"
@@ -812,21 +818,20 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
             # Build a cascade layer
             layer_idx = self.n_layers_
-            layer_ = Layer(
-                layer_idx,
-                self.n_outputs_,
-                self.criterion,
-                self.n_estimators,
-                self._set_n_trees(layer_idx),
-                self.max_depth,
-                self.min_samples_leaf,
-                self.backend,
-                self.partial_mode,
-                self.buffer_,
-                self.n_jobs,
-                self.random_state,
-                self.verbose,
-                is_classifier(self),
+            layer_ = self._make_layer(
+                layer_idx=layer_idx,
+                n_outputs=self.n_outputs_,
+                criterion=self.criterion,
+                n_estimators=self.n_estimators,
+                n_trees=self._set_n_trees(0),
+                max_depth=self.max_depth,
+                min_samples_leaf=self.min_samples_leaf,
+                backend=self.backend,
+                partial_mode=self.partial_mode,
+                buffer=self.buffer_,
+                n_jobs=self.n_jobs,
+                random_state=self.random_state,
+                verbose=self.verbose,
             )
 
             X_middle_train_ = self.buffer_.cache_data(
@@ -844,7 +849,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             toc = time.time()
             training_time = toc - tic
 
-            new_pivot = layer_.val_acc_
+            new_pivot = layer_.val_performance_
 
             if self.verbose > 0:
                 msg = "{} layer = {:<2} | {} | Elapsed = {:.3f} s"
@@ -863,9 +868,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             # training stage will terminate before reaching the maximum number
             # of layers.
 
-            if self._if_improved(
-                new_pivot, pivot, self.delta, is_classifier(self)
-            ):
+            if self._if_improved(new_pivot, pivot, self.delta):
 
                 # Update the cascade layer
                 self._set_layer(layer_idx, layer_)
@@ -1086,6 +1089,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         d["buffer"] = self.buffer_
         d["verbose"] = self.verbose
         d["use_predictor"] = self.use_predictor
+        d["is_classifier"] = is_classifier(self)
 
         if self.use_predictor:
             d["predictor_name"] = self.predictor_name
@@ -1291,7 +1295,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
                 print(msg.format(_utils.ctime(), layer_idx))
 
             if layer_idx == 0:
-                X_aug_test_ = layer.transform(X_test, is_classifier(self))
+                X_aug_test_ = layer.transform(X_test)
             elif layer_idx < self.n_layers_ - 1:
                 binner_ = self._get_binner(layer_idx)
                 X_aug_test_ = self._bin_data(
@@ -1300,9 +1304,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
                 X_middle_test_ = _utils.merge_array(
                     X_middle_test_, X_aug_test_, self.n_features_
                 )
-                X_aug_test_ = layer.transform(
-                    X_middle_test_, is_classifier(self)
-                )
+                X_aug_test_ = layer.transform(X_middle_test_)
             else:
                 binner_ = self._get_binner(layer_idx)
                 X_aug_test_ = self._bin_data(
@@ -1314,9 +1316,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
                 # Skip calling the `transform` if not using the predictor
                 if self.use_predictor:
-                    X_aug_test_ = layer.transform(
-                        X_middle_test_, is_classifier(self)
-                    )
+                    X_aug_test_ = layer.transform(X_middle_test_)
 
         if self.use_predictor:
 
@@ -1334,7 +1334,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             predictor = self.buffer_.load_predictor(self.predictor_)
             proba = predictor.predict_proba(X_middle_test_)
         else:
-            proba = layer.predict_full(X_middle_test_, is_classifier(self))
+            proba = layer.predict_full(X_middle_test_)
             proba = _utils.merge_proba(proba, self.n_outputs_)
 
         return proba
@@ -1408,7 +1408,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         )
 
     def _repr_performance(self, pivot):
-        msg = "Val Acc = {:.3f}"
+        msg = "Val MSE = {:.5f}"
         return msg.format(pivot)
 
     @deepforest_model_doc(
@@ -1429,7 +1429,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
 
         Returns
         -------
-        y : :obj:`numpy.ndarray` of shape (n_samples,)
+        y : :obj:`numpy.ndarray` of shape (n_samples,) or (n_samples, n_outputs)
             The predicted values.
         """
         if not self.is_fitted_:
@@ -1451,7 +1451,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
                 print(msg.format(_utils.ctime(), layer_idx))
 
             if layer_idx == 0:
-                X_aug_test_ = layer.transform(X_test, is_classifier(self))
+                X_aug_test_ = layer.transform(X_test)
             elif layer_idx < self.n_layers_ - 1:
                 binner_ = self._get_binner(layer_idx)
                 X_aug_test_ = self._bin_data(
@@ -1460,9 +1460,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
                 X_middle_test_ = _utils.merge_array(
                     X_middle_test_, X_aug_test_, self.n_features_
                 )
-                X_aug_test_ = layer.transform(
-                    X_middle_test_, is_classifier(self)
-                )
+                X_aug_test_ = layer.transform(X_middle_test_)
             else:
                 binner_ = self._get_binner(layer_idx)
                 X_aug_test_ = self._bin_data(
@@ -1474,9 +1472,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
 
                 # Skip calling the `transform` if not using the predictor
                 if self.use_predictor:
-                    X_aug_test_ = layer.transform(
-                        X_middle_test_, is_classifier(self)
-                    )
+                    X_aug_test_ = layer.transform(X_middle_test_)
 
         if self.use_predictor:
 
@@ -1494,6 +1490,6 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
             predictor = self.buffer_.load_predictor(self.predictor_)
             _y = predictor.predict(X_middle_test_)
         else:
-            _y = layer.predict_full(X_middle_test_, is_classifier(self))
-            _y = _y.sum(axis=1) / _y.shape[1]
+            _y = layer.predict_full(X_middle_test_)
+            _y = _utils.merge_proba(_y, self.n_outputs_)
         return _y

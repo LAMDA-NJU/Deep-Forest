@@ -429,14 +429,14 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
         """
         check_is_fitted(self)
         X = self._validate_X_predict(X, check_input)
-        proba = self.tree_.predict(X)
+        pred = self.tree_.predict(X)
 
         # Classification
         if is_classifier(self):
-            return self.classes_.take(np.argmax(proba, axis=1), axis=0)
+            return self.classes_.take(np.argmax(pred, axis=1), axis=0)
         # Regression
         else:
-            return proba[:, 0]
+            return np.squeeze(pred)
 
 
 class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
