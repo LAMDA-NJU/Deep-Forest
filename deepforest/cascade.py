@@ -415,8 +415,8 @@ __regressor_fit_doc = """
     X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
         The training data. Internally, it will be converted to
         ``np.uint8``.
-    y : :obj:`numpy.ndarray` of shape (n_samples,)
-        The target of input samples.
+    y : :obj:`numpy.ndarray` of shape (n_samples,) or (n_samples, n_outputs)
+        The target values of input samples.
     sample_weight : :obj:`numpy.ndarray` of shape (n_samples,), default=None
         Sample weights. If ``None``, then samples are equally weighted.
 """
@@ -1429,7 +1429,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
 
         Returns
         -------
-        y : :obj:`numpy.ndarray` of shape (n_samples,)
+        y : :obj:`numpy.ndarray` of shape (n_samples,) or (n_samples, n_outputs)
             The predicted values.
         """
         if not self.is_fitted_:
