@@ -1,6 +1,9 @@
 import copy
 import pytest
-from deepforest._layer import Layer
+from deepforest._layer import (
+    ClassificationCascadeLayer,
+    RegressionCascadeLayer,
+)
 from deepforest._estimator import Estimator
 
 # Load utils
@@ -72,9 +75,9 @@ regressor_estimator_kwargs = {
 
 def test_classifier_layer_properties_after_fitting():
 
-    layer = Layer(**classifier_layer_kwargs)
+    layer = ClassificationCascadeLayer(**classifier_layer_kwargs)
     X_aug = layer.fit_transform(X_train, y_train)
-    y_pred_full = layer.predict_full(X_test, is_classifier=True)
+    y_pred_full = layer.predict_full(X_test)
 
     # n_trees
     assert (
@@ -103,10 +106,9 @@ def test_regressor_layer_properties_after_fitting():
     X_train, X_test, y_train, y_test = train_test_split(
         X_binned, y, test_size=0.42, random_state=42
     )
-    layer = Layer(**regressor_layer_kwargs)
-    layer.is_classifier = False
+    layer = RegressionCascadeLayer(**regressor_layer_kwargs)
     X_aug = layer.fit_transform(X_train, y_train)
-    y_pred_full = layer.predict_full(X_test, is_classifier=False)
+    y_pred_full = layer.predict_full(X_test)
 
     # n_trees
     assert (
@@ -132,7 +134,7 @@ def test_layer_invalid_training_params(param, layer_kwargs):
     case_kwargs = copy.deepcopy(layer_kwargs)
     case_kwargs.update(param[1])
 
-    layer = Layer(**case_kwargs)
+    layer = ClassificationCascadeLayer(**case_kwargs)
 
     if param[0] == 0:
         err_msg = "`n_estimators` = 0 should be strictly positive."
