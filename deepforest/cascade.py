@@ -1407,6 +1407,24 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
             verbose=verbose,
         )
 
+        # Used to deal with target values
+        self.type_of_target_ = None
+
+    def _check_target_values(self, y):
+        """
+        Check the input target values for regressor.
+        """
+        self.type_of_target_ = type_of_target(y)
+        if self.type_of_target_ not in (
+            "continuous",
+            "continuous-multioutput",
+        ):
+            msg = (
+                "CascadeForestRegressor is used for univariate or multi-variate regression,"
+                " but the target values seem not to be one of them."
+            )
+            raise ValueError(msg)
+
     def _repr_performance(self, pivot):
         msg = "Val MSE = {:.5f}"
         return msg.format(pivot)
@@ -1415,6 +1433,10 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         """Build a deep forest using the training data.""", "regressor_fit"
     )
     def fit(self, X, y, sample_weight=None):
+
+        # Check the input for regression
+        self._check_target_values(y)
+
         super().fit(X, y, sample_weight)
 
     def predict(self, X):
