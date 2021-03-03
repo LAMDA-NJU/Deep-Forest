@@ -13,19 +13,25 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: [3.6, 3.7, 3.8]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v1
         with:
-          python-version: ${{ matrix.python-version }}
+          platforms: all
+
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.9.0
         with:
           output-dir: wheelhouse
         env:
-          CIBW_BUILD: "cp36-manylinux_x86_64 cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp36-win_amd64 cp37-win_amd64 cp38-win_amd64 cp36-macosx_x86_64 cp37-macosx_x86_64 cp38-macosx_x86_64"
+          CIBW_ARCHS_LINUX: "x86_64 aarch64"
+          CIBW_ARCHS_WINDOWS: "AMD64"
+          CIBW_ARCHS_MACOS: "x86_64"
+          CIBW_BUILD: "cp36-manylinux_x86_64 cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp36-win_amd64 cp37-win_amd64 cp38-win_amd64 cp36-macosx_x86_64 cp37-macosx_x86_64 cp38-macosx_x86_64 cp36-manylinux_aarch64 cp37-manylinux_aarch64 cp38-manylinux_aarch64"
+
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
