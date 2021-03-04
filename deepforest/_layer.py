@@ -1,10 +1,11 @@
-"""Implementation of the forest-based cascade layer."""
+"""Implementation of the cascade layer in deep forest."""
 
 
 __all__ = [
     "BaseCascadeLayer",
     "ClassificationCascadeLayer",
     "RegressionCascadeLayer",
+    "CustomCascadeLayer",
 ]
 
 import numpy as np
@@ -14,6 +15,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 
 from . import _utils
 from ._estimator import Estimator
+from .utils.kfoldwrapper import KFoldWrapper
 
 
 def _build_estimator(
@@ -134,24 +136,8 @@ class BaseCascadeLayer(BaseEstimator):
             raise ValueError(msg.format(self.n_trees))
 
     def transform(self, X):
-        """
-        Return the concatenated transformation results from all base
-        estimators."""
-        n_samples, _ = X.shape
-        X_aug = np.zeros((n_samples, self.n_outputs * self.n_estimators))
-        for idx, (key, estimator) in enumerate(self.estimators_.items()):
-            if self.verbose > 1:
-                msg = "{} - Evaluating estimator = {:<5} in layer = {}"
-                key = key.split("-")[-1] + "_" + str(key.split("-")[-2])
-                print(msg.format(_utils.ctime(), key, self.layer_idx))
-            if self.partial_mode:
-                # Load the estimator from the buffer
-                estimator = self.buffer.load_estimator(estimator)
-
-            left, right = self.n_outputs * idx, self.n_outputs * (idx + 1)
-            X_aug[:, left:right] += estimator.predict(X)
-
-        return X_aug
+        """Preserved for the naming consistency."""
+        return self.predict_full(X)
 
     def predict_full(self, X):
         """Return the concatenated predictions from all base estimators."""
@@ -352,3 +338,81 @@ class RegressionCascadeLayer(BaseCascadeLayer, RegressorMixin):
 
         X_aug = np.hstack(X_aug)
         return X_aug
+
+
+class CustomCascadeLayer(object):
+    """Implementation of the cascade layer for customized base estimators."""
+
+    def __init__(
+        self,
+        layer_idx,
+        n_splits,
+        n_outputs,
+        estimators,
+        partial_mode=False,
+        buffer=None,
+        random_state=None,
+        verbose=1,
+        is_classifier=True,
+    ):
+        self.layer_idx = layer_idx
+        self.n_splits = n_splits
+        self.n_outputs = n_outputs
+        self.n_estimators = len(estimators)
+        self.dummy_estimators_ = estimators
+        self.partial_mode = partial_mode
+        self.buffer = buffer
+        self.random_state = random_state
+        self.verbose = verbose
+        self.is_classifier = is_classifier
+        # Internal container
+        self.estimators_ = {}
+
+    def fit_transform(self, X, y, sample_weight=None):
+        n_samples, _ = X.shape
+        X_aug = []
+
+        # Parameters were already validated by upstream methods
+        for estimator_idx, estimator in enumerate(self.dummy_estimators_):
+            kfold_estimator = KFoldWrapper(
+                estimator,
+                self.n_splits,
+                self.random_state,
+                self.verbose,
+                self.is_classifier,
+            )
+
+            if self.verbose > 1:
+                msg = "{} - Fitting estimator = custom_{} in layer = {}"
+                print(
+                    msg.format(_utils.ctime(), estimator_idx, self.layer_idx)
+                )
+
+            kfold_estimator.fit(X, y, sample_weight)
+            X_aug.append(kfold_estimator.oob_decision_function_)
+            key = "{}-{}".format(self.layer_idx, estimator_idx)
+            self.estimators_.update({key: kfold_estimator})
+
+        X_aug = np.hstack(X_aug)
+        return X_aug
+
+    def transform(self, X):
+        """Preserved for the naming consistency."""
+        return self.predict_full(X)
+
+    def predict_full(self, X):
+        """Return the concatenated predictions from all base estimators."""
+        n_samples, _ = X.shape
+        pred = np.zeros((n_samples, self.n_outputs * self.n_estimators))
+        for idx, (key, estimator) in enumerate(self.estimators_.items()):
+            if self.verbose > 1:
+                msg = "{} - Evaluating estimator = custom_{} in layer = {}"
+                print(msg.format(_utils.ctime(), idx, self.layer_idx))
+            if self.partial_mode:
+                # Load the estimator from the buffer
+                estimator = self.buffer.load_estimator(estimator)
+
+            left, right = self.n_outputs * idx, self.n_outputs * (idx + 1)
+            pred[:, left:right] += estimator.predict(X)
+
+        return pred
