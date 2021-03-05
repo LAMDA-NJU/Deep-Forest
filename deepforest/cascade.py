@@ -1425,7 +1425,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
                 "continuous-multioutput",
                 "multiclass",
                 "multiclass-multioutput"
-        ) and self._check_array_numeric(y):
+        ) or not self._check_array_numeric(y):
             msg = (
                 "CascadeForestRegressor is used for univariate or multi-variate regression,"
                 " but the target values seem not to be one of them."
