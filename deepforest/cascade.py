@@ -1421,10 +1421,10 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         """
         self.type_of_target_ = type_of_target(y)
         if self.type_of_target_ not in (
-                "continuous",
-                "continuous-multioutput",
-                "multiclass",
-                "multiclass-multioutput"
+            "continuous",
+            "continuous-multioutput",
+            "multiclass",
+            "multiclass-multioutput"
         ) or not self._check_array_numeric(y):
             msg = (
                 "CascadeForestRegressor is used for univariate or multi-variate regression,"
