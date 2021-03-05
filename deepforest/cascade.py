@@ -1411,45 +1411,36 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         self.type_of_target_ = None
 
     def _check_target_values(self, y):
-        """
-        Check the input target values for regressor.
-        e.g.
-         np.array(['a','b','a','c']) will be regarded as "multiclass" but not pass self._check_array_numeric test
-         np.array(['a','1',1,2]) will be regarded as "multiclass" but not pass self._check_array_numeric test
-         np.array([1,2,1,3]) will be regarded as "multiclass" and pass self._check_array_numeric test
-         np.array([1.0,2.0,3.3]) will be regarded as "continuous" and pass self._check_array_numeric test
-        """
+        """Check the input target values for regressor."""
         self.type_of_target_ = type_of_target(y)
+
+        if not self._check_array_numeric(y):
+            msg = (
+                "CascadeForestRegressor only accepts numeric values as"
+                " valid target values."
+            )
+            raise ValueError(msg)
+
         if self.type_of_target_ not in (
             "continuous",
             "continuous-multioutput",
             "multiclass",
-            "multiclass-multioutput"
-        ) or not self._check_array_numeric(y):
+            "multiclass-multioutput",
+        ):
             msg = (
-                "CascadeForestRegressor is used for univariate or multi-variate regression,"
-                " but the target values seem not to be one of them."
+                "CascadeForestRegressor is used for univariate or"
+                " multi-variate regression, but the target values seem not"
+                " to be one of them."
             )
             raise ValueError(msg)
 
     def _check_array_numeric(self, y):
-        """
-            check the input numpy array y is all numeric
-
-        Parameters
-        ----------
-        y: numpy array
-
-        Returns
-        -------
-        bool, True if array contains all numbers else False
-        """
-
-        if y.dtype.kind in np.typecodes['AllInteger'] + np.typecodes["AllFloat"]:
+        """Check the input numpy array y is all numeric."""
+        numeric_types = np.typecodes['AllInteger'] + np.typecodes["AllFloat"]
+        if y.dtype.kind in numeric_types:
             return True
         else:
             return False
-
 
     def _repr_performance(self, pivot):
         msg = "Val MSE = {:.5f}"
