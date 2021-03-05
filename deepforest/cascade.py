@@ -1,5 +1,6 @@
 """Implementation of Deep Forest."""
 
+
 __all__ = ["CascadeForestClassifier", "CascadeForestRegressor"]
 
 import time
@@ -26,15 +27,15 @@ def _get_predictor_kwargs(predictor_kwargs, **kwargs) -> dict:
 
 
 def _build_classifier_predictor(
-        predictor_name,
-        criterion,
-        n_estimators,
-        n_outputs,
-        max_depth=None,
-        min_samples_leaf=1,
-        n_jobs=None,
-        random_state=None,
-        predictor_kwargs={},
+    predictor_name,
+    criterion,
+    n_estimators,
+    n_outputs,
+    max_depth=None,
+    min_samples_leaf=1,
+    n_jobs=None,
+    random_state=None,
+    predictor_kwargs={},
 ):
     """Build the predictor concatenated to the deep forest."""
     predictor_name = predictor_name.lower()
@@ -110,15 +111,15 @@ def _build_classifier_predictor(
 
 
 def _build_regressor_predictor(
-        predictor_name,
-        criterion,
-        n_estimators,
-        n_outputs,
-        max_depth=None,
-        min_samples_leaf=1,
-        n_jobs=None,
-        random_state=None,
-        predictor_kwargs={},
+    predictor_name,
+    criterion,
+    n_estimators,
+    n_outputs,
+    max_depth=None,
+    min_samples_leaf=1,
+    n_jobs=None,
+    random_state=None,
+    predictor_kwargs={},
 ):
     """Build the predictor concatenated to the deep forest."""
     predictor_name = predictor_name.lower()
@@ -276,6 +277,7 @@ __classifier_model_doc = """
           displayed;
         - If ``> 1``, full logging information will be displayed.
 """
+
 
 __classifier_fit_doc = """
 
@@ -454,26 +456,26 @@ def deepforest_model_doc(header, item):
 
 class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     def __init__(
-            self,
-            n_bins=255,
-            bin_subsample=200000,
-            bin_type="percentile",
-            max_layers=20,
-            criterion="",
-            n_estimators=2,
-            n_trees=100,
-            max_depth=None,
-            min_samples_leaf=1,
-            use_predictor=False,
-            predictor="forest",
-            predictor_kwargs={},
-            backend="custom",
-            n_tolerant_rounds=2,
-            delta=1e-5,
-            partial_mode=False,
-            n_jobs=None,
-            random_state=None,
-            verbose=1,
+        self,
+        n_bins=255,
+        bin_subsample=200000,
+        bin_type="percentile",
+        max_layers=20,
+        criterion="",
+        n_estimators=2,
+        n_trees=100,
+        max_depth=None,
+        min_samples_leaf=1,
+        use_predictor=False,
+        predictor="forest",
+        predictor_kwargs={},
+        backend="custom",
+        n_tolerant_rounds=2,
+        delta=1e-5,
+        partial_mode=False,
+        n_jobs=None,
+        random_state=None,
+        verbose=1,
     ):
         self.n_bins = n_bins
         self.bin_subsample = bin_subsample
@@ -672,7 +674,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         Remove cascade layers temporarily added, along with dumped objects on
         the local buffer if `partial_mode` is True."""
         for layer_idx in range(
-                self.n_layers_ - 1, self.n_layers_ - self.n_tolerant_rounds, -1
+            self.n_layers_ - 1, self.n_layers_ - self.n_tolerant_rounds, -1
         ):
             self.layers_.pop("layer_{}".format(layer_idx))
             self.binners_.pop("binner_{}".format(layer_idx))
@@ -1167,26 +1169,26 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 )
 class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
     def __init__(
-            self,
-            n_bins=255,
-            bin_subsample=200000,
-            bin_type="percentile",
-            max_layers=20,
-            criterion="gini",
-            n_estimators=2,
-            n_trees=100,
-            max_depth=None,
-            min_samples_leaf=1,
-            use_predictor=False,
-            predictor="forest",
-            predictor_kwargs={},
-            backend="custom",
-            n_tolerant_rounds=2,
-            delta=1e-5,
-            partial_mode=False,
-            n_jobs=None,
-            random_state=None,
-            verbose=1,
+        self,
+        n_bins=255,
+        bin_subsample=200000,
+        bin_type="percentile",
+        max_layers=20,
+        criterion="gini",
+        n_estimators=2,
+        n_trees=100,
+        max_depth=None,
+        min_samples_leaf=1,
+        use_predictor=False,
+        predictor="forest",
+        predictor_kwargs={},
+        backend="custom",
+        n_tolerant_rounds=2,
+        delta=1e-5,
+        partial_mode=False,
+        n_jobs=None,
+        random_state=None,
+        verbose=1,
     ):
         super().__init__(
             n_bins=n_bins,
@@ -1362,26 +1364,26 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 )
 class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
     def __init__(
-            self,
-            n_bins=255,
-            bin_subsample=200000,
-            bin_type="percentile",
-            max_layers=20,
-            criterion="mse",
-            n_estimators=2,
-            n_trees=100,
-            max_depth=None,
-            min_samples_leaf=1,
-            use_predictor=False,
-            predictor="forest",
-            predictor_kwargs={},
-            backend="custom",
-            n_tolerant_rounds=2,
-            delta=1e-5,
-            partial_mode=False,
-            n_jobs=None,
-            random_state=None,
-            verbose=1,
+        self,
+        n_bins=255,
+        bin_subsample=200000,
+        bin_type="percentile",
+        max_layers=20,
+        criterion="mse",
+        n_estimators=2,
+        n_trees=100,
+        max_depth=None,
+        min_samples_leaf=1,
+        use_predictor=False,
+        predictor="forest",
+        predictor_kwargs={},
+        backend="custom",
+        n_tolerant_rounds=2,
+        delta=1e-5,
+        partial_mode=False,
+        n_jobs=None,
+        random_state=None,
+        verbose=1,
     ):
         super().__init__(
             n_bins=n_bins,
@@ -1447,6 +1449,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
             return True
         else:
             return False
+
 
     def _repr_performance(self, pivot):
         msg = "Val MSE = {:.5f}"
