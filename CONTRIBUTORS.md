@@ -19,7 +19,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://www.linkedin.com/in/tczhao/"><img src="https://avatars.githubusercontent.com/u/20961507?v=4?s=100" width="100px;" alt=""/><br /><sub><b>tczhao</b></sub></a><br /><a href="https://github.com/LAMDA-NJU/Deep-Forest/commits?author=tczhao" title="Code">💻</a> <a href="https://github.com/LAMDA-NJU/Deep-Forest/commits?author=tczhao" title="Documentation">📖</a> <a href="https://github.com/LAMDA-NJU/Deep-Forest/commits?author=tczhao" title="Tests">⚠️</a></td>
     <td align="center"><a href="https://github.com/zhenlingcn"><img src="https://avatars.githubusercontent.com/u/18747119?v=4?s=100" width="100px;" alt=""/><br /><sub><b>zhenlingcn</b></sub></a><br /><a href="https://github.com/LAMDA-NJU/Deep-Forest/issues?q=author%3Azhenlingcn" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/chendingyan"><img src="https://avatars.githubusercontent.com/u/16874978?v=4?s=100" width="100px;" alt=""/><br /><sub><b>陈鼎彦</b></sub></a><br /><a href="https://github.com/LAMDA-NJU/Deep-Forest/issues?q=author%3Achendingyan" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/chendingyan"><img src="https://avatars.githubusercontent.com/u/16874978?v=4?s=100" width="100px;" alt=""/><br /><sub><b>陈鼎彦</b></sub></a><br /><a href="https://github.com/LAMDA-NJU/Deep-Forest/issues?q=author%3Achendingyan" title="Bug reports">🐛</a> <a href="https://github.com/LAMDA-NJU/Deep-Forest/commits?author=chendingyan" title="Code">💻</a></td>
   </tr>
 </table>
 
