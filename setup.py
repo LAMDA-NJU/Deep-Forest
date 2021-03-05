@@ -64,7 +64,7 @@ if __name__ == "__main__":
         ],
         python_requires=">=3.6",
         install_requires=[
-            "numpy>=1.13.3,<1.20.0",
+            "numpy>=1.16.0,<1.20.0",
             "scipy>=0.19.1",
             "joblib>=0.11",
             "scikit-learn>=0.22",

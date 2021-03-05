@@ -506,7 +506,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         # Predictor
         self.use_predictor = use_predictor
-        self.predictor_name = predictor
+        self.predictor = predictor
 
     def __len__(self):
         return self.n_layers_
@@ -915,7 +915,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         if self.use_predictor:
             if is_classifier(self):
                 self.predictor_ = _build_classifier_predictor(
-                    self.predictor_name,
+                    self.predictor,
                     self.criterion,
                     self.n_trees,
                     self.n_outputs_,
@@ -927,7 +927,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 )
             else:
                 self.predictor_ = _build_regressor_predictor(
-                    self.predictor_name,
+                    self.predictor,
                     self.criterion,
                     self.n_trees,
                     self.n_outputs_,
@@ -955,7 +955,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
             if self.verbose > 0:
                 msg = "{} Fitting the concatenated predictor: {}"
-                print(msg.format(_utils.ctime(), self.predictor_name))
+                print(msg.format(_utils.ctime(), self.predictor))
 
             tic = time.time()
             self.predictor_.fit(
@@ -1092,7 +1092,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         d["is_classifier"] = is_classifier(self)
 
         if self.use_predictor:
-            d["predictor_name"] = self.predictor_name
+            d["predictor"] = self.predictor
 
         # Save label encoder if labels are encoded.
         if hasattr(self, "labels_are_encoded"):

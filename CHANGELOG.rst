@@ -30,7 +30,7 @@ Version 0.1.*
 .. |Fix| replace:: :raw-html:`<span class="badge badge-danger">Fix</span>` :raw-latex:`{\small\sc [Fix]}`
 .. |API| replace:: :raw-html:`<span class="badge badge-warning">API Change</span>` :raw-latex:`{\small\sc [API Change]}`
 
-- |Feature| support customized base estimator and predictor (`#48 <https://github.com/LAMDA-NJU/Deep-Forest/pull/48>`__) @xuyxu
+- |Fix| fix inconsistency on predictor name (`#52 <https://github.com/LAMDA-NJU/Deep-Forest/pull/52>`__) @xuyxu
 - |Feature| add official support for ManyLinux-aarch64 (`#47 <https://github.com/LAMDA-NJU/Deep-Forest/pull/47>`__) @xuyxu
 - |Fix| fix accepted types of target for :obj:`CascadeForestRegressor` (`#44 <https://github.com/LAMDA-NJU/Deep-Forest/pull/44>`__) @xuyxu
 - |Feature| add multi-output support for :obj:`CascadeForestRegressor` (`#40 <https://github.com/LAMDA-NJU/Deep-Forest/pull/40>`__) @Alex-Medium

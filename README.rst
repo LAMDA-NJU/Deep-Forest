@@ -6,7 +6,7 @@ Deep Forest (DF) 21
 .. |github| image:: https://github.com/LAMDA-NJU/Deep-Forest/workflows/DeepForest-CI/badge.svg
 .. _github: https://github.com/LAMDA-NJU/Deep-Forest/actions
 
-.. |readthedocs| image:: https://readthedocs.org/projects/deep-forest/badge/?version=master
+.. |readthedocs| image:: https://readthedocs.org/projects/deep-forest/badge/?version=latest
 .. _readthedocs: https://deep-forest.readthedocs.io
 
 .. |codecov| image:: https://codecov.io/gh/LAMDA-NJU/Deep-Forest/branch/master/graph/badge.svg?token=5BVXOT8RPO
