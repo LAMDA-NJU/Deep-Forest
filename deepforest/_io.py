@@ -140,7 +140,7 @@ class Buffer(object):
             cached.
         est_idx : int
             The index of the estimator in the cascade layer to be cached.
-        est_name : {"rf", "erf"}
+        est_name : {"rf", "erf", "custom"}
             The name of the estimator to be cached.
         est : object
             The object of base estimator.
@@ -303,7 +303,11 @@ def model_loadobj(dirname, obj_type, d=None):
         obj = load(os.path.join(dirname, "{}.pkl".format(obj_type)))
         return obj
     elif obj_type == "layer":
-        from ._layer import ClassificationCascadeLayer, RegressionCascadeLayer
+        from ._layer import (
+            ClassificationCascadeLayer,
+            RegressionCascadeLayer,
+            CustomCascadeLayer,
+        )
 
         if not isinstance(d, dict):
             msg = "Loading layers requires the dict from `param.pkl`."
@@ -315,31 +319,62 @@ def model_loadobj(dirname, obj_type, d=None):
 
         for layer_idx in range(n_layers):
 
-            # Build a temporary layer
-            if d["is_classifier"]:
-                layer_ = ClassificationCascadeLayer(
-                    layer_idx=layer_idx,
-                    n_outputs=d["n_outputs"],
-                    criterion=d["criterion"],
-                    n_estimators=d["n_estimators"],
-                    partial_mode=d["partial_mode"],
-                    buffer=d["buffer"],
-                    verbose=d["verbose"],
-                )
+            if not d["use_custom_estimator"]:
+                if d["is_classifier"]:
+                    layer_ = ClassificationCascadeLayer(
+                        layer_idx=layer_idx,
+                        n_outputs=d["n_outputs"],
+                        criterion=d["criterion"],
+                        n_estimators=d["n_estimators"],
+                        partial_mode=d["partial_mode"],
+                        buffer=d["buffer"],
+                        verbose=d["verbose"],
+                    )
+                else:
+                    layer_ = RegressionCascadeLayer(
+                        layer_idx=layer_idx,
+                        n_outputs=d["n_outputs"],
+                        criterion=d["criterion"],
+                        n_estimators=d["n_estimators"],
+                        partial_mode=d["partial_mode"],
+                        buffer=d["buffer"],
+                        verbose=d["verbose"],
+                    )
+
+                for est_type in ("rf", "erf"):
+                    for est_idx in range(n_estimators):
+                        est_key = "{}-{}-{}".format(
+                            layer_idx, est_idx, est_type
+                        )
+                        dest = os.path.join(
+                            dirname, "estimator", est_key + ".est"
+                        )
+
+                        if not os.path.isfile(dest):
+                            msg = "Missing estimator in the path: {}."
+                            raise RuntimeError(msg.format(dest))
+
+                        if d["partial_mode"]:
+                            layer_.estimators_.update(
+                                {est_key: os.path.abspath(dest)}
+                            )
+                        else:
+                            est = load(dest)
+                            layer_.estimators_.update({est_key: est})
             else:
-                layer_ = RegressionCascadeLayer(
+
+                layer_ = CustomCascadeLayer(
                     layer_idx=layer_idx,
+                    n_splits=1,  # will not be used
                     n_outputs=d["n_outputs"],
-                    criterion=d["criterion"],
-                    n_estimators=d["n_estimators"],
+                    estimators=[None] * n_estimators,  # will not be used
                     partial_mode=d["partial_mode"],
                     buffer=d["buffer"],
                     verbose=d["verbose"],
                 )
 
-            for est_type in ("rf", "erf"):
                 for est_idx in range(n_estimators):
-                    est_key = "{}-{}-{}".format(layer_idx, est_idx, est_type)
+                    est_key = "{}-{}-custom".format(layer_idx, est_idx)
                     dest = os.path.join(dirname, "estimator", est_key + ".est")
 
                     if not os.path.isfile(dest):
@@ -347,9 +382,7 @@ def model_loadobj(dirname, obj_type, d=None):
                         raise RuntimeError(msg.format(dest))
 
                     if d["partial_mode"]:
-                        layer_.estimators_.update(
-                            {est_key: os.path.abspath(dest)}
-                        )
+                        layer_.estimators_.update({est_key: dest})
                     else:
                         est = load(dest)
                         layer_.estimators_.update({est_key: est})

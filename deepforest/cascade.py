@@ -14,7 +14,11 @@ from sklearn.base import is_classifier
 
 from . import _utils
 from . import _io
-from ._layer import ClassificationCascadeLayer, RegressionCascadeLayer
+from ._layer import (
+    ClassificationCascadeLayer,
+    RegressionCascadeLayer,
+    CustomCascadeLayer,
+)
 from ._binner import Binner
 
 
@@ -523,10 +527,25 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def _make_layer(self, **layer_args):
         """Make and configure a cascade layer."""
-        if is_classifier(self):
-            layer = ClassificationCascadeLayer(**layer_args)
+        if not hasattr(self, "use_custom_estimator"):
+            # Use built-in cascade layers
+            if is_classifier(self):
+                layer = ClassificationCascadeLayer(**layer_args)
+            else:
+                layer = RegressionCascadeLayer(**layer_args)
         else:
-            layer = RegressionCascadeLayer(**layer_args)
+            # Use customized cascade layers
+            layer = CustomCascadeLayer(
+                layer_args["layer_idx"],
+                self.n_splits,
+                layer_args["n_outputs"],
+                self.dummy_estimators,
+                layer_args["partial_mode"],
+                layer_args["buffer"],
+                layer_args["random_state"],
+                layer_args["verbose"],
+                is_classifier(self),
+            )
 
         return layer
 
@@ -714,7 +733,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     @property
     def n_aug_features_(self):
-        return 2 * self.n_estimators * self.n_outputs_
+        if not hasattr(self, "use_custom_estimator"):
+            return 2 * self.n_estimators * self.n_outputs_
+        else:
+            return self.n_estimators * self.n_outputs_
 
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
@@ -974,6 +996,57 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         return self
 
+    def set_estimators(self, estimators, n_splits=5):
+        """
+        Specify custom base estimators, which will override forest base
+        estimators used by default.
+
+        Parameters
+        ----------
+        estimators : :obj:`list`
+            A list of your base estimators, will be used in each cascade layer.
+        n_splits : :obj:`int`, default=5
+            The number of folds, must be at least 2.
+        """
+        # Validation check
+        if not isinstance(estimators, list):
+            msg = (
+                "estimators should be a list that stores instantiated"
+                " objects of your base estimator."
+            )
+            raise ValueError(msg)
+
+        for idx, estimator in enumerate(estimators):
+            if not callable(getattr(estimator, "fit")):
+                msg = "The `fit` method of estimator = {} is not callable."
+                raise AttributeError(msg.format(idx))
+
+            if is_classifier(self) and not callable(
+                getattr(estimator, "predict_proba")
+            ):
+                msg = (
+                    "The `predict_proba` method of estimator = {} is not"
+                    " callable."
+                )
+                raise AttributeError(msg.format(idx))
+
+            if not is_classifier(self) and not callable(
+                getattr(estimator, "predict")
+            ):
+                msg = "The `predict` method of estimator = {} is not callable."
+                raise AttributeError(msg.format(idx))
+
+        if not n_splits >= 2:
+            msg = "n_splits = {} should be at least 2."
+            raise ValueError(msg.format(n_splits))
+
+        self.dummy_estimators = estimators
+        self.n_splits = n_splits
+        self.use_custom_estimator = True
+
+        # Override attributes
+        self.n_estimators = len(estimators)
+
     def get_layer_feature_importances(self, layer_idx):
         """
         Return the impurity-based feature importances of the ``layer_idx``-th
@@ -1090,6 +1163,9 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         d["verbose"] = self.verbose
         d["use_predictor"] = self.use_predictor
         d["is_classifier"] = is_classifier(self)
+        d["use_custom_estimator"] = (
+            True if hasattr(self, "use_custom_estimator") else False
+        )
 
         if self.use_predictor:
             d["predictor"] = self.predictor
@@ -1131,8 +1207,11 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.n_features_ = d["n_features"]
         self.n_outputs_ = d["n_outputs"]
         self.partial_mode = d["partial_mode"]
+        self.buffer_ = d["buffer"]
         self.verbose = d["verbose"]
         self.use_predictor = d["use_predictor"]
+        if d["use_custom_estimator"]:
+            self.use_custom_estimator = True
 
         # Load label encoder if labels are encoded.
         if "labels_are_encoded" in d:
@@ -1334,8 +1413,12 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             predictor = self.buffer_.load_predictor(self.predictor_)
             proba = predictor.predict_proba(X_middle_test_)
         else:
-            proba = layer.predict_full(X_middle_test_)
-            proba = _utils.merge_proba(proba, self.n_outputs_)
+            if self.n_layers_ > 1:
+                proba = layer.predict_full(X_middle_test_)
+                proba = _utils.merge_proba(proba, self.n_outputs_)
+            else:
+                # Directly merge results with one cascade layer only
+                proba = _utils.merge_proba(X_aug_test_, self.n_outputs_)
 
         return proba
 
@@ -1512,6 +1595,11 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
             predictor = self.buffer_.load_predictor(self.predictor_)
             _y = predictor.predict(X_middle_test_)
         else:
-            _y = layer.predict_full(X_middle_test_)
-            _y = _utils.merge_proba(_y, self.n_outputs_)
+            if self.n_layers_ > 1:
+                _y = layer.predict_full(X_middle_test_)
+                _y = _utils.merge_proba(_y, self.n_outputs_)
+            else:
+                # Directly merge results with one cascade layer only
+                _y = _utils.merge_proba(X_aug_test_, self.n_outputs_)
+
         return _y

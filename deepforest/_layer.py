@@ -377,6 +377,7 @@ class CustomCascadeLayer(object):
             kfold_estimator = KFoldWrapper(
                 estimator,
                 self.n_splits,
+                self.n_outputs,
                 self.random_state,
                 self.verbose,
                 self.is_classifier,
@@ -388,10 +389,35 @@ class CustomCascadeLayer(object):
                     msg.format(_utils.ctime(), estimator_idx, self.layer_idx)
                 )
 
-            kfold_estimator.fit(X, y, sample_weight)
+            kfold_estimator.fit_transform(X, y, sample_weight)
             X_aug.append(kfold_estimator.oob_decision_function_)
-            key = "{}-{}".format(self.layer_idx, estimator_idx)
-            self.estimators_.update({key: kfold_estimator})
+            key = "{}-{}-custom".format(self.layer_idx, estimator_idx)
+
+            if self.partial_mode:
+                # Cache the fitted estimator in out-of-core mode
+                buffer_path = self.buffer.cache_estimator(
+                    self.layer_idx, estimator_idx, "custom", kfold_estimator
+                )
+                self.estimators_.update({key: buffer_path})
+            else:
+                self.estimators_.update({key: kfold_estimator})
+
+        # Set the OOB estimations and validation performance
+        oob_decision_function = np.zeros_like(X_aug[0])
+        for estimator_oob_decision_function in X_aug:
+            oob_decision_function += (
+                estimator_oob_decision_function / self.n_estimators
+            )
+
+        if self.is_classifier:  # classification
+            y_pred = np.argmax(oob_decision_function, axis=1)
+            self.val_performance_ = accuracy_score(
+                y, y_pred, sample_weight=sample_weight
+            )
+        else:  # regression
+            self.val_performance_ = mean_squared_error(
+                y, y_pred, sample_weight=sample_weight
+            )
 
         X_aug = np.hstack(X_aug)
         return X_aug

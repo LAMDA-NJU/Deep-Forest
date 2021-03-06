@@ -21,7 +21,8 @@ class KFoldWrapper(object):
     def __init__(
         self,
         estimator,
-        n_splits=5,
+        n_splits,
+        n_outputs,
         random_state=None,
         verbose=1,
         is_classifier=True,
@@ -30,6 +31,7 @@ class KFoldWrapper(object):
         # Parameters were already validated by upstream methods
         self.dummy_estimator_ = estimator
         self.n_splits = n_splits
+        self.n_outputs = n_outputs
         self.random_state = random_state
         self.verbose = verbose
         self.is_classifier = is_classifier
@@ -41,7 +43,7 @@ class KFoldWrapper(object):
         splitter = KFold(
             n_splits=self.n_splits, random_state=self.random_state
         )
-        self.oob_decision_function_ = np.zeros((n_samples, self.n_outputs_))
+        self.oob_decision_function_ = np.zeros((n_samples, self.n_outputs))
 
         for k, (train_idx, val_idx) in enumerate(splitter.split(X, y)):
             estimator = copy.deepcopy(self.dummy_estimator_)
@@ -75,7 +77,7 @@ class KFoldWrapper(object):
 
     def predict(self, X):
         n_samples, _ = X.shape
-        out = np.zeros((n_samples, self.n_outputs_))  # pre-allocate results
+        out = np.zeros((n_samples, self.n_outputs))  # pre-allocate results
         for estimator in self.estimators_:
             if self.is_classifier:
                 out += estimator.predict_proba(X)  # classification
