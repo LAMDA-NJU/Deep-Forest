@@ -1,10 +1,11 @@
+import pytest
 import shutil
 from numpy.testing import assert_array_equal
 from sklearn.datasets import load_iris
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 
-from deepforest import CascadeForestClassifier
+from deepforest import CascadeForestClassifier, CascadeForestRegressor
 
 
 save_dir = "./tmp"
@@ -70,6 +71,58 @@ def test_custom_cascade_layer_workflow_partial_mode():
     shutil.rmtree(save_dir)
 
 
-if __name__ == "__main__":
+def test_custom_base_estimator_wrong_estimator_type():
 
-    test_custom_cascade_layer_workflow_partial_mode()
+    model = CascadeForestClassifier()
+    with pytest.raises(ValueError) as excinfo:
+        model.set_estimators(42)
+    assert "estimators should be a list" in str(excinfo.value)
+
+
+def test_custom_base_estimator_missing_fit():
+
+    class tmp_estimator():
+        def __init__(self):
+            pass
+    model = CascadeForestClassifier()
+    with pytest.raises(AttributeError) as excinfo:
+        model.set_estimators([tmp_estimator()])
+    assert "The `fit` method of estimator" in str(excinfo.value)
+
+
+def test_custom_base_estimator_missing_predict_proba():
+
+    class tmp_estimator():
+        def __init__(self):
+            pass
+        
+        def fit(self, X, y):
+            pass
+    model = CascadeForestClassifier()
+    with pytest.raises(AttributeError) as excinfo:
+        model.set_estimators([tmp_estimator()])
+    assert "The `predict_proba` method" in str(excinfo.value)
+
+
+def test_custom_base_estimator_missing_predict():
+
+    class tmp_estimator():
+        def __init__(self):
+            pass
+        
+        def fit(self, X, y):
+            pass
+    model = CascadeForestRegressor()
+    with pytest.raises(AttributeError) as excinfo:
+        model.set_estimators([tmp_estimator()])
+    assert "The `predict` method" in str(excinfo.value)
+
+
+def test_custom_base_estimator_invalid_n_splits():
+
+    model = CascadeForestRegressor()
+    n_estimators = 4
+    estimators = [DecisionTreeClassifier() for _ in range(n_estimators)]
+    with pytest.raises(ValueError) as excinfo:
+        model.set_estimators(estimators, n_splits=1)
+    assert "should be at least 2" in str(excinfo.value)

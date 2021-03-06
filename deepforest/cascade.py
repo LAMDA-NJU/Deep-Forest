@@ -1017,12 +1017,12 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             raise ValueError(msg)
 
         for idx, estimator in enumerate(estimators):
-            if not callable(getattr(estimator, "fit")):
+            if not callable(getattr(estimator, "fit", None)):
                 msg = "The `fit` method of estimator = {} is not callable."
                 raise AttributeError(msg.format(idx))
 
             if is_classifier(self) and not callable(
-                getattr(estimator, "predict_proba")
+                getattr(estimator, "predict_proba", None)
             ):
                 msg = (
                     "The `predict_proba` method of estimator = {} is not"
@@ -1031,7 +1031,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 raise AttributeError(msg.format(idx))
 
             if not is_classifier(self) and not callable(
-                getattr(estimator, "predict")
+                getattr(estimator, "predict", None)
             ):
                 msg = "The `predict` method of estimator = {} is not callable."
                 raise AttributeError(msg.format(idx))
