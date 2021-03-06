@@ -80,10 +80,10 @@ def test_custom_base_estimator_wrong_estimator_type():
 
 
 def test_custom_base_estimator_missing_fit():
-
-    class tmp_estimator():
+    class tmp_estimator:
         def __init__(self):
             pass
+
     model = CascadeForestClassifier()
     with pytest.raises(AttributeError) as excinfo:
         model.set_estimators([tmp_estimator()])
@@ -91,13 +91,13 @@ def test_custom_base_estimator_missing_fit():
 
 
 def test_custom_base_estimator_missing_predict_proba():
-
-    class tmp_estimator():
+    class tmp_estimator:
         def __init__(self):
             pass
-        
+
         def fit(self, X, y):
             pass
+
     model = CascadeForestClassifier()
     with pytest.raises(AttributeError) as excinfo:
         model.set_estimators([tmp_estimator()])
@@ -105,13 +105,13 @@ def test_custom_base_estimator_missing_predict_proba():
 
 
 def test_custom_base_estimator_missing_predict():
-
-    class tmp_estimator():
+    class tmp_estimator:
         def __init__(self):
             pass
-        
+
         def fit(self, X, y):
             pass
+
     model = CascadeForestRegressor()
     with pytest.raises(AttributeError) as excinfo:
         model.set_estimators([tmp_estimator()])
