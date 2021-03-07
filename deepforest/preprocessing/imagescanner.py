@@ -29,7 +29,7 @@ def _im2col_indices(X, kernel_size, stride=1, padding=1):
     padding_X = np.pad(
         X,
         ((0, 0), (0, 0), (padding, padding), (padding, padding)),
-        mode='constant',
+        mode="constant",
     )
 
     k, i, j = get_im2col_indices(X.shape, kernel_size, stride, padding)
