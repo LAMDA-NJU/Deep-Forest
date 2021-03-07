@@ -108,6 +108,12 @@ Reference
 
 .. toctree::
    :maxdepth: 1
+   :caption: Advanced Topics
+
+   Use Customized Estimators <./advanced_topics/use_customized_estimator>
+
+.. toctree::
+   :maxdepth: 1
    :caption: For Developers
 
    Contributors <contributors>
