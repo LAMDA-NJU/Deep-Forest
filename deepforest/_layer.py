@@ -134,24 +134,8 @@ class BaseCascadeLayer(BaseEstimator):
             raise ValueError(msg.format(self.n_trees))
 
     def transform(self, X):
-        """
-        Return the concatenated transformation results from all base
-        estimators."""
-        n_samples, _ = X.shape
-        X_aug = np.zeros((n_samples, self.n_outputs * self.n_estimators))
-        for idx, (key, estimator) in enumerate(self.estimators_.items()):
-            if self.verbose > 1:
-                msg = "{} - Evaluating estimator = {:<5} in layer = {}"
-                key = key.split("-")[-1] + "_" + str(key.split("-")[-2])
-                print(msg.format(_utils.ctime(), key, self.layer_idx))
-            if self.partial_mode:
-                # Load the estimator from the buffer
-                estimator = self.buffer.load_estimator(estimator)
-
-            left, right = self.n_outputs * idx, self.n_outputs * (idx + 1)
-            X_aug[:, left:right] += estimator.predict(X)
-
-        return X_aug
+        """Preserved for the naming consistency."""
+        return self.predict_full(X)
 
     def predict_full(self, X):
         """Return the concatenated predictions from all base estimators."""
