@@ -11,7 +11,7 @@ def _prepare_data(b, c, h, w):
     y = np.array([0])
 
     padding_mat = np.zeros((b, c, h + 2, w + 2), dtype=np.uint8)
-    padding_mat[:, :, 1 : h + 1, 1 : w + 1] = raw_mat # noqa
+    padding_mat[:, :, 1 : h + 1, 1 : w + 1] = raw_mat  # noqa
 
     results = np.zeros((b * h * w, c, 3, 3), dtype=np.uint8)
     for idx_b in range(b):
