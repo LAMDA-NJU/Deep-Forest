@@ -935,30 +935,33 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         # Build the predictor if `self.use_predictor` is True
         if self.use_predictor:
-            if is_classifier(self):
-                self.predictor_ = _build_classifier_predictor(
-                    self.predictor,
-                    self.criterion,
-                    self.n_trees,
-                    self.n_outputs_,
-                    self.max_depth,
-                    self.min_samples_leaf,
-                    self.n_jobs,
-                    self.random_state,
-                    self.predictor_kwargs,
-                )
-            else:
-                self.predictor_ = _build_regressor_predictor(
-                    self.predictor,
-                    self.criterion,
-                    self.n_trees,
-                    self.n_outputs_,
-                    self.max_depth,
-                    self.min_samples_leaf,
-                    self.n_jobs,
-                    self.random_state,
-                    self.predictor_kwargs,
-                )
+            if isinstance(self.predictor, str):  # Use built-in predictors
+                if is_classifier(self):
+                    self.predictor_ = _build_classifier_predictor(
+                        self.predictor,
+                        self.criterion,
+                        self.n_trees,
+                        self.n_outputs_,
+                        self.max_depth,
+                        self.min_samples_leaf,
+                        self.n_jobs,
+                        self.random_state,
+                        self.predictor_kwargs,
+                    )
+                else:
+                    self.predictor_ = _build_regressor_predictor(
+                        self.predictor,
+                        self.criterion,
+                        self.n_trees,
+                        self.n_outputs_,
+                        self.max_depth,
+                        self.min_samples_leaf,
+                        self.n_jobs,
+                        self.random_state,
+                        self.predictor_kwargs,
+                    )
+            else:  # Use custom predictor
+                self.predictor_ = self.predictor
 
             binner_ = Binner(
                 n_bins=self.n_bins,
@@ -1046,6 +1049,40 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         # Override attributes
         self.n_estimators = len(estimators)
+
+    def set_predictor(self, predictor):
+        """
+        Specify the custom predictor, which will override the predictor
+        used by default.
+
+        Parameters
+        ----------
+        predictor : :obj:`object`
+            The instantiated object of your predictor.
+        """
+        # Validation check
+        if not callable(getattr(predictor, "fit", None)):
+            msg = "The `fit` method of the predictor is not callable."
+            raise AttributeError(msg)
+
+        if is_classifier(self) and not callable(
+            getattr(predictor, "predict_proba", None)
+        ):
+            msg = (
+                "The `predict_proba` method of the predictor is not"
+                " callable."
+            )
+            raise AttributeError(msg)
+
+        if not is_classifier(self) and not callable(
+            getattr(predictor, "predict", None)
+        ):
+            msg = "The `predict` method of the predictor is not callable."
+            raise AttributeError(msg)
+
+        # Override the predictor
+        self.predictor = predictor
+        self.use_predictor = True
 
     def get_layer_feature_importances(self, layer_idx):
         """

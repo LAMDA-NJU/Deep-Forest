@@ -399,13 +399,13 @@ def model_loadobj(dirname, obj_type, d=None):
         pred_path = os.path.join(dirname, "estimator", "predictor.est")
 
         if not os.path.isfile(pred_path):
-            msg = "Missing classifier in the path: {}."
+            msg = "Missing predictor in the path: {}."
             raise RuntimeError(msg.format(pred_path))
 
         if d["partial_mode"]:
             return os.path.abspath(pred_path)
         else:
-            clf = load(pred_path)
-            return clf
+            predictor = load(pred_path)
+            return predictor
     else:
         raise ValueError("Unknown object type: {}.".format(obj_type))
