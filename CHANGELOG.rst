@@ -30,6 +30,7 @@ Version 0.1.*
 .. |Fix| replace:: :raw-html:`<span class="badge badge-danger">Fix</span>` :raw-latex:`{\small\sc [Fix]}`
 .. |API| replace:: :raw-html:`<span class="badge badge-warning">API Change</span>` :raw-latex:`{\small\sc [API Change]}`
 
+- |Enhancement| improve target checks for :obj:`CascadeForestRegressor` (`#53 <https://github.com/LAMDA-NJU/Deep-Forest/pull/53>`__) @chendingyan
 - |Fix| fix the prediction workflow with only one cascade layer (`#56 <https://github.com/LAMDA-NJU/Deep-Forest/pull/56>`__) @xuyxu
 - |Fix| fix inconsistency on predictor name (`#52 <https://github.com/LAMDA-NJU/Deep-Forest/pull/52>`__) @xuyxu
 - |Feature| add official support for ManyLinux-aarch64 (`#47 <https://github.com/LAMDA-NJU/Deep-Forest/pull/47>`__) @xuyxu

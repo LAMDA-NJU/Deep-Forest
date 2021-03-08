@@ -1415,19 +1415,36 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         self.type_of_target_ = None
 
     def _check_target_values(self, y):
-        """
-        Check the input target values for regressor.
-        """
+        """Check the input target values for regressor."""
         self.type_of_target_ = type_of_target(y)
+
+        if not self._check_array_numeric(y):
+            msg = (
+                "CascadeForestRegressor only accepts numeric values as"
+                " valid target values."
+            )
+            raise ValueError(msg)
+
         if self.type_of_target_ not in (
             "continuous",
             "continuous-multioutput",
+            "multiclass",
+            "multiclass-multioutput",
         ):
             msg = (
-                "CascadeForestRegressor is used for univariate or multi-variate regression,"
-                " but the target values seem not to be one of them."
+                "CascadeForestRegressor is used for univariate or"
+                " multi-variate regression, but the target values seem not"
+                " to be one of them."
             )
             raise ValueError(msg)
+
+    def _check_array_numeric(self, y):
+        """Check the input numpy array y is all numeric."""
+        numeric_types = np.typecodes['AllInteger'] + np.typecodes["AllFloat"]
+        if y.dtype.kind in numeric_types:
+            return True
+        else:
+            return False
 
     def _repr_performance(self, pivot):
         msg = "Val MSE = {:.5f}"
