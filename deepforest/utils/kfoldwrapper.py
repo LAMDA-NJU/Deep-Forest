@@ -41,7 +41,9 @@ class KFoldWrapper(object):
     def fit_transform(self, X, y, sample_weight=None):
         n_samples, _ = X.shape
         splitter = KFold(
-            n_splits=self.n_splits, random_state=self.random_state
+            n_splits=self.n_splits,
+            shuffle=True,
+            random_state=self.random_state
         )
         self.oob_decision_function_ = np.zeros((n_samples, self.n_outputs))
 
