@@ -106,6 +106,16 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "zzzzwj",
+      "name": "Wenjie Zhang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23235538?v=4",
+      "profile": "https://github.com/zzzzwj",
+      "contributions": [
+        "code",
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7,
