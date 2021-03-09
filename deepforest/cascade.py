@@ -1048,7 +1048,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.n_splits = n_splits
         self.use_custom_estimator = True
 
-        # Override attributes
+        # Update attributes
         self.n_estimators = len(estimators)
 
     def set_predictor(self, predictor):
@@ -1104,6 +1104,13 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             The impurity-based feature importances of the cascade layer.
             Notice that the number of input features are different between the
             first cascade layer and remaining cascade layers.
+
+
+        .. note::
+            - This method is only applicable when deep forest is built using
+              the ``sklearn`` backend
+            - The functionality of this method is not available when using
+              customized estimators in deep forest.
         """
         if self.backend == "custom":
             msg = (
@@ -1114,7 +1121,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         layer = self._get_layer(layer_idx)
         return layer.feature_importances_
 
-    def get_estimator(self, layer_idx, est_idx, forest_type):
+    def get_estimator(self, layer_idx, est_idx, estimator_type):
         """
         Get the `est_idx`-th estimator from the `layer_idx`-th cascade layer
         in the deep forest.
@@ -1127,11 +1134,14 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         est_idx : :obj:`int`
             The index of the estimator, should be in the range
             ``[0, self.n_estimators]``.
-        forest_type : :obj:`{"rf", "erf"}`
+        estimator_type : :obj:`{"rf", "erf", "custom"}`
             Specify the forest type.
 
             - If ``rf``, return the random forest.
             - If ``erf``, return the extremely random forest.
+            - If ``custom``, return the customized estimator, only applicable
+              when using customized estimators in deep forest via
+              :meth:`set_estimator`.
 
         Returns
         -------
@@ -1155,15 +1165,22 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             )
             raise ValueError(msg.format(self.n_estimators, est_idx))
 
-        if forest_type not in ("rf", "erf"):
+        if estimator_type not in ("rf", "erf", "custom"):
             msg = (
-                "`forest_type` should be one of {{rf, erf}},"
+                "`estimator_type` should be one of {{rf, erf}},"
                 " but got {} instead."
             )
-            raise ValueError(msg.format(forest_type))
+            raise ValueError(msg.format(estimator_type))
+
+        if estimator_type == "custom" and not self.use_custom_estimator:
+            msg = (
+                "`estimator_type` = {} is only applicable when using"
+                "customized estimators in deep forest."
+            )
+            raise ValueError(msg.format(estimator_type))
 
         layer = self._get_layer(layer_idx)
-        est_key = "{}-{}-{}".format(layer_idx, est_idx, forest_type)
+        est_key = "{}-{}-{}".format(layer_idx, est_idx, estimator_type)
         estimator = layer.estimators_[est_key]
 
         # Load the model if in partial mode

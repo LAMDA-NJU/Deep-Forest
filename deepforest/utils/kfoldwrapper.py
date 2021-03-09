@@ -38,6 +38,11 @@ class KFoldWrapper(object):
         # Internal container
         self.estimators_ = []
 
+    @property
+    def estimator_(self):
+        """Return the list of internal estimators."""
+        return self.estimators_
+
     def fit_transform(self, X, y, sample_weight=None):
         n_samples, _ = X.shape
         splitter = KFold(

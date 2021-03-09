@@ -43,6 +43,11 @@ def test_custom_cascade_layer_workflow_in_memory():
     # Make sure the same predictions before and after model serialization
     assert_array_equal(y_pred_before, y_pred_after)
 
+    assert (
+        model.get_estimator(0, 0, "custom")
+        is model._get_layer(0).estimators_["0-0-custom"].estimator_
+    )
+
     model.clean()  # clear the buffer
     shutil.rmtree(save_dir)
 
