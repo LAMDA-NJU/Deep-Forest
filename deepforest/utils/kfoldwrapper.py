@@ -43,7 +43,7 @@ class KFoldWrapper(object):
         splitter = KFold(
             n_splits=self.n_splits,
             shuffle=True,
-            random_state=self.random_state
+            random_state=self.random_state,
         )
         self.oob_decision_function_ = np.zeros((n_samples, self.n_outputs))
 

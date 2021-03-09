@@ -935,7 +935,8 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         # Build the predictor if `self.use_predictor` is True
         if self.use_predictor:
-            if isinstance(self.predictor, str):  # Use built-in predictors
+            # Use built-in predictors
+            if self.predictor in ("forest", "xgboost", "lightgbm"):
                 if is_classifier(self):
                     self.predictor_ = _build_classifier_predictor(
                         self.predictor,
@@ -960,8 +961,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                         self.random_state,
                         self.predictor_kwargs,
                     )
-            else:  # Use custom predictor
-                self.predictor_ = self.predictor
+            elif self.predictor == "custom":
+                if not hasattr(self, "predictor_"):
+                    msg = "Missing predictor after calling `set_predictor`"
+                    raise RuntimeError(msg)
 
             binner_ = Binner(
                 n_bins=self.n_bins,
@@ -983,9 +986,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 print(msg.format(_utils.ctime(), self.predictor))
 
             tic = time.time()
-            self.predictor_.fit(
-                X_middle_train_, y, sample_weight=sample_weight
-            )
+            self.predictor_.fit(X_middle_train_, y, sample_weight)
             toc = time.time()
 
             if self.verbose > 0:
@@ -1080,8 +1081,9 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             msg = "The `predict` method of the predictor is not callable."
             raise AttributeError(msg)
 
-        # Override the predictor
-        self.predictor = predictor
+        # Set related attributes
+        self.predictor = "custom"
+        self.predictor_ = predictor
         self.use_predictor = True
 
     def get_layer_feature_importances(self, layer_idx):
@@ -1112,10 +1114,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         layer = self._get_layer(layer_idx)
         return layer.feature_importances_
 
-    def get_forest(self, layer_idx, est_idx, forest_type):
+    def get_estimator(self, layer_idx, est_idx, forest_type):
         """
-        Get the `est_idx`-th forest estimator from the `layer_idx`-th
-        cascade layer in the model.
+        Get the `est_idx`-th estimator from the `layer_idx`-th cascade layer
+        in the deep forest.
 
         Parameters
         ----------
@@ -1123,7 +1125,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             The index of the cascade layer, should be in the range
             ``[0, self.n_layers_-1]``.
         est_idx : :obj:`int`
-            The index of the forest estimator, should be in the range
+            The index of the estimator, should be in the range
             ``[0, self.n_estimators]``.
         forest_type : :obj:`{"rf", "erf"}`
             Specify the forest type.
@@ -1133,7 +1135,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         Returns
         -------
-        estimator : The forest estimator with the given index.
+        estimator : Estimator with the given index.
         """
         if not self.is_fitted_:
             raise AttributeError("Please fit the model first.")
