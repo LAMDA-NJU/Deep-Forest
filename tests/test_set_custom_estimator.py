@@ -23,7 +23,7 @@ def test_custom_cascade_layer_workflow_in_memory():
 
     n_estimators = 4
     estimators = [DecisionTreeClassifier() for _ in range(n_estimators)]
-    model.set_estimators(estimators)  # set custom base estimators
+    model.set_estimator(estimators)  # set custom base estimators
 
     predictor = DecisionTreeClassifier()
     model.set_predictor(predictor)
@@ -53,7 +53,7 @@ def test_custom_cascade_layer_workflow_partial_mode():
 
     n_estimators = 4
     estimators = [DecisionTreeClassifier() for _ in range(n_estimators)]
-    model.set_estimators(estimators)  # set custom base estimators
+    model.set_estimator(estimators)  # set custom base estimators
 
     predictor = DecisionTreeClassifier()
     model.set_predictor(predictor)
@@ -81,7 +81,7 @@ def test_custom_base_estimator_wrong_estimator_type():
 
     model = CascadeForestClassifier()
     with pytest.raises(ValueError) as excinfo:
-        model.set_estimators(42)
+        model.set_estimator(42)
     assert "estimators should be a list" in str(excinfo.value)
 
 
@@ -92,7 +92,7 @@ def test_custom_estimator_missing_fit():
 
     model = CascadeForestClassifier()
     with pytest.raises(AttributeError) as excinfo:
-        model.set_estimators([tmp_estimator()])
+        model.set_estimator([tmp_estimator()])
     assert "The `fit` method of estimator" in str(excinfo.value)
 
     with pytest.raises(AttributeError) as excinfo:
@@ -110,7 +110,7 @@ def test_custom_base_estimator_missing_predict_proba():
 
     model = CascadeForestClassifier()
     with pytest.raises(AttributeError) as excinfo:
-        model.set_estimators([tmp_estimator()])
+        model.set_estimator([tmp_estimator()])
     assert "The `predict_proba` method" in str(excinfo.value)
 
     with pytest.raises(AttributeError) as excinfo:
@@ -128,7 +128,7 @@ def test_custom_base_estimator_missing_predict():
 
     model = CascadeForestRegressor()
     with pytest.raises(AttributeError) as excinfo:
-        model.set_estimators([tmp_estimator()])
+        model.set_estimator([tmp_estimator()])
     assert "The `predict` method" in str(excinfo.value)
 
     with pytest.raises(AttributeError) as excinfo:
@@ -142,5 +142,5 @@ def test_custom_base_estimator_invalid_n_splits():
     n_estimators = 4
     estimators = [DecisionTreeClassifier() for _ in range(n_estimators)]
     with pytest.raises(ValueError) as excinfo:
-        model.set_estimators(estimators, n_splits=1)
+        model.set_estimator(estimators, n_splits=1)
     assert "should be at least 2" in str(excinfo.value)

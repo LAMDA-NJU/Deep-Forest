@@ -1000,15 +1000,15 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         return self
 
-    def set_estimators(self, estimators, n_splits=5):
+    def set_estimator(self, estimators, n_splits=5):
         """
-        Specify custom base estimators, which will override forest base
-        estimators used by default.
+        Specify custom base estimators, which will override estimators used
+        by default.
 
         Parameters
         ----------
         estimators : :obj:`list`
-            A list of your base estimators, will be used in each cascade layer.
+            A list of your base estimators, will be used in all cascade layers.
         n_splits : :obj:`int`, default=5
             The number of folds, must be at least 2.
         """
