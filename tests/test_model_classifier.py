@@ -121,7 +121,7 @@ def test_model_properties_after_fitting():
 
     with pytest.raises(ValueError) as excinfo:
         model.get_estimator(0, 0, "Unknown")
-    assert "`forest_type` should be one of" in str(excinfo.value)
+    assert "`estimator_type` should be one of" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("backend", ["custom", "sklearn"])
