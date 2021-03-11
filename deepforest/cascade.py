@@ -1167,7 +1167,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         if estimator_type not in ("rf", "erf", "custom"):
             msg = (
-                "`estimator_type` should be one of {{rf, erf}},"
+                "`estimator_type` should be one of {{rf, erf, custom}},"
                 " but got {} instead."
             )
             raise ValueError(msg.format(estimator_type))
