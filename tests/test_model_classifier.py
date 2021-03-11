@@ -107,21 +107,21 @@ def test_model_properties_after_fitting():
 
     # Test the hook on forest estimator
     assert (
-        model.get_forest(0, 0, "rf")
+        model.get_estimator(0, 0, "rf")
         is model._get_layer(0).estimators_["0-0-rf"].estimator_
     )
 
     with pytest.raises(ValueError) as excinfo:
-        model.get_forest(model.n_layers_, 0, "rf")
+        model.get_estimator(model.n_layers_, 0, "rf")
     assert "`layer_idx` should be in the range" in str(excinfo.value)
 
     with pytest.raises(ValueError) as excinfo:
-        model.get_forest(0, model.n_estimators, "rf")
+        model.get_estimator(0, model.n_estimators, "rf")
     assert "`est_idx` should be in the range" in str(excinfo.value)
 
     with pytest.raises(ValueError) as excinfo:
-        model.get_forest(0, 0, "Unknown")
-    assert "`forest_type` should be one of" in str(excinfo.value)
+        model.get_estimator(0, 0, "Unknown")
+    assert "`estimator_type` should be one of" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("backend", ["custom", "sklearn"])

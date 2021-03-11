@@ -14,7 +14,11 @@ from sklearn.base import is_classifier
 
 from . import _utils
 from . import _io
-from ._layer import ClassificationCascadeLayer, RegressionCascadeLayer
+from ._layer import (
+    ClassificationCascadeLayer,
+    RegressionCascadeLayer,
+    CustomCascadeLayer,
+)
 from ._binner import Binner
 
 
@@ -523,10 +527,25 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def _make_layer(self, **layer_args):
         """Make and configure a cascade layer."""
-        if is_classifier(self):
-            layer = ClassificationCascadeLayer(**layer_args)
+        if not hasattr(self, "use_custom_estimator"):
+            # Use built-in cascade layers
+            if is_classifier(self):
+                layer = ClassificationCascadeLayer(**layer_args)
+            else:
+                layer = RegressionCascadeLayer(**layer_args)
         else:
-            layer = RegressionCascadeLayer(**layer_args)
+            # Use customized cascade layers
+            layer = CustomCascadeLayer(
+                layer_args["layer_idx"],
+                self.n_splits,
+                layer_args["n_outputs"],
+                self.dummy_estimators,
+                layer_args["partial_mode"],
+                layer_args["buffer"],
+                layer_args["random_state"],
+                layer_args["verbose"],
+                is_classifier(self),
+            )
 
         return layer
 
@@ -714,7 +733,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     @property
     def n_aug_features_(self):
-        return 2 * self.n_estimators * self.n_outputs_
+        if not hasattr(self, "use_custom_estimator"):
+            return 2 * self.n_estimators * self.n_outputs_
+        else:
+            return self.n_estimators * self.n_outputs_
 
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
@@ -913,30 +935,36 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
         # Build the predictor if `self.use_predictor` is True
         if self.use_predictor:
-            if is_classifier(self):
-                self.predictor_ = _build_classifier_predictor(
-                    self.predictor,
-                    self.criterion,
-                    self.n_trees,
-                    self.n_outputs_,
-                    self.max_depth,
-                    self.min_samples_leaf,
-                    self.n_jobs,
-                    self.random_state,
-                    self.predictor_kwargs,
-                )
-            else:
-                self.predictor_ = _build_regressor_predictor(
-                    self.predictor,
-                    self.criterion,
-                    self.n_trees,
-                    self.n_outputs_,
-                    self.max_depth,
-                    self.min_samples_leaf,
-                    self.n_jobs,
-                    self.random_state,
-                    self.predictor_kwargs,
-                )
+            # Use built-in predictors
+            if self.predictor in ("forest", "xgboost", "lightgbm"):
+                if is_classifier(self):
+                    self.predictor_ = _build_classifier_predictor(
+                        self.predictor,
+                        self.criterion,
+                        self.n_trees,
+                        self.n_outputs_,
+                        self.max_depth,
+                        self.min_samples_leaf,
+                        self.n_jobs,
+                        self.random_state,
+                        self.predictor_kwargs,
+                    )
+                else:
+                    self.predictor_ = _build_regressor_predictor(
+                        self.predictor,
+                        self.criterion,
+                        self.n_trees,
+                        self.n_outputs_,
+                        self.max_depth,
+                        self.min_samples_leaf,
+                        self.n_jobs,
+                        self.random_state,
+                        self.predictor_kwargs,
+                    )
+            elif self.predictor == "custom":
+                if not hasattr(self, "predictor_"):
+                    msg = "Missing predictor after calling `set_predictor`"
+                    raise RuntimeError(msg)
 
             binner_ = Binner(
                 n_bins=self.n_bins,
@@ -958,9 +986,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 print(msg.format(_utils.ctime(), self.predictor))
 
             tic = time.time()
-            self.predictor_.fit(
-                X_middle_train_, y, sample_weight=sample_weight
-            )
+            self.predictor_.fit(X_middle_train_, y, sample_weight)
             toc = time.time()
 
             if self.verbose > 0:
@@ -973,6 +999,92 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.is_fitted_ = True
 
         return self
+
+    def set_estimator(self, estimators, n_splits=5):
+        """
+        Specify custom base estimators, which will override estimators used
+        by default.
+
+        Parameters
+        ----------
+        estimators : :obj:`list`
+            A list of your base estimators, will be used in all cascade layers.
+        n_splits : :obj:`int`, default=5
+            The number of folds, must be at least 2.
+        """
+        # Validation check
+        if not isinstance(estimators, list):
+            msg = (
+                "estimators should be a list that stores instantiated"
+                " objects of your base estimator."
+            )
+            raise ValueError(msg)
+
+        for idx, estimator in enumerate(estimators):
+            if not callable(getattr(estimator, "fit", None)):
+                msg = "The `fit` method of estimator = {} is not callable."
+                raise AttributeError(msg.format(idx))
+
+            if is_classifier(self) and not callable(
+                getattr(estimator, "predict_proba", None)
+            ):
+                msg = (
+                    "The `predict_proba` method of estimator = {} is not"
+                    " callable."
+                )
+                raise AttributeError(msg.format(idx))
+
+            if not is_classifier(self) and not callable(
+                getattr(estimator, "predict", None)
+            ):
+                msg = "The `predict` method of estimator = {} is not callable."
+                raise AttributeError(msg.format(idx))
+
+        if not n_splits >= 2:
+            msg = "n_splits = {} should be at least 2."
+            raise ValueError(msg.format(n_splits))
+
+        self.dummy_estimators = estimators
+        self.n_splits = n_splits
+        self.use_custom_estimator = True
+
+        # Update attributes
+        self.n_estimators = len(estimators)
+
+    def set_predictor(self, predictor):
+        """
+        Specify the custom predictor, which will override the predictor
+        used by default.
+
+        Parameters
+        ----------
+        predictor : :obj:`object`
+            The instantiated object of your predictor.
+        """
+        # Validation check
+        if not callable(getattr(predictor, "fit", None)):
+            msg = "The `fit` method of the predictor is not callable."
+            raise AttributeError(msg)
+
+        if is_classifier(self) and not callable(
+            getattr(predictor, "predict_proba", None)
+        ):
+            msg = (
+                "The `predict_proba` method of the predictor is not"
+                " callable."
+            )
+            raise AttributeError(msg)
+
+        if not is_classifier(self) and not callable(
+            getattr(predictor, "predict", None)
+        ):
+            msg = "The `predict` method of the predictor is not callable."
+            raise AttributeError(msg)
+
+        # Set related attributes
+        self.predictor = "custom"
+        self.predictor_ = predictor
+        self.use_predictor = True
 
     def get_layer_feature_importances(self, layer_idx):
         """
@@ -992,6 +1104,13 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             The impurity-based feature importances of the cascade layer.
             Notice that the number of input features are different between the
             first cascade layer and remaining cascade layers.
+
+
+        .. note::
+            - This method is only applicable when deep forest is built using
+              the ``sklearn`` backend
+            - The functionality of this method is not available when using
+              customized estimators in deep forest.
         """
         if self.backend == "custom":
             msg = (
@@ -1002,10 +1121,10 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         layer = self._get_layer(layer_idx)
         return layer.feature_importances_
 
-    def get_forest(self, layer_idx, est_idx, forest_type):
+    def get_estimator(self, layer_idx, est_idx, estimator_type):
         """
-        Get the `est_idx`-th forest estimator from the `layer_idx`-th
-        cascade layer in the model.
+        Get the `est_idx`-th estimator from the `layer_idx`-th cascade layer
+        in the deep forest.
 
         Parameters
         ----------
@@ -1013,17 +1132,20 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             The index of the cascade layer, should be in the range
             ``[0, self.n_layers_-1]``.
         est_idx : :obj:`int`
-            The index of the forest estimator, should be in the range
+            The index of the estimator, should be in the range
             ``[0, self.n_estimators]``.
-        forest_type : :obj:`{"rf", "erf"}`
+        estimator_type : :obj:`{"rf", "erf", "custom"}`
             Specify the forest type.
 
             - If ``rf``, return the random forest.
             - If ``erf``, return the extremely random forest.
+            - If ``custom``, return the customized estimator, only applicable
+              when using customized estimators in deep forest via
+              :meth:`set_estimator`.
 
         Returns
         -------
-        estimator : The forest estimator with the given index.
+        estimator : Estimator with the given index.
         """
         if not self.is_fitted_:
             raise AttributeError("Please fit the model first.")
@@ -1043,15 +1165,22 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             )
             raise ValueError(msg.format(self.n_estimators, est_idx))
 
-        if forest_type not in ("rf", "erf"):
+        if estimator_type not in ("rf", "erf", "custom"):
             msg = (
-                "`forest_type` should be one of {{rf, erf}},"
+                "`estimator_type` should be one of {{rf, erf, custom}},"
                 " but got {} instead."
             )
-            raise ValueError(msg.format(forest_type))
+            raise ValueError(msg.format(estimator_type))
+
+        if estimator_type == "custom" and not self.use_custom_estimator:
+            msg = (
+                "`estimator_type` = {} is only applicable when using"
+                "customized estimators in deep forest."
+            )
+            raise ValueError(msg.format(estimator_type))
 
         layer = self._get_layer(layer_idx)
-        est_key = "{}-{}-{}".format(layer_idx, est_idx, forest_type)
+        est_key = "{}-{}-{}".format(layer_idx, est_idx, estimator_type)
         estimator = layer.estimators_[est_key]
 
         # Load the model if in partial mode
@@ -1090,6 +1219,9 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         d["verbose"] = self.verbose
         d["use_predictor"] = self.use_predictor
         d["is_classifier"] = is_classifier(self)
+        d["use_custom_estimator"] = (
+            True if hasattr(self, "use_custom_estimator") else False
+        )
 
         if self.use_predictor:
             d["predictor"] = self.predictor
@@ -1131,8 +1263,11 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.n_features_ = d["n_features"]
         self.n_outputs_ = d["n_outputs"]
         self.partial_mode = d["partial_mode"]
+        self.buffer_ = d["buffer"]
         self.verbose = d["verbose"]
         self.use_predictor = d["use_predictor"]
+        if d["use_custom_estimator"]:
+            self.use_custom_estimator = True
 
         # Load label encoder if labels are encoded.
         if "labels_are_encoded" in d:
