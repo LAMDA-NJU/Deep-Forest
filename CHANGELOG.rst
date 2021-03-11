@@ -36,15 +36,15 @@ Version 0.1.*
 - |Fix| fix inconsistency on predictor name (`#52 <https://github.com/LAMDA-NJU/Deep-Forest/pull/52>`__) @xuyxu
 - |Feature| add official support for ManyLinux-aarch64 (`#47 <https://github.com/LAMDA-NJU/Deep-Forest/pull/47>`__) @xuyxu
 - |Fix| fix accepted types of target for :obj:`CascadeForestRegressor` (`#44 <https://github.com/LAMDA-NJU/Deep-Forest/pull/44>`__) @xuyxu
-- |Feature| add multi-output support for :obj:`CascadeForestRegressor` (`#40 <https://github.com/LAMDA-NJU/Deep-Forest/pull/40>`__) @Alex-Medium
-- |Feature| add layer-wise feature importances (`#39 <https://github.com/LAMDA-NJU/Deep-Forest/pull/39>`__) @xuyxu
-- |Feature| add scikit-learn backend (`#36 <https://github.com/LAMDA-NJU/Deep-Forest/pull/36>`__) @xuyxu
+- |Feature| |API| add multi-output support for :obj:`CascadeForestRegressor` (`#40 <https://github.com/LAMDA-NJU/Deep-Forest/pull/40>`__) @Alex-Medium
+- |Feature| |API| add layer-wise feature importances (`#39 <https://github.com/LAMDA-NJU/Deep-Forest/pull/39>`__) @xuyxu
+- |Feature| |API| add scikit-learn backend (`#36 <https://github.com/LAMDA-NJU/Deep-Forest/pull/36>`__) @xuyxu
 - |Feature| add official support for Mac-OS (`#34 <https://github.com/LAMDA-NJU/Deep-Forest/pull/34>`__) @T-Allen-sudo
-- |Feature| support configurable criterion (`#28 <https://github.com/LAMDA-NJU/Deep-Forest/issues/28>`__) @tczhao
-- |Feature| support regression prediction (`#25 <https://github.com/LAMDA-NJU/Deep-Forest/issues/25>`__) @tczhao
+- |Feature| |API| support configurable criterion (`#28 <https://github.com/LAMDA-NJU/Deep-Forest/issues/28>`__) @tczhao
+- |Feature| |API| support regression prediction (`#25 <https://github.com/LAMDA-NJU/Deep-Forest/issues/25>`__) @tczhao
 - |Fix| fix accepted data types on the :obj:`binner` (`#23 <https://github.com/LAMDA-NJU/Deep-Forest/pull/23>`__) @xuyxu
-- |Feature| implement the :meth:`get_forest` method for efficient indexing (`#22 <https://github.com/LAMDA-NJU/Deep-Forest/pull/22>`__) @xuyxu
+- |Feature| |API| implement the :meth:`get_estimator` method for efficient indexing (`#22 <https://github.com/LAMDA-NJU/Deep-Forest/pull/22>`__) @xuyxu
 - |Feature| support class label encoding (`#18 <https://github.com/LAMDA-NJU/Deep-Forest/pull/18>`__) @NiMaZi
-- |Feature| support sample weight in :meth:`fit` (`#7 <https://github.com/LAMDA-NJU/Deep-Forest/pull/7>`__) @tczhao
-- |Feature| configurable predictor parameter (`#9 <https://github.com/LAMDA-NJU/Deep-Forest/issues/10>`__) @tczhao
+- |Feature| |API| support sample weight in :meth:`fit` (`#7 <https://github.com/LAMDA-NJU/Deep-Forest/pull/7>`__) @tczhao
+- |Feature| |API| configurable predictor parameter (`#9 <https://github.com/LAMDA-NJU/Deep-Forest/issues/10>`__) @tczhao
 - |Enhancement| add base class ``BaseEstimator`` and ``ClassifierMixin`` (`#8 <https://github.com/LAMDA-NJU/Deep-Forest/pull/8>`__) @pjgao
