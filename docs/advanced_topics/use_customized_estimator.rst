@@ -26,7 +26,11 @@ In order to use customized estimators in the cascade layer of deep forest, the n
 .. code-block:: python
 
     n_estimators = 4  # the number of base estimators per cascade layer
-    estimators = [your_estimator() for _ in range(n_estimators)]
+    estimators = [your_estimator(random_state=i) for i in range(n_estimators)]
+
+.. tip::
+
+    You need to make sure that instantiated estimators in the list are with different random seeds if seeds are manually specified. Otherwise, they will have the same behavior on the dataset and make cascade layers less effective.
 
 For the customized predictor, you only need to instantiate it, and there is no extra step:
 
@@ -55,6 +59,8 @@ The core step is to call :meth:`set_estimator` and :meth:`set_predictor` to over
     # Customized predictor
     model.set_predictor(predictor)
 
+:meth:`set_estimator` has another parameter :obj:`n_splits`, which determines the number of folds of the internal cross-validation strategy. Its value should be at least ``2``, and the default value is ``5``. Generally speaking, a larger :obj:`n_splits` leads to better generalization performance. If you are confused about the effect of cross-validation here, please refer to `the original paper <https://arxiv.org/pdf/1702.08835.pdf>`__ for details on how deep forest adopts the cross-validation strategy to build cascade layers.
+
 Train and Evaluate
 ~~~~~~~~~~~~~~~~~~
 
@@ -65,6 +71,6 @@ Remaining steps follow the original workflow of deep forest.
     model.train(X_train, y_train)
     y_pred = model.predict(X_test)
 
-.. warning::
+.. note::
 
     When using customized estimators via :meth:`set_estimator`, deep forest adopts the cross-validation strategy to grow cascade layers. Suppose that :obj:`n_splits` is set to ``5`` when calling :meth:`set_estimator`, each estimator will be repeatedly trained over five times to get full augmented features from a cascade layer. As a result, you may experience a drastic increase in running time and memory.
