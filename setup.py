@@ -12,7 +12,7 @@ with open("README.rst") as f:
 MAINTAINER = "Yi-Xuan Xu"
 MAINTAINER_EMAIL = "xuyx@lamda.nju.edu.cn"
 URL = "https://github.com/LAMDA-NJU/Deep-Forest"
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 
 
 def configuration(parent_package="", top_path=None):
