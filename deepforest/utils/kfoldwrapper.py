@@ -65,7 +65,9 @@ class KFoldWrapper(object):
                 # `sample_weight` as a valid input.
                 estimator.fit(X[train_idx], y[train_idx])
             else:
-                estimator.fit(X[train_idx], y[train_idx], sample_weight)
+                estimator.fit(
+                    X[train_idx], y[train_idx], sample_weight[train_idx]
+                )
 
             # Predict on hold-out samples
             if self.is_classifier:
