@@ -117,6 +117,15 @@
         "code",
         "test"
       ]
+    },
+    {
+      "login": "zshgostop",
+      "name": "zshgostop",
+      "avatar_url": "https://avatars.githubusercontent.com/u/48615178?v=4",
+      "profile": "https://github.com/zshgostop",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
