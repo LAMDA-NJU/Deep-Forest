@@ -105,6 +105,7 @@ Reference
    API Reference <api_reference>
    Parameters Tunning <parameters_tunning>
    Experiments <experiments>
+   Report from Users <report_from_users>
 
 .. toctree::
    :maxdepth: 1
