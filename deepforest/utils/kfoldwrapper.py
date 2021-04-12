@@ -75,9 +75,12 @@ class KFoldWrapper(object):
                     val_idx
                 ] += estimator.predict_proba(X[val_idx])
             else:
-                self.oob_decision_function_[val_idx] += estimator.predict(
-                    X[val_idx]
-                )
+                val_pred = estimator.predict(X[val_idx])
+
+                # Reshape for univariate regression
+                if self.n_outputs == 1 and len(val_pred.shape) == 1:
+                    val_pred = np.expand_dims(val_pred, 1)
+                self.oob_decision_function_[val_idx] += val_pred
 
             # Store the estimator
             self.estimators_.append(estimator)
@@ -91,7 +94,7 @@ class KFoldWrapper(object):
             if self.is_classifier:
                 out += estimator.predict_proba(X)  # classification
             else:
-                if self.n_outputs_ > 1:
+                if self.n_outputs > 1:
                     out += estimator.predict(X)  # multi-variate regression
                 else:
                     out += estimator.predict(X).reshape(
