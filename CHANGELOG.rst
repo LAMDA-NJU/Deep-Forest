@@ -30,6 +30,7 @@ Version 0.1.*
 .. |Fix| replace:: :raw-html:`<span class="badge badge-danger">Fix</span>` :raw-latex:`{\small\sc [Fix]}`
 .. |API| replace:: :raw-html:`<span class="badge badge-warning">API Change</span>` :raw-latex:`{\small\sc [API Change]}`
 
+- |Fix| fix inconsistency on array shape for :obj:`CascadeForestRegressor` in customized mode (`#67 <https://github.com/LAMDA-NJU/Deep-Forest/pull/67>`__) @xuyxu
 - |Fix| fix missing sample indices for parameter ``sample_weight`` in :obj:`KFoldWrapper` (`#48 <https://github.com/LAMDA-NJU/Deep-Forest/pull/64>`__) @xuyxu
 - |Feature| |API| add support on customized estimators (`#48 <https://github.com/LAMDA-NJU/Deep-Forest/pull/48>`__) @xuyxu
 - |Enhancement| improve target checks for :obj:`CascadeForestRegressor` (`#53 <https://github.com/LAMDA-NJU/Deep-Forest/pull/53>`__) @chendingyan
