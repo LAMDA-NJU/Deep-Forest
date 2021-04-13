@@ -415,6 +415,7 @@ class CustomCascadeLayer(object):
                 y, y_pred, sample_weight=sample_weight
             )
         else:  # regression
+            y_pred = oob_decision_function
             self.val_performance_ = mean_squared_error(
                 y, y_pred, sample_weight=sample_weight
             )
