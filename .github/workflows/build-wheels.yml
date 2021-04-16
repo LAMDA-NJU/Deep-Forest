@@ -30,8 +30,8 @@ jobs:
           CIBW_ARCHS_LINUX: "x86_64 aarch64"
           CIBW_ARCHS_WINDOWS: "AMD64"
           CIBW_ARCHS_MACOS: "x86_64"
-          CIBW_BUILD: "cp36-manylinux_x86_64 cp37-manylinux_x86_64 cp38-manylinux_x86_64 cp36-win_amd64 cp37-win_amd64 cp38-win_amd64 cp36-macosx_x86_64 cp37-macosx_x86_64 cp38-macosx_x86_64 cp36-manylinux_aarch64 cp37-manylinux_aarch64 cp38-manylinux_aarch64"
-
+          CIBW_BUILD: cp3*-macosx_x86_64 cp3*-win_amd64 cp3*-manylinux_x86_64 cp3*-manylinux_aarch64
+          CIBW_SKIP: cp35-*
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
