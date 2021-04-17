@@ -1,0 +1,3 @@
+*.pyx linguist-language=Cython
+*.pxd linguist-language=Cython
+*.rst linguist-language=reStructuredText
