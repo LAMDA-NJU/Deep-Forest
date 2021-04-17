@@ -87,7 +87,7 @@ Regression
 Resources
 ---------
 
-* `Documentation <https://deep-forest.readthedocs.io/en/latest/>`__
+* `Documentation <https://deep-forest.readthedocs.io/>`__
 * Deep Forest: `[Paper] <https://arxiv.org/pdf/1702.08835.pdf>`__
 * Keynote at AISTATS 2019: `[Slides] <https://aistats.org/aistats2019/0-AISTATS2019-slides-zhi-hua_zhou.pdf>`__
 
