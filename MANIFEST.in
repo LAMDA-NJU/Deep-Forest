@@ -1,0 +1,7 @@
+include *.rst
+recursive-include docs *
+recursive-exclude tests *
+include *.md
+recursive-include deepforest *.py
+recursive-include deepforest *.c *.h *.pyx *.pxd *.pxi
+include LICENSE
