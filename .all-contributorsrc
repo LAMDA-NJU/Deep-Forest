@@ -9,6 +9,9 @@
   "imageSize": 100,
   "commit": false,
   "commitConvention": "none",
+  "contributorsPerLine": 7,
+  "contributorsSortAlphabetically": true,
+  "skipCi": true
   "contributors": [
     {
       "login": "xuyxu",
@@ -128,7 +131,4 @@
       ]
     }
   ],
-  "contributorsPerLine": 7,
-  "contributorsSortAlphabetically": true,
-  "skipCi": true
 }
