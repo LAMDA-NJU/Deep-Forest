@@ -51,13 +51,11 @@ if __name__ == "__main__":
         classifiers=[
             "Intended Audience :: Science/Research",
             "Intended Audience :: Developers",
-            "Programming Language :: C",
             "Programming Language :: Python",
             "Topic :: Software Development",
             "Topic :: Scientific/Engineering",
             "Operating System :: Microsoft :: Windows",
             "Operating System :: Unix",
-            "Programming Language :: Python :: 3",
             "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
