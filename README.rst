@@ -111,3 +111,11 @@ Reference
         Pages = {3553-3559},
         Title = {{Deep Forest:} Towards an alternative to deep neural networks},
         Year = {2017}}
+
+Thanks to all our contributors
+------------------------------
+
+|contributors|
+
+.. |contributors| image:: https://contributors-img.web.app/image?repo=LAMDA-NJU/Deep-Forest
+.. _contributors: https://github.com/LAMDA-NJU/Deep-Forest/graphs/contributors
