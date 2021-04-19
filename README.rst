@@ -111,8 +111,3 @@ Reference
         Pages = {3553-3559},
         Title = {{Deep Forest:} Towards an alternative to deep neural networks},
         Year = {2017}}
-
-Acknowledgement
----------------
-
-The lead developer and maintainer of DF21 is Mr. `Yi-Xuan Xu <https://github.com/xuyxu>`__. Before the release, it has been used internally in the LAMDA Group, Nanjing University, China.

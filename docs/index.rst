@@ -73,7 +73,7 @@ Resources
 
 * Deep Forest: `[Paper] <https://arxiv.org/pdf/1702.08835.pdf>`__
 * Keynote at AISTATS 2019: `[Slides] <https://aistats.org/aistats2019/0-AISTATS2019-slides-zhi-hua_zhou.pdf>`__
-* Source Code: `[Gitee] <https://gitee.com/lamda-nju/deep-forest>`__ | `[GitHub] <https://github.com/LAMDA-NJU/Deep-Forest>`__
+* Source Code: `[GitHub] <https://github.com/LAMDA-NJU/Deep-Forest>`__ | `[Gitee] <https://gitee.com/lamda-nju/deep-forest>`__
 
 Reference
 ---------
@@ -111,6 +111,7 @@ Reference
    :maxdepth: 1
    :caption: Advanced Topics
 
+   Model Architecture <./advanced_topics/architecture>
    Use Customized Estimators <./advanced_topics/use_customized_estimator>
 
 .. toctree::
@@ -126,8 +127,3 @@ Reference
 
    About Us <http://www.lamda.nju.edu.cn/MainPage.ashx>
    Related Software <related_software>
-
-Acknowledgement
----------------
-
-The lead developer and maintainer of DF21 is Mr. `Yi-Xuan Xu <https://github.com/xuyxu>`__. Before the release, it has been used internally in the LAMDA Group, Nanjing University, China.
