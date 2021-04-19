@@ -77,6 +77,7 @@ cdef void _apply_region(const DTYPE_t [:, :] data,
     """
     cdef:
         SIZE_t n_samples = data.shape[0]
+        SIZE_t n_internal_nodes = feature.shape[0]
         SIZE_t i
         SIZE_t node_id
         SIZE_t node_feature
@@ -86,6 +87,11 @@ cdef void _apply_region(const DTYPE_t [:, :] data,
 
     with nogil:
         for i in range(n_samples):
+
+            # Skip the corner case where the root node is a leaf node
+            if n_internal_nodes == 0:
+                out[i] = 0
+                continue
 
             node_id = 0
             node_feature = feature[node_id]

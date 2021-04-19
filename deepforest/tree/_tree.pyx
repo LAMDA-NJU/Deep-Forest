@@ -252,7 +252,7 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
                 if depth > max_depth_seen:
                     max_depth_seen = depth
 
-            if rc >= 0:
+            if rc >= 0 and tree.internal_node_count > 0:
                 rc = tree._resize_node_c(tree.internal_node_count)
 
             if rc >= 0:
@@ -463,7 +463,7 @@ cdef class Tree:
     cdef int _resize_node_c(self,
                             SIZE_t internal_capacity=SIZE_MAX) nogil except -1:
         """Resize `self.nodes` to `internal_capacity`.
-        
+
         Returns -1 in case of failure to allocate memory (and raise
         MemoryError) or 0 otherwise.
         """
