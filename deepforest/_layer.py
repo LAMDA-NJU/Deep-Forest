@@ -59,6 +59,7 @@ class BaseCascadeLayer(BaseEstimator):
         n_estimators=2,
         n_trees=100,
         max_depth=None,
+        min_samples_split=2,
         min_samples_leaf=1,
         backend="custom",
         partial_mode=False,
@@ -73,6 +74,7 @@ class BaseCascadeLayer(BaseEstimator):
         self.n_estimators = n_estimators * 2  # internal conversion
         self.n_trees = n_trees
         self.max_depth = max_depth
+        self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.backend = backend
         self.partial_mode = partial_mode
@@ -116,6 +118,7 @@ class BaseCascadeLayer(BaseEstimator):
             criterion=self.criterion,
             n_trees=self.n_trees,
             max_depth=self.max_depth,
+            min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
             backend=self.backend,
             n_jobs=self.n_jobs,
@@ -169,6 +172,7 @@ class ClassificationCascadeLayer(BaseCascadeLayer, ClassifierMixin):
         n_estimators=2,
         n_trees=100,
         max_depth=None,
+        min_samples_split=2,
         min_samples_leaf=1,
         backend="custom",
         partial_mode=False,
@@ -184,6 +188,7 @@ class ClassificationCascadeLayer(BaseCascadeLayer, ClassifierMixin):
             n_estimators=n_estimators,
             n_trees=n_trees,
             max_depth=max_depth,
+            min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             backend=backend,
             partial_mode=partial_mode,
@@ -260,6 +265,7 @@ class RegressionCascadeLayer(BaseCascadeLayer, RegressorMixin):
         n_estimators=2,
         n_trees=100,
         max_depth=None,
+        min_samples_split=2,
         min_samples_leaf=1,
         backend="custom",
         partial_mode=False,
@@ -275,6 +281,7 @@ class RegressionCascadeLayer(BaseCascadeLayer, RegressorMixin):
             n_estimators=n_estimators,
             n_trees=n_trees,
             max_depth=max_depth,
+            min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             backend=backend,
             partial_mode=partial_mode,

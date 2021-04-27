@@ -36,6 +36,7 @@ def _build_classifier_predictor(
     n_estimators,
     n_outputs,
     max_depth=None,
+    min_samples_split=2,
     min_samples_leaf=1,
     n_jobs=None,
     random_state=None,
@@ -54,6 +55,7 @@ def _build_classifier_predictor(
                 criterion=criterion,
                 n_estimators=n_estimators,
                 max_depth=max_depth,
+                min_samples_split=min_samples_split,
                 min_samples_leaf=min_samples_leaf,
                 n_jobs=n_jobs,
                 random_state=random_state,
@@ -120,6 +122,7 @@ def _build_regressor_predictor(
     n_estimators,
     n_outputs,
     max_depth=None,
+    min_samples_split=2,
     min_samples_leaf=1,
     n_jobs=None,
     random_state=None,
@@ -138,6 +141,7 @@ def _build_regressor_predictor(
                 criterion=criterion,
                 n_estimators=n_estimators,
                 max_depth=max_depth,
+                min_samples_split=min_samples_split,
                 min_samples_leaf=min_samples_leaf,
                 n_jobs=n_jobs,
                 random_state=random_state,
@@ -226,6 +230,8 @@ __classifier_model_doc = """
         The number of trees in each estimator.
     max_depth : :obj:`int`, default=None
         The maximum depth of each tree. ``None`` indicates no constraint.
+    min_samples_split : :obj:`int`, default=2
+        The minimum number of samples required to split an internal node.
     min_samples_leaf : :obj:`int`, default=1
         The minimum number of samples required to be at a leaf node.
     use_predictor : :obj:`bool`, default=False
@@ -340,6 +346,8 @@ __regressor_model_doc = """
         The number of trees in each estimator.
     max_depth : :obj:`int`, default=None
         The maximum depth of each tree. ``None`` indicates no constraint.
+    min_samples_split : :obj:`int`, default=2
+        The minimum number of samples required to split an internal node.
     min_samples_leaf : :obj:`int`, default=1
         The minimum number of samples required to be at a leaf node.
     use_predictor : :obj:`bool`, default=False
@@ -469,6 +477,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         n_estimators=2,
         n_trees=100,
         max_depth=None,
+        min_samples_split=2,
         min_samples_leaf=1,
         use_predictor=False,
         predictor="forest",
@@ -489,6 +498,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.n_estimators = n_estimators
         self.n_trees = n_trees
         self.max_depth = max_depth
+        self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.predictor_kwargs = predictor_kwargs
         self.backend = backend
@@ -771,6 +781,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             n_estimators=self.n_estimators,
             n_trees=self._set_n_trees(0),
             max_depth=self.max_depth,
+            min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
             backend=self.backend,
             partial_mode=self.partial_mode,
@@ -847,6 +858,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 n_estimators=self.n_estimators,
                 n_trees=self._set_n_trees(0),
                 max_depth=self.max_depth,
+                min_samples_split=self.min_samples_split,
                 min_samples_leaf=self.min_samples_leaf,
                 backend=self.backend,
                 partial_mode=self.partial_mode,
@@ -944,6 +956,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                         self.n_trees,
                         self.n_outputs_,
                         self.max_depth,
+                        self.min_samples_split,
                         self.min_samples_leaf,
                         self.n_jobs,
                         self.random_state,
@@ -956,6 +969,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                         self.n_trees,
                         self.n_outputs_,
                         self.max_depth,
+                        self.min_samples_split,
                         self.min_samples_leaf,
                         self.n_jobs,
                         self.random_state,
@@ -1313,6 +1327,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         n_estimators=2,
         n_trees=100,
         max_depth=None,
+        min_samples_split=2,
         min_samples_leaf=1,
         use_predictor=False,
         predictor="forest",
@@ -1334,6 +1349,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             n_estimators=n_estimators,
             n_trees=n_trees,
             max_depth=max_depth,
+            min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             use_predictor=use_predictor,
             predictor=predictor,
@@ -1512,6 +1528,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         n_estimators=2,
         n_trees=100,
         max_depth=None,
+        min_samples_split=2,
         min_samples_leaf=1,
         use_predictor=False,
         predictor="forest",
@@ -1533,6 +1550,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
             n_estimators=n_estimators,
             n_trees=n_trees,
             max_depth=max_depth,
+            min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             use_predictor=use_predictor,
             predictor=predictor,
