@@ -26,10 +26,11 @@ Version 0.1.*
 
 .. |Feature| replace:: :raw-html:`<span class="badge badge-success">Feature</span>` :raw-latex:`{\small\sc [Feature]}`
 .. |Efficiency| replace:: :raw-html:`<span class="badge badge-info">Efficiency</span>` :raw-latex:`{\small\sc [Efficiency]}`
-.. |Enhancement| replace:: :raw-html:`<span class="badge badge-info">Enhancement</span>` :raw-latex:`{\small\sc [Enhancement]}`
+.. |Enhancement| replace:: :raw-html:`<span class="badge badge-primary">Enhancement</span>` :raw-latex:`{\small\sc [Enhancement]}`
 .. |Fix| replace:: :raw-html:`<span class="badge badge-danger">Fix</span>` :raw-latex:`{\small\sc [Fix]}`
 .. |API| replace:: :raw-html:`<span class="badge badge-warning">API Change</span>` :raw-latex:`{\small\sc [API Change]}`
 
+- |Feature| |API| recover the parameter ``min_samples_split`` (`#73 <https://github.com/LAMDA-NJU/Deep-Forest/pull/73>`__) @xuyxu
 - |Fix| fix the breakdown under the corner case where no internal node exists (`#70 <https://github.com/LAMDA-NJU/Deep-Forest/pull/70>`__) @xuyxu
 - |Feature| support python 3.9 (`#69 <https://github.com/LAMDA-NJU/Deep-Forest/pull/69>`__) @xuyxu
 - |Fix| fix inconsistency on array shape for :obj:`CascadeForestRegressor` in customized mode (`#67 <https://github.com/LAMDA-NJU/Deep-Forest/pull/67>`__) @xuyxu
