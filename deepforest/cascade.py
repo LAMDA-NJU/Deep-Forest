@@ -213,6 +213,12 @@ __classifier_model_doc = """
         The number of samples used to construct feature discrete bins. If
         the size of training set is smaller than ``bin_subsample``, then all
         training samples will be used.
+    bin_type : :obj:`{"percentile", "interval"}`, default= :obj:`"percentile"`
+        The type of binner used to bin feature values into integer-valued bins.
+
+        - If ``"percentile"``, each bin will have approximately the same
+          number of distinct feature values.
+        - If ``"interval"``, each bin will have approximately the same size.
     max_layers : :obj:`int`, default=20
         The maximum number of cascade layers in the deep forest. Notice that
         the actual number of layers can be smaller than ``max_layers`` because
@@ -329,6 +335,12 @@ __regressor_model_doc = """
         The number of samples used to construct feature discrete bins. If
         the size of training set is smaller than ``bin_subsample``, then all
         training samples will be used.
+    bin_type : :obj:`{"percentile", "interval"}`, default= :obj:`"percentile"`
+        The type of binner used to bin feature values into integer-valued bins.
+
+        - If ``"percentile"``, each bin will have approximately the same
+          number of distinct feature values.
+        - If ``"interval"``, each bin will have approximately the same size.
     max_layers : :obj:`int`, default=20
         The maximum number of cascade layers in the deep forest. Notice that
         the actual number of layers can be smaller than ``max_layers`` because
