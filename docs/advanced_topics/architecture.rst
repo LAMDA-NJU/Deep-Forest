@@ -14,11 +14,11 @@ This section presents the meanings of key components in DF21, along with associa
 
 * :class:`Binner`: The class used to reduce the number of splitting candidates for building decision trees.
 
-  * :obj:`n_bins`, :obj:`bin_subsample`
+  * :obj:`n_bins`, :obj:`bin_subsample`, :obj:`bin_type`
 
 * :class:`Estimator`: Base estimators used in cascades layer of DF21. Default estimators are RandomForestClassifier and ExtraTreesClassifier.
 
-  * :obj:`n_trees`, :obj:`max_depth`, :obj:`min_samples_leaf`, :obj:`criterion`, :obj:`backend`
+  * :obj:`n_trees`, :obj:`max_depth`, :obj:`min_samples_split `, :obj:`min_samples_leaf`, :obj:`criterion`, :obj:`backend`
 
 * :class:`Layer`: The cascade layer of DF21, which consists of multiple estimators.
 
