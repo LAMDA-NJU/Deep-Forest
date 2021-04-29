@@ -30,6 +30,7 @@ Version 0.1.*
 .. |Fix| replace:: :raw-html:`<span class="badge badge-danger">Fix</span>` :raw-latex:`{\small\sc [Fix]}`
 .. |API| replace:: :raw-html:`<span class="badge badge-warning">API Change</span>` :raw-latex:`{\small\sc [API Change]}`
 
+- |Fix| fix missing functionality of :meth:`_set_n_trees` @xuyxu
 - |Fix| |API| add docstrings for parameter ``bin_type`` (`#74 <https://github.com/LAMDA-NJU/Deep-Forest/pull/74>`__) @xuyxu
 - |Feature| |API| recover the parameter ``min_samples_split`` (`#73 <https://github.com/LAMDA-NJU/Deep-Forest/pull/73>`__) @xuyxu
 - |Fix| fix the breakdown under the corner case where no internal node exists (`#70 <https://github.com/LAMDA-NJU/Deep-Forest/pull/70>`__) @xuyxu
