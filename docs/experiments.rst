@@ -151,6 +151,8 @@ We have also collected four datasets on univariate regression for a comparison o
 +------------------+------------+-----------+------------+
 |       Name       | # Training | # Testing | # Features |
 +==================+============+===========+============+
+|      `wine`_     |    1,071   |    528    |     11     |
++------------------+------------+-----------+------------+
 |     `abalone`_   |    2,799   |   1,378   |      8     |
 +------------------+------------+-----------+------------+
 |    `cpusmall`_   |    5,489   |   2,703   |     12     |
@@ -168,6 +170,8 @@ The table below shows the testing mean squared error of each method, with the be
 +----------+-----------+---------+-----------+----------+----------+-------------+
 |   Name   |     RF    |  HGBDT  | XGB EXACT | XGB HIST | LightGBM | Deep Forest |
 +==========+===========+=========+===========+==========+==========+=============+
+|   wine   |    0.35   |   0.40  |    0.41   |   0.41   |   0.39   |   **0.34**  |
++----------+-----------+---------+-----------+----------+----------+-------------+
 |  abalone |    4.79   |   5.40  |    5.73   |   5.75   |   5.60   |   **4.66**  |
 +----------+-----------+---------+-----------+----------+----------+-------------+
 | cpusmall |    8.31   |   9.01  |    9.86   |   11.82  |   8.99   |   **7.15**  |
@@ -185,6 +189,8 @@ Runtime in seconds reported in the table below covers both the training stage an
 +----------+------+-------+-----------+----------+----------+-------------+
 |   Name   |  RF  | HGBDT | XGB EXACT | XGB HIST | LightGBM | Deep Forest |
 +==========+======+=======+===========+==========+==========+=============+
+|   wine   | 0.76 |  2.88 |    0.30   |   0.30   |   0.30   |     1.26    |
++----------+------+-------+-----------+----------+----------+-------------+
 |  abalone | 0.53 |  1.57 |    0.47   |   0.50   |   0.17   |     1.29    |
 +----------+------+-------+-----------+----------+----------+-------------+
 | cpusmall | 1.87 |  3.59 |    1.71   |   1.25   |   0.36   |     2.06    |
@@ -227,6 +233,8 @@ Runtime in seconds reported in the table below covers both the training stage an
 .. _`mnist`: https://keras.io/api/datasets/mnist/
 
 .. _`fashion mnist`: https://keras.io/api/datasets/fashion_mnist/
+
+.. _`wine`: https://www.kaggle.com/uciml/red-wine-quality-cortez-et-al-2009
 
 .. _`abalone`: https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/regression.html#abalone
 
