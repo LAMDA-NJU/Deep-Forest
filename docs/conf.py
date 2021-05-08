@@ -49,6 +49,8 @@ extensions = [
     "m2r2"
 ]
 
+autosummary_generate = True
+
 source_suffix = ['.rst', '.md']
 
 autoapi_dirs = ['../deepforest']
