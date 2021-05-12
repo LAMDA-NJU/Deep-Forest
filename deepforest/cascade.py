@@ -1028,8 +1028,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def set_estimator(self, estimators, n_splits=5):
         """
-        Specify custom base estimators, which will override estimators used
-        by default.
+        Specify the custom base estimators for cascade layers.
 
         Parameters
         ----------
@@ -1079,8 +1078,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def set_predictor(self, predictor):
         """
-        Specify the custom predictor, which will override the predictor
-        used by default.
+        Specify the custom predictor concatenated to deep forest.
 
         Parameters
         ----------
@@ -1114,9 +1112,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def get_layer_feature_importances(self, layer_idx):
         """
-        Return the impurity-based feature importances of the ``layer_idx``-th
-        cascade layer, defined as the average over feature importances from
-        all base estimators in the cascade layer.
+        Return the feature importances of ``layer_idx``-th cascade layer.
 
         Parameters
         ----------
@@ -1149,8 +1145,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def get_estimator(self, layer_idx, est_idx, estimator_type):
         """
-        Get the `est_idx`-th estimator from the `layer_idx`-th cascade layer
-        in the deep forest.
+        Get estimator from a cascade layer in the deep forest.
 
         Parameters
         ----------
@@ -1217,7 +1212,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def save(self, dirname="model"):
         """
-        Save the model to the specified directory.
+        Save the model to the directory ``dirname``.
 
         Parameters
         ----------
@@ -1268,7 +1263,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     def load(self, dirname):
         """
-        Load the model from the specified directory.
+        Load the model from the directory ``dirname``.
 
         Parameters
         ----------
@@ -1317,9 +1312,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.is_fitted_ = True
 
     def clean(self):
-        """
-        Clean the buffer created by the model if ``partial_mode`` is True.
-        """
+        """Clean the buffer created by the model."""
         if self.partial_mode:
             self.buffer_.close()
 
