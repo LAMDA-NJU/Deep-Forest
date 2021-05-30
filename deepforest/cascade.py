@@ -202,6 +202,34 @@ def _build_regressor_predictor(
     return predictor
 
 
+def _build_time_series_feature_transformer():
+    """Build the time series feature transformer from tsfresh."""
+    # Skip Windows platform
+    import platform
+
+    if platform.system() == "Windows":
+        msg = (
+            "TimeSeriesClascadeForestClassifier currently is not available"
+            " on Windows due to the parallelization issue of tsfresh."
+        )
+        raise NotImplementedError(msg)
+
+    try:
+        tsfresh = __import__("tsfresh")
+    except ModuleNotFoundError:
+        msg = (
+            "Cannot load the module tsfresh when building the feature"
+            " transformer. Please make sure that tsfresh is installed."
+        )
+        raise ModuleNotFoundError(msg)
+
+    from tsfresh.transformers import RelevantFeatureAugmenter
+
+    augmenter = RelevantFeatureAugmenter(column_id="id", column_sort="time")
+
+    return augmenter
+
+
 __classifier_model_doc = """
     Parameters
     ----------
@@ -1699,3 +1727,70 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
                 _y = _utils.merge_proba(X_aug_test_, self.n_outputs_)
 
         return _y
+
+
+class TimeSeriesCascadeForestClassifier(ClassifierMixin):
+    def __init__(
+        self,
+        n_bins=255,
+        bin_subsample=200000,
+        bin_type="percentile",
+        max_layers=20,
+        criterion="gini",
+        n_estimators=2,
+        n_trees=100,
+        max_depth=None,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        use_predictor=False,
+        predictor="forest",
+        predictor_kwargs={},
+        backend="custom",
+        n_tolerant_rounds=2,
+        delta=1e-5,
+        partial_mode=False,
+        n_jobs=None,
+        random_state=None,
+        verbose=1,
+    ):
+
+        # Internal feature transformer
+        self.transformer = _build_time_series_feature_transformer()
+
+        # Internal classifier
+        self.classifier = CascadeForestClassifier(
+            n_bins=n_bins,
+            bin_subsample=bin_subsample,
+            bin_type=bin_type,
+            max_layers=max_layers,
+            criterion=criterion,
+            n_estimators=n_estimators,
+            n_trees=n_trees,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            use_predictor=use_predictor,
+            predictor=predictor,
+            predictor_kwargs=predictor_kwargs,
+            backend=backend,
+            n_tolerant_rounds=n_tolerant_rounds,
+            delta=delta,
+            partial_mode=partial_mode,
+            n_jobs=n_jobs,
+            random_state=random_state,
+            verbose=verbose,
+        )
+
+    def _check_input(self, X, y=None):
+        """
+        Check the input training and evaluating data."""
+        pass
+
+    def fit(self, X, y):
+        pass
+
+    def predict_proba(self, X):
+        pass
+
+    def predict(self, X):
+        pass
