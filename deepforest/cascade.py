@@ -6,6 +6,7 @@ __all__ = ["CascadeForestClassifier", "CascadeForestRegressor"]
 import time
 import numbers
 import numpy as np
+import pandas as pd
 from abc import ABCMeta, abstractmethod
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.multiclass import type_of_target
@@ -223,9 +224,9 @@ def _build_time_series_feature_transformer():
         )
         raise ModuleNotFoundError(msg)
 
-    from tsfresh.transformers import RelevantFeatureAugmenter
-
-    augmenter = RelevantFeatureAugmenter(column_id="id", column_sort="time")
+    augmenter = tsfresh.transformers.RelevantFeatureAugmenter(
+        column_id="id", column_sort="time"
+    )
 
     return augmenter
 
@@ -1754,10 +1755,10 @@ class TimeSeriesCascadeForestClassifier(ClassifierMixin):
         verbose=1,
     ):
 
-        # Internal feature transformer
+        # Feature transformer
         self.transformer = _build_time_series_feature_transformer()
 
-        # Internal classifier
+        # Classifier
         self.classifier = CascadeForestClassifier(
             n_bins=n_bins,
             bin_subsample=bin_subsample,
@@ -1781,16 +1782,115 @@ class TimeSeriesCascadeForestClassifier(ClassifierMixin):
             verbose=verbose,
         )
 
-    def _check_input(self, X, y=None):
-        """
-        Check the input training and evaluating data."""
-        pass
+        self.verbose = verbose
 
-    def fit(self, X, y):
-        pass
+    def _check_input(self, X, y=None):
+        """Check the input training and evaluating time series."""
+        is_training_data = y is not None
+
+        if not isinstance(X, pd.DataFrame):
+            msg = "X should be a pandas DataFrame, but got {} instead."
+            raise ValueError(msg.format(type(X)))
+
+        if not "id" in X.columns:
+            msg = "X should have one column named: `id`."
+            raise ValueError(msg)
+
+        if not "time" in X.columns:
+            msg = "X should have one column named: `time`."
+            raise ValueError(msg)
+
+        # Check same time series length
+        length = X.groupby(["id"]).size().to_numpy()
+        if not (length == length[0]).all():
+            msg = "All time series should have the same length."
+            raise ValueError(msg)
+
+        # Additional checks for training data
+        if is_training_data:
+
+            if not isinstance(y, pd.Series):
+                msg = "y should be a pandas Series, but got {} instead."
+                raise ValueError(msg.format(type(y)))
+
+            # Check same time series id
+            if not (y.index == X["id"].unique()).all():
+                msg = "Mismatch of time series IDs in X and y."
+                raise ValueError(msg)
+
+        # Set attributes
+        self.length = length[0]
+
+    def fit(self, X, y, sample_weight=None):
+        """
+        Build a deep forest using the training time series for classification.
+
+        Parameters
+        ----------
+        X : :obj:`pandas.DataFrame` of shape (n_samples * length, n_series)
+            The input time series in a flat DataFrame. The column ``"id"`` and
+            ``"time"`` is used to locate the `time`-th record of the `id`-th
+            time series. Internally, it will be transformed into non-ordinal
+            numerical features using :mod:`tsfresh`.
+        y : :obj:`pandas.Series` of shape (n_samples,)
+            The class labels of input time series.
+        sample_weight : :obj:`numpy.ndarray` of shape (n_samples,), default=None
+            Sample weights. If ``None``, then samples are equally weighted.
+        """
+        self._check_input(X, y)
+        dummy_X = pd.DataFrame(index=y.index)
+        self.augmenter.set_timeseries_container(X)
+
+        if self.verbose > 0:
+            print("{} Transforming time series".format(_utils.ctime()))
+
+        X_with_features = self.augmenter.fit_transform(dummy_X, y).to_numpy()
+        self.classifier.fit(X_with_features, y, sample_weight)
 
     def predict_proba(self, X):
-        pass
+        """
+        Predict class probabilities for time series X.
+
+        Parameters
+        ----------
+        X : :obj:`pandas.DataFrame` of shape (n_samples * length, n_series)
+            The input time series in a flat DataFrame. The column ``"id"`` and
+            ``"time"`` is used to locate the `time`-th record of the `id`-th
+            time series. Internally, it will be transformed into non-ordinal
+            numerical features using :mod:`tsfresh`.
+
+        Returns
+        -------
+        proba : :obj:`numpy.ndarray` of shape (n_series, n_classes)
+            The class probabilities of the input time series.
+        """
+        self._check_input(X)
+        dummy_X = pd.DataFrame()
+        self.augmenter.set_timeseries_container(X)
+
+        if self.verbose > 0:
+            print("{} Transforming time series".format(_utils.ctime()))
+
+        X_with_features = self.augmenter.transform(dummy_X).to_numpy()
+
+        return self.classifier.predict_proba(X_with_features)
 
     def predict(self, X):
-        pass
+        """
+        Predict class for time series X.
+
+        Parameters
+        ----------
+        X : :obj:`pandas.DataFrame` of shape (n_samples * length, n_series)
+            The input time series in a flat DataFrame. The column ``"id"`` and
+            ``"time"`` is used to locate the `time`-th record of the `id`-th
+            time series. Internally, it will be transformed into non-ordinal
+            numerical features using :mod:`tsfresh`.
+
+        Returns
+        -------
+        y : :obj:`numpy.ndarray` of shape (n_series,)
+            The predicted classes.
+        """
+        proba = self.predict_proba(X)
+        return np.argmax(proba, axis=1)
