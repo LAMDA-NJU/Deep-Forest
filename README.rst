@@ -88,7 +88,7 @@ Resources
 ---------
 
 * `Documentation <https://deep-forest.readthedocs.io/>`__
-* Deep Forest: `[Paper] <https://arxiv.org/pdf/1702.08835.pdf>`__
+* Deep Forest: `[Conference] <https://www.ijcai.org/proceedings/2017/0497.pdf>`__ | `[Journal] <https://academic.oup.com/nsr/article-pdf/6/1/74/30336169/nwy108.pdf>`__
 * Keynote at AISTATS 2019: `[Slides] <https://aistats.org/aistats2019/0-AISTATS2019-slides-zhi-hua_zhou.pdf>`__
 
 Reference
@@ -106,11 +106,11 @@ Reference
         year={2019}}
 
     @inproceedings{zhou2017deep,
-        Author = {Zhi-Hua Zhou and Ji Feng},
-        Booktitle = {IJCAI},
-        Pages = {3553-3559},
-        Title = {{Deep Forest:} Towards an alternative to deep neural networks},
-        Year = {2017}}
+        title = {{Deep Forest:} Towards an alternative to deep neural networks},
+        author = {Zhi-Hua Zhou and Ji Feng},
+        booktitle = {IJCAI},
+        pages = {3553--3559},
+        year = {2017}}
 
 Thanks to all our contributors
 ------------------------------
