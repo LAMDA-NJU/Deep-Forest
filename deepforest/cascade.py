@@ -216,7 +216,7 @@ def _build_time_series_feature_transformer():
         raise NotImplementedError(msg)
 
     try:
-        tsfresh = __import__("tsfresh")
+        __import__("tsfresh")
     except ModuleNotFoundError:
         msg = (
             "Cannot load the module tsfresh when building the feature"
@@ -224,9 +224,9 @@ def _build_time_series_feature_transformer():
         )
         raise ModuleNotFoundError(msg)
 
-    augmenter = tsfresh.transformers.RelevantFeatureAugmenter(
-        column_id="id", column_sort="time"
-    )
+    from tsfresh.transformers import RelevantFeatureAugmenter
+
+    augmenter = RelevantFeatureAugmenter(column_id="id", column_sort="time")
 
     return augmenter
 
@@ -1839,12 +1839,12 @@ class TimeSeriesCascadeForestClassifier(ClassifierMixin):
         """
         self._check_input(X, y)
         dummy_X = pd.DataFrame(index=y.index)
-        self.augmenter.set_timeseries_container(X)
+        self.transformer.set_timeseries_container(X)
 
         if self.verbose > 0:
             print("{} Transforming time series".format(_utils.ctime()))
 
-        X_with_features = self.augmenter.fit_transform(dummy_X, y).to_numpy()
+        X_with_features = self.transformer.fit_transform(dummy_X, y).to_numpy()
         self.classifier.fit(X_with_features, y, sample_weight)
 
     def predict_proba(self, X):
@@ -1866,12 +1866,12 @@ class TimeSeriesCascadeForestClassifier(ClassifierMixin):
         """
         self._check_input(X)
         dummy_X = pd.DataFrame()
-        self.augmenter.set_timeseries_container(X)
+        self.transformer.set_timeseries_container(X)
 
         if self.verbose > 0:
             print("{} Transforming time series".format(_utils.ctime()))
 
-        X_with_features = self.augmenter.transform(dummy_X).to_numpy()
+        X_with_features = self.transformer.transform(dummy_X).to_numpy()
 
         return self.classifier.predict_proba(X_with_features)
 
