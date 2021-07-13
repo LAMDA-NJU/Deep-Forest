@@ -11,6 +11,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.multiclass import type_of_target
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn.base import is_classifier
+from sklearn.utils import check_array
 
 from . import _utils
 from . import _io
@@ -762,7 +763,9 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
-
+        X = check_array(X)
+        y = check_array(y)
+        
         self._check_input(X, y)
         self._validate_params()
         n_counter = 0  # a counter controlling the early stopping
