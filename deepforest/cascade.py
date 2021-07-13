@@ -764,7 +764,6 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
         X = check_array(X)
-        y = check_array(y)
         
         self._check_input(X, y)
         self._validate_params()
