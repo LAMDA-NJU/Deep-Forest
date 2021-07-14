@@ -764,7 +764,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
         X = check_array(X)
-        
+
         self._check_input(X, y)
         self._validate_params()
         n_counter = 0  # a counter controlling the early stopping
