@@ -578,7 +578,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 "The layer index should be in the range [0, {}], but got {}"
                 " instead."
             )
-            raise ValueError(msg.format(self.n_layers_ - 1, layer_idx))
+            raise IndexError(msg.format(self.n_layers_ - 1, layer_idx))
 
         layer_key = "layer_{}".format(layer_idx)
 
