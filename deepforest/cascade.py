@@ -316,7 +316,7 @@ __classifier_fit_doc = """
 
     Parameters
     ----------
-    X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features) of shape (n_samples, n_features)
+    X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features)
         The training data. Internally, it will be converted to
         ``np.uint8``.
     y : :obj:`numpy.ndarray` of shape (n_samples,)
@@ -437,7 +437,7 @@ __regressor_fit_doc = """
 
     Parameters
     ----------
-    X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features) of shape (n_samples, n_features)
+    X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features)
         The training data. Internally, it will be converted to
         ``np.uint8``.
     y : :obj:`numpy.ndarray` of shape (n_samples,) or (n_samples, n_outputs)
@@ -1509,7 +1509,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features) of shape (n_samples, n_features)
+        X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
@@ -1630,7 +1630,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features) of shape (n_samples, n_features)
+        X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
