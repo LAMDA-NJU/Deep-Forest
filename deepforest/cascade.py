@@ -316,7 +316,7 @@ __classifier_fit_doc = """
 
     Parameters
     ----------
-    X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+    X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features) of shape (n_samples, n_features)
         The training data. Internally, it will be converted to
         ``np.uint8``.
     y : :obj:`numpy.ndarray` of shape (n_samples,)
@@ -437,7 +437,7 @@ __regressor_fit_doc = """
 
     Parameters
     ----------
-    X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+    X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features) of shape (n_samples, n_features)
         The training data. Internally, it will be converted to
         ``np.uint8``.
     y : :obj:`numpy.ndarray` of shape (n_samples,) or (n_samples, n_outputs)
@@ -1413,7 +1413,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         """Build a deep forest using the training data.""", "classifier_fit"
     )
     def fit(self, X, y, sample_weight=None):
-
+        X = check_array(X)
         # Check the input for classification
         y = self._encode_class_labels(y)
 
@@ -1425,7 +1425,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+        X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
@@ -1434,6 +1434,8 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         proba : :obj:`numpy.ndarray` of shape (n_samples, n_classes)
             The class probabilities of the input samples.
         """
+        X = check_array(X)
+
         if not self.is_fitted_:
             raise AttributeError("Please fit the model first.")
         self._check_input(X)
@@ -1507,7 +1509,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+        X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features) of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
@@ -1516,6 +1518,8 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         y : :obj:`numpy.ndarray` of shape (n_samples,)
             The predicted classes.
         """
+        X = check_array(X)
+
         proba = self.predict_proba(X)
         y = self._decode_class_labels(np.argmax(proba, axis=1))
         return y
@@ -1614,7 +1618,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         """Build a deep forest using the training data.""", "regressor_fit"
     )
     def fit(self, X, y, sample_weight=None):
-
+        X = check_array(X)
         # Check the input for regression
         self._check_target_values(y)
 
@@ -1626,7 +1630,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+        X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features) of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
@@ -1635,6 +1639,8 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         y : :obj:`numpy.ndarray` of shape (n_samples,) or (n_samples, n_outputs)
             The predicted values.
         """
+        X = check_array(X)
+
         if not self.is_fitted_:
             raise AttributeError("Please fit the model first.")
         self._check_input(X)
