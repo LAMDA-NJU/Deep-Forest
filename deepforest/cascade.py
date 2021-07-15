@@ -1598,7 +1598,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
 
     def _check_array_numeric(self, y):
         """Check the input numpy array y is all numeric."""
-        numeric_types = np.typecodes['AllInteger'] + np.typecodes["AllFloat"]
+        numeric_types = np.typecodes["AllInteger"] + np.typecodes["AllFloat"]
         if y.dtype.kind in numeric_types:
             return True
         else:
