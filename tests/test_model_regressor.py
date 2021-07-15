@@ -91,7 +91,7 @@ def test_model_properties_after_fitting():
 
     assert model[0] is model._get_layer(0)
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(IndexError) as excinfo:
         model._get_layer(model.n_layers_)
     assert "The layer index should be in the range" in str(excinfo.value)
 
