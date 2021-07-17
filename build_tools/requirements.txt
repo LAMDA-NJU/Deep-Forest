@@ -7,3 +7,4 @@ pytest-cov
 lightgbm
 xgboost
 cython>=0.28.5
+pandas>=0.25.0
