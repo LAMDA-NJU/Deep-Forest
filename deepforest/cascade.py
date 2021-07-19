@@ -11,7 +11,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.multiclass import type_of_target
 from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn.base import is_classifier
-from sklearn.utils import check_array
+from sklearn.utils import check_array, check_X_y
 
 from . import _utils
 from . import _io
@@ -316,7 +316,7 @@ __classifier_fit_doc = """
 
     Parameters
     ----------
-    X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features)
+    X : :obj: array-like of shape (n_samples, n_features)
         The training data. Internally, it will be converted to
         ``np.uint8``.
     y : :obj:`numpy.ndarray` of shape (n_samples,)
@@ -437,7 +437,7 @@ __regressor_fit_doc = """
 
     Parameters
     ----------
-    X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features)
+    X : :obj: array-like of shape (n_samples, n_features)
         The training data. Internally, it will be converted to
         ``np.uint8``.
     y : :obj:`numpy.ndarray` of shape (n_samples,) or (n_samples, n_outputs)
@@ -763,7 +763,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
-        X = check_array(X)
+        X, y = check_X_y(X, y)
 
         self._check_input(X, y)
         self._validate_params()
@@ -1413,7 +1413,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         """Build a deep forest using the training data.""", "classifier_fit"
     )
     def fit(self, X, y, sample_weight=None):
-        X = check_array(X)
+        X, y = check_X_y(X, y)
         # Check the input for classification
         y = self._encode_class_labels(y)
 
@@ -1425,7 +1425,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features)
+        X : :obj: array-like of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
@@ -1509,7 +1509,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features)
+        X : :obj: array-like of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
@@ -1604,7 +1604,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
 
     def _check_array_numeric(self, y):
         """Check the input numpy array y is all numeric."""
-        numeric_types = np.typecodes['AllInteger'] + np.typecodes["AllFloat"]
+        numeric_types = np.typecodes["AllInteger"] + np.typecodes["AllFloat"]
         if y.dtype.kind in numeric_types:
             return True
         else:
@@ -1618,7 +1618,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         """Build a deep forest using the training data.""", "regressor_fit"
     )
     def fit(self, X, y, sample_weight=None):
-        X = check_array(X)
+        X, y = check_X_y(X, y)
         # Check the input for regression
         self._check_target_values(y)
 
@@ -1630,7 +1630,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` or `pandas.DataFrame` or List of shape (n_samples, n_features)
+        X : :obj: array-like of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
