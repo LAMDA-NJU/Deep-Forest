@@ -129,6 +129,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "IncubatorShokuhou",
+      "name": "Hao Lyu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20434183?v=4",
+      "profile": "https://github.com/IncubatorShokuhou",
+      "contributions": [
+        "code"
+      ]
     }
   ],
 }
