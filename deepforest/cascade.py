@@ -3,24 +3,28 @@
 
 __all__ = ["CascadeForestClassifier", "CascadeForestRegressor"]
 
-import time
 import numbers
-import numpy as np
+import time
 from abc import ABCMeta, abstractmethod
-from sklearn.preprocessing import LabelEncoder
-from sklearn.utils.multiclass import type_of_target
-from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
-from sklearn.base import is_classifier
-from sklearn.utils import check_array, check_X_y
 
-from . import _utils
-from . import _io
+import numpy as np
+from sklearn.base import (
+    BaseEstimator,
+    ClassifierMixin,
+    RegressorMixin,
+    is_classifier,
+)
+from sklearn.preprocessing import LabelEncoder
+from sklearn.utils import check_array, check_X_y
+from sklearn.utils.multiclass import type_of_target
+
+from . import _io, _utils
+from ._binner import Binner
 from ._layer import (
     ClassificationCascadeLayer,
-    RegressionCascadeLayer,
     CustomCascadeLayer,
+    RegressionCascadeLayer,
 )
-from ._binner import Binner
 
 
 def _get_predictor_kwargs(predictor_kwargs, **kwargs) -> dict:
@@ -763,7 +767,14 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
-        X, y = check_X_y(X, y)
+        X, y = check_X_y(
+            X,
+            y,
+            multi_output=True
+            if type_of_target(y)
+            in ("continuous-multioutput", "multiclass-multioutput")
+            else False,
+        )
 
         self._check_input(X, y)
         self._validate_params()
@@ -1413,7 +1424,14 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         """Build a deep forest using the training data.""", "classifier_fit"
     )
     def fit(self, X, y, sample_weight=None):
-        X, y = check_X_y(X, y)
+        X, y = check_X_y(
+            X,
+            y,
+            multi_output=True
+            if type_of_target(y)
+            in ("continuous-multioutput", "multiclass-multioutput")
+            else False,
+        )
         # Check the input for classification
         y = self._encode_class_labels(y)
 
@@ -1618,7 +1636,15 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         """Build a deep forest using the training data.""", "regressor_fit"
     )
     def fit(self, X, y, sample_weight=None):
-        X, y = check_X_y(X, y)
+        X, y = check_X_y(
+            X,
+            y,
+            multi_output=True
+            if type_of_target(y)
+            in ("continuous-multioutput", "multiclass-multioutput")
+            else False,
+        )
+
         # Check the input for regression
         self._check_target_values(y)
 
