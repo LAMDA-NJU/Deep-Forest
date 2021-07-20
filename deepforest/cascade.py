@@ -3,23 +3,28 @@
 
 __all__ = ["CascadeForestClassifier", "CascadeForestRegressor"]
 
-import time
 import numbers
-import numpy as np
+import time
 from abc import ABCMeta, abstractmethod
-from sklearn.preprocessing import LabelEncoder
-from sklearn.utils.multiclass import type_of_target
-from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
-from sklearn.base import is_classifier
 
-from . import _utils
-from . import _io
+import numpy as np
+from sklearn.base import (
+    BaseEstimator,
+    ClassifierMixin,
+    RegressorMixin,
+    is_classifier,
+)
+from sklearn.preprocessing import LabelEncoder
+from sklearn.utils import check_array, check_X_y
+from sklearn.utils.multiclass import type_of_target
+
+from . import _io, _utils
+from ._binner import Binner
 from ._layer import (
     ClassificationCascadeLayer,
-    RegressionCascadeLayer,
     CustomCascadeLayer,
+    RegressionCascadeLayer,
 )
-from ._binner import Binner
 
 
 def _get_predictor_kwargs(predictor_kwargs, **kwargs) -> dict:
@@ -315,7 +320,7 @@ __classifier_fit_doc = """
 
     Parameters
     ----------
-    X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+    X : :obj: array-like of shape (n_samples, n_features)
         The training data. Internally, it will be converted to
         ``np.uint8``.
     y : :obj:`numpy.ndarray` of shape (n_samples,)
@@ -436,7 +441,7 @@ __regressor_fit_doc = """
 
     Parameters
     ----------
-    X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+    X : :obj: array-like of shape (n_samples, n_features)
         The training data. Internally, it will be converted to
         ``np.uint8``.
     y : :obj:`numpy.ndarray` of shape (n_samples,) or (n_samples, n_outputs)
@@ -762,6 +767,14 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
 
     # flake8: noqa: E501
     def fit(self, X, y, sample_weight=None):
+        X, y = check_X_y(
+            X,
+            y,
+            multi_output=True
+            if type_of_target(y)
+            in ("continuous-multioutput", "multiclass-multioutput")
+            else False,
+        )
 
         self._check_input(X, y)
         self._validate_params()
@@ -1411,7 +1424,14 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         """Build a deep forest using the training data.""", "classifier_fit"
     )
     def fit(self, X, y, sample_weight=None):
-
+        X, y = check_X_y(
+            X,
+            y,
+            multi_output=True
+            if type_of_target(y)
+            in ("continuous-multioutput", "multiclass-multioutput")
+            else False,
+        )
         # Check the input for classification
         y = self._encode_class_labels(y)
 
@@ -1423,7 +1443,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+        X : :obj: array-like of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
@@ -1432,6 +1452,8 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         proba : :obj:`numpy.ndarray` of shape (n_samples, n_classes)
             The class probabilities of the input samples.
         """
+        X = check_array(X)
+
         if not self.is_fitted_:
             raise AttributeError("Please fit the model first.")
         self._check_input(X)
@@ -1505,7 +1527,7 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+        X : :obj: array-like of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
@@ -1514,6 +1536,8 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         y : :obj:`numpy.ndarray` of shape (n_samples,)
             The predicted classes.
         """
+        X = check_array(X)
+
         proba = self.predict_proba(X)
         y = self._decode_class_labels(np.argmax(proba, axis=1))
         return y
@@ -1612,6 +1636,14 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         """Build a deep forest using the training data.""", "regressor_fit"
     )
     def fit(self, X, y, sample_weight=None):
+        X, y = check_X_y(
+            X,
+            y,
+            multi_output=True
+            if type_of_target(y)
+            in ("continuous-multioutput", "multiclass-multioutput")
+            else False,
+        )
 
         # Check the input for regression
         self._check_target_values(y)
@@ -1624,7 +1656,7 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
 
         Parameters
         ----------
-        X : :obj:`numpy.ndarray` of shape (n_samples, n_features)
+        X : :obj: array-like of shape (n_samples, n_features)
             The input samples. Internally, its dtype will be converted to
             ``np.uint8``.
 
@@ -1633,6 +1665,8 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         y : :obj:`numpy.ndarray` of shape (n_samples,) or (n_samples, n_outputs)
             The predicted values.
         """
+        X = check_array(X)
+
         if not self.is_fitted_:
             raise AttributeError("Please fit the model first.")
         self._check_input(X)
