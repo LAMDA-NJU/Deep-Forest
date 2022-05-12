@@ -32,6 +32,8 @@ DF21 offers an effective & powerful option to the tree-based machine learning al
 
 For a quick start, please refer to `How to Get Started <https://deep-forest.readthedocs.io/en/latest/how_to_get_started.html>`__. For a detailed guidance on parameter tunning, please refer to `Parameters Tunning <https://deep-forest.readthedocs.io/en/latest/parameters_tunning.html>`__.
 
+DF21 is optimized for what a tree-based ensemble excels at (i.e., tabular data), if you want to use the multi-grained scanning part to better handle structured data like images, please refer to the `origin implementation <https://github.com/kingfengji/gcForest>`__ for details.
+
 Installation
 ------------
 
