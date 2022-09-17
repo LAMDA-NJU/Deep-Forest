@@ -31,7 +31,6 @@ from sklearn.base import is_classifier
 from sklearn.base import ClassifierMixin, RegressorMixin, MultiOutputMixin
 from sklearn.utils import check_random_state, compute_sample_weight
 from sklearn.exceptions import DataConversionWarning
-from sklearn.utils.fixes import _joblib_parallel_args
 from sklearn.utils.validation import check_is_fitted, _check_sample_weight
 from sklearn.utils.validation import _deprecate_positional_args
 
@@ -463,7 +462,8 @@ class BaseForest(MultiOutputMixin, BaseEnsemble, metaclass=ABCMeta):
         rets = Parallel(
             n_jobs=n_jobs,
             verbose=self.verbose,
-            **_joblib_parallel_args(prefer="threads", require="sharedmem")
+            prefer="threads",
+            require="sharedmem",
         )(
             delayed(_parallel_build_trees)(
                 t,
@@ -609,11 +609,7 @@ class ForestClassifier(ClassifierMixin, BaseForest, metaclass=ABCMeta):
             for j in np.atleast_1d(self.n_classes_)
         ]
         lock = threading.Lock()
-        Parallel(
-            n_jobs=n_jobs,
-            verbose=self.verbose,
-            **_joblib_parallel_args(require="sharedmem")
-        )(
+        Parallel(n_jobs=n_jobs, verbose=self.verbose, require="sharedmem",)(
             delayed(_accumulate_prediction)(
                 self.features[i],
                 self.thresholds[i],
@@ -796,11 +792,7 @@ class ForestRegressor(RegressorMixin, BaseForest, metaclass=ABCMeta):
 
         # Parallel loop
         lock = threading.Lock()
-        Parallel(
-            n_jobs=n_jobs,
-            verbose=self.verbose,
-            **_joblib_parallel_args(require="sharedmem")
-        )(
+        Parallel(n_jobs=n_jobs, verbose=self.verbose, require="sharedmem",)(
             delayed(_accumulate_prediction)(
                 self.features[i],
                 self.thresholds[i],

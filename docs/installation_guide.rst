@@ -52,10 +52,6 @@ Building from source is required to work on a contribution (bug fix, new feature
     $ cd tests
     % pytest
 
-.. warning::
-
-    **[Jan 31, 2021]** The Numpy developers have released the version 1.20.0 of `Numpy <https://github.com/numpy/numpy/releases/tag/v1.20.0>`__, which makes many changes on the C-APIs, and can be incompatible with those used in the package. You are at your own risks to build the package from source with the version 1.20.0 of Numpy installed.
-
 Acknowledgement
 ---------------
 
