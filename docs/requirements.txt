@@ -4,3 +4,4 @@ sphinx-panels==0.5.*
 sphinx-copybutton
 m2r2==0.2.7
 jinja2<3.1.0
+mistune==0.8.4
