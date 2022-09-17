@@ -12,7 +12,7 @@ with open("README.rst") as f:
 MAINTAINER = "Yi-Xuan Xu"
 MAINTAINER_EMAIL = "xuyx@lamda.nju.edu.cn"
 URL = "https://github.com/LAMDA-NJU/Deep-Forest"
-VERSION = "0.1.5"
+VERSION = "0.1.6"
 
 
 def configuration(parent_package="", top_path=None):
@@ -56,17 +56,16 @@ if __name__ == "__main__":
             "Topic :: Scientific/Engineering",
             "Operating System :: Microsoft :: Windows",
             "Operating System :: Unix",
-            "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
         ],
-        python_requires=">=3.6",
+        python_requires=">=3.7",
         install_requires=[
-            "numpy>=1.16.0,<1.20.0",
-            "scipy>=0.19.1",
+            "numpy>=1.14.6",
+            "scipy>=1.1.0",
             "joblib>=0.11",
-            "scikit-learn>=0.22",
+            "scikit-learn>=1.0",
         ],
         setup_requires=["cython"],
     )
