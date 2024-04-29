@@ -43,13 +43,13 @@ cdef class Tree:
     cdef SIZE_t value_stride                # = n_outputs * max_n_classes
 
     # Methods
-    cdef SIZE_t _upd_parent(self, SIZE_t parent, bint is_left) nogil except -1
+    cdef SIZE_t _upd_parent(self, SIZE_t parent, bint is_left) except -1 nogil
     cdef SIZE_t _add_node(self, SIZE_t parent, bint is_left, bint is_leaf,
-                          SIZE_t feature, DTYPE_t threshold) nogil except -1
+                          SIZE_t feature, DTYPE_t threshold) except -1 nogil
     cdef int _resize(self, SIZE_t internal_capacity,
-                     SIZE_t leaf_capacity) nogil except -1
-    cdef int _resize_node_c(self, SIZE_t internal_capacity=*) nogil except -1
-    cdef int _resize_value_c(self, SIZE_t leaf_capacity=*) nogil except -1
+                     SIZE_t leaf_capacity) except -1 nogil
+    cdef int _resize_node_c(self, SIZE_t internal_capacity=*) except -1 nogil
+    cdef int _resize_value_c(self, SIZE_t leaf_capacity=*) except -1 nogil
 
     cdef np.ndarray _get_value_ndarray(self)
     cdef np.ndarray _get_node_ndarray(self)
