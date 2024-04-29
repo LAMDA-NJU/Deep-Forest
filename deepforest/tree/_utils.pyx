@@ -19,7 +19,7 @@ np.import_array()
 # Helper functions
 # =============================================================================
 
-cdef realloc_ptr safe_realloc(realloc_ptr* p, size_t nelems) nogil except *:
+cdef realloc_ptr safe_realloc(realloc_ptr* p, size_t nelems) except * nogil:
     # sizeof(realloc_ptr[0]) would be more like idiomatic C, but causes Cython
     # 0.20.1 to crash.
     cdef size_t nbytes = nelems * sizeof(p[0][0])
@@ -114,7 +114,7 @@ cdef class Stack:
 
     cdef int push(self, SIZE_t start, SIZE_t end, SIZE_t depth, SIZE_t parent,
                   bint is_left, double impurity,
-                  SIZE_t n_constant_features) nogil except -1:
+                  SIZE_t n_constant_features) except -1 nogil:
         """Push a new element onto the stack.
 
         Return -1 in case of failure to allocate memory (and raise MemoryError)
@@ -230,7 +230,7 @@ cdef class PriorityHeap:
     cdef int push(self, SIZE_t node_id, SIZE_t start, SIZE_t end, SIZE_t pos,
                   SIZE_t depth, bint is_leaf, double improvement,
                   double impurity, double impurity_left,
-                  double impurity_right) nogil except -1:
+                  double impurity_right) except -1 nogil:
         """Push record on the priority heap.
 
         Return -1 in case of failure to allocate memory (and raise MemoryError)
@@ -318,7 +318,7 @@ cdef class WeightedPQueue:
     def __dealloc__(self):
         free(self.array_)
 
-    cdef int reset(self) nogil except -1:
+    cdef int reset(self) except -1 nogil:
         """Reset the WeightedPQueue to its state at construction
 
         Return -1 in case of failure to allocate memory (and raise MemoryError)
@@ -335,7 +335,7 @@ cdef class WeightedPQueue:
     cdef SIZE_t size(self) nogil:
         return self.array_ptr
 
-    cdef int push(self, DOUBLE_t data, DOUBLE_t weight) nogil except -1:
+    cdef int push(self, DOUBLE_t data, DOUBLE_t weight) except -1 nogil:
         """Push record on the array.
 
         Return -1 in case of failure to allocate memory (and raise MemoryError)
@@ -493,7 +493,7 @@ cdef class WeightedMedianCalculator:
         WeightedMedianCalculator"""
         return self.samples.size()
 
-    cdef int reset(self) nogil except -1:
+    cdef int reset(self) except -1 nogil:
         """Reset the WeightedMedianCalculator to its state at construction
 
         Return -1 in case of failure to allocate memory (and raise MemoryError)
@@ -507,7 +507,7 @@ cdef class WeightedMedianCalculator:
         self.sum_w_0_k = 0
         return 0
 
-    cdef int push(self, DOUBLE_t data, DOUBLE_t weight) nogil except -1:
+    cdef int push(self, DOUBLE_t data, DOUBLE_t weight) except -1 nogil:
         """Push a value and its associated weight to the WeightedMedianCalculator
 
         Return -1 in case of failure to allocate memory (and raise MemoryError)
