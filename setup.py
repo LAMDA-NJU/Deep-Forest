@@ -1,8 +1,8 @@
 import os
 import sys
-from setuptools import find_packages
-from numpy.distutils.core import setup
-
+from setuptools import find_packages, setup, Extension
+from Cython.Build import cythonize
+import numpy
 
 # Project Information
 DISTNAME = "deep-forest"
@@ -14,30 +14,57 @@ MAINTAINER_EMAIL = "xuyx@lamda.nju.edu.cn"
 URL = "https://github.com/LAMDA-NJU/Deep-Forest"
 VERSION = "0.1.7"
 
+libraries = []
+if os.name == "posix":
+    libraries.append("m")
 
-def configuration(parent_package="", top_path=None):
-
-    if os.path.exists("MANIFEST"):
-        os.remove("MANIFEST")
-
-    from numpy.distutils.misc_util import Configuration
-
-    config = Configuration(None, parent_package, top_path)
-    config.add_subpackage("deepforest")
-
-    return config
-
+extensions = [
+    Extension(
+        "deepforest._forest",
+        ["deepforest/_forest.pyx"],
+        include_dirs=[numpy.get_include()],
+        libraries=libraries,
+        extra_compile_args=["-O3"],
+    ),
+    Extension(
+        "deepforest._cutils",
+        ["deepforest/_cutils.pyx"],
+        include_dirs=[numpy.get_include()],
+        libraries=libraries,
+        extra_compile_args=["-O3"],
+    ),
+    Extension(
+        "deepforest.tree._tree",
+        ["deepforest/tree/_tree.pyx"],
+        include_dirs=[numpy.get_include()],
+        libraries=libraries,
+        extra_compile_args=["-O3"],
+    ),
+    Extension(
+        "deepforest.tree._splitter",
+        ["deepforest/tree/_splitter.pyx"],
+        include_dirs=[numpy.get_include()],
+        libraries=libraries,
+        extra_compile_args=["-O3"],
+    ),
+    Extension(
+        "deepforest.tree._criterion",
+        ["deepforest/tree/_criterion.pyx"],
+        include_dirs=[numpy.get_include()],
+        libraries=libraries,
+        extra_compile_args=["-O3"],
+    ),
+    Extension(
+        "deepforest.tree._utils",
+        ["deepforest/tree/_utils.pyx"],
+        include_dirs=[numpy.get_include()],
+        libraries=libraries,
+        extra_compile_args=["-O3"],
+    ),
+]
 
 if __name__ == "__main__":
-
-    old_path = os.getcwd()
-    local_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-
-    os.chdir(local_path)
-    sys.path.insert(0, local_path)
-
     setup(
-        configuration=configuration,
         name=DISTNAME,
         maintainer=MAINTAINER,
         maintainer_email=MAINTAINER_EMAIL,
@@ -68,4 +95,5 @@ if __name__ == "__main__":
             "scikit-learn>=1.0",
         ],
         setup_requires=["cython"],
+        ext_modules=cythonize(extensions),
     )
