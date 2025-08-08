@@ -44,7 +44,7 @@ cpdef np.ndarray _c_sample_mask(const INT32_t [:] indices,
         SIZE_t n = indices.shape[0]
         SIZE_t sample_id
         np.ndarray[BOOL, ndim=1] sample_mask = np.zeros((n_samples,),
-                                                        dtype=np.bool)
+                                                        dtype=bool)
 
     with nogil:
         for i in range(n):
