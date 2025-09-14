@@ -441,7 +441,7 @@ cdef class Tree:
                        self.internal_node_count * sizeof(Node))
 
     cdef int _resize(self, SIZE_t internal_capacity,
-                     SIZE_t leaf_capacity) nogil except -1:
+                     SIZE_t leaf_capacity) except -1 nogil:
         """Resize `self.nodes` to `internal_capacity`, and resize `self.value`
         to `leaf_capacity`.
 
@@ -461,7 +461,7 @@ cdef class Tree:
                                   leaf_capacity)
 
     cdef int _resize_node_c(self,
-                            SIZE_t internal_capacity=SIZE_MAX) nogil except -1:
+                            SIZE_t internal_capacity=SIZE_MAX) except -1 nogil:
         """Resize `self.nodes` to `internal_capacity`.
 
         Returns -1 in case of failure to allocate memory (and raise
@@ -486,7 +486,7 @@ cdef class Tree:
         return 0
 
     cdef int _resize_value_c(self,
-                             SIZE_t leaf_capacity=SIZE_MAX) nogil except -1:
+                             SIZE_t leaf_capacity=SIZE_MAX) except -1 nogil:
         """Resize `self.value` to `leaf_capacity`.
         
         Returns -1 in case of failure to allocate memory (and raise
@@ -516,7 +516,7 @@ cdef class Tree:
         self.leaf_capacity = leaf_capacity
         return 0
 
-    cdef SIZE_t _upd_parent(self, SIZE_t parent, bint is_left) nogil except -1:
+    cdef SIZE_t _upd_parent(self, SIZE_t parent, bint is_left) except -1 nogil:
         """Add a leaf node to the tree and connect it with its parent. Notice
         that `self.nodes` does not store any information on leaf nodes except
         the id of leaf nodes. In addition, the id of leaf nodes are multiplied
@@ -543,7 +543,7 @@ cdef class Tree:
         return node_id
 
     cdef SIZE_t _add_node(self, SIZE_t parent, bint is_left, bint is_leaf,
-                          SIZE_t feature, DTYPE_t threshold) nogil except -1:
+                          SIZE_t feature, DTYPE_t threshold) except -1 nogil:
         """Add an internal node to the tree.
 
         The new node registers itself as the child of its parent.
