@@ -137,8 +137,8 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
         cdef int init_leaf_capacity
 
         if tree.max_depth <= 10:
-            init_internal_capacity = (2 ** (tree.max_depth + 1)) - 1
-            init_leaf_capacity = (2 ** (tree.max_depth + 1)) - 1
+            init_internal_capacity = <SIZE_t>((2 ** (tree.max_depth + 1)) - 1)
+            init_leaf_capacity = <SIZE_t>((2 ** (tree.max_depth + 1)) - 1)
         else:
             init_internal_capacity = 2047
             init_leaf_capacity = 2047
@@ -905,7 +905,7 @@ cdef class Tree:
         cdef np.ndarray arr
         arr = np.PyArray_SimpleNewFromData(3, shape, np.NPY_DOUBLE, self.value)
         Py_INCREF(self)
-        arr.base = <PyObject*> self
+        np.PyArray_SetBaseObject(arr, self)
         return arr
 
     cdef np.ndarray _get_node_ndarray(self):
@@ -926,5 +926,5 @@ cdef class Tree:
                                    strides, <void*> self.nodes,
                                    np.NPY_DEFAULT, None)
         Py_INCREF(self)
-        arr.base = <PyObject*> self
+        np.PyArray_SetBaseObject(arr, self)
         return arr
