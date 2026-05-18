@@ -8,7 +8,7 @@ from deepforest.forest import _get_n_samples_bootstrap
 
 # Load utils
 from sklearn.ensemble._hist_gradient_boosting.binning import _BinMapper
-from sklearn.datasets import load_iris, load_wine, load_boston
+from sklearn.datasets import load_diabetes, load_iris, load_wine
 from sklearn.ensemble._forest import (
     _get_n_samples_bootstrap as sklearn_get_n_samples_bootstrap,
 )
@@ -81,7 +81,7 @@ def test_forest_classifier_workflow(load_func):
     model.predict(X_binned)
 
 
-@pytest.mark.parametrize("load_func", [load_boston])
+@pytest.mark.parametrize("load_func", [load_diabetes])
 def test_forest_regressor_workflow(load_func):
 
     n_estimators = 100  # to avoid oob warning

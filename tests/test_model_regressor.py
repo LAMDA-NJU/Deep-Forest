@@ -3,7 +3,7 @@ import pytest
 import shutil
 import numpy as np
 from numpy.testing import assert_array_equal
-from sklearn.datasets import load_boston
+from sklearn.datasets import load_diabetes
 from sklearn.model_selection import train_test_split
 
 import deepforest
@@ -14,7 +14,7 @@ from deepforest.cascade import _get_predictor_kwargs
 save_dir = "./tmp"
 
 # Load data
-X, y = load_boston(return_X_y=True)
+X, y = load_diabetes(return_X_y=True)
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.42, random_state=42
 )
@@ -196,6 +196,11 @@ def test_model_invalid_training_params(param):
 
 @pytest.mark.parametrize("predictor", ["forest", "xgboost", "lightgbm"])
 def test_regressor_predictor_normal(predictor):
+    if predictor == "xgboost":
+        pytest.importorskip("xgboost")
+    elif predictor == "lightgbm":
+        pytest.importorskip("lightgbm")
+
     deepforest.cascade._build_regressor_predictor(
         predictor, criterion="mse", n_estimators=1, n_outputs=2
     )

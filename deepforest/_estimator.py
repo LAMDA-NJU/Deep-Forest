@@ -18,6 +18,15 @@ from sklearn.ensemble import (
 )
 
 
+def _normalize_sklearn_regressor_criterion(criterion):
+    """Map legacy criterion aliases to names accepted by modern sklearn."""
+    if criterion == "mse":
+        return "squared_error"
+    if criterion == "mae":
+        return "absolute_error"
+    return criterion
+
+
 def make_classifier_estimator(
     name,
     criterion,
@@ -95,6 +104,8 @@ def make_regressor_estimator(
     n_jobs=None,
     random_state=None,
 ):
+    sklearn_criterion = _normalize_sklearn_regressor_criterion(criterion)
+
     # RandomForestRegressor
     if name == "rf":
         if backend == "custom":
@@ -109,7 +120,7 @@ def make_regressor_estimator(
             )
         elif backend == "sklearn":
             estimator = sklearn_RandomForestRegressor(
-                criterion=criterion,
+                criterion=sklearn_criterion,
                 n_estimators=n_trees,
                 max_depth=max_depth,
                 min_samples_split=min_samples_split,
@@ -133,7 +144,7 @@ def make_regressor_estimator(
             )
         elif backend == "sklearn":
             estimator = sklearn_ExtraTreesRegressor(
-                criterion=criterion,
+                criterion=sklearn_criterion,
                 n_estimators=n_trees,
                 max_depth=max_depth,
                 min_samples_split=min_samples_split,

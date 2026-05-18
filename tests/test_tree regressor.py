@@ -1,11 +1,11 @@
 import pytest
-from sklearn.datasets import load_boston
+from sklearn.datasets import load_diabetes
 from sklearn.ensemble._hist_gradient_boosting.binning import _BinMapper
 
 from deepforest import DecisionTreeRegressor
 
 
-X, y = load_boston(return_X_y=True)
+X, y = load_diabetes(return_X_y=True)
 
 # Data binning
 binner = _BinMapper(random_state=42)

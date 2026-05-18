@@ -8,7 +8,7 @@ from deepforest._estimator import Estimator
 
 # Load utils
 from sklearn.ensemble._hist_gradient_boosting.binning import _BinMapper
-from sklearn.datasets import load_digits, load_boston
+from sklearn.datasets import load_diabetes, load_digits
 from sklearn.model_selection import train_test_split
 
 
@@ -99,7 +99,7 @@ def test_classifier_layer_properties_after_fitting():
 
 def test_regressor_layer_properties_after_fitting():
     # Load data and binning
-    X, y = load_boston(return_X_y=True)
+    X, y = load_diabetes(return_X_y=True)
     binner = _BinMapper(random_state=142)
     X_binned = binner.fit_transform(X)
 

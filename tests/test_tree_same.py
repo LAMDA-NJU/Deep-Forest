@@ -21,7 +21,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble._hist_gradient_boosting.binning import _BinMapper
 
 # Toy datasets
-from sklearn.datasets import load_iris, load_wine, load_boston
+from sklearn.datasets import load_diabetes, load_iris, load_wine
 
 from deepforest import DecisionTreeClassifier
 from deepforest import ExtraTreeClassifier
@@ -89,7 +89,7 @@ def test_extra_tree_classifier_proba(load_func):
     assert_array_equal(actual_proba, expected_proba)
 
 
-@pytest.mark.parametrize("load_func", [load_boston])
+@pytest.mark.parametrize("load_func", [load_diabetes])
 def test_tree_regressor_pred(load_func):
 
     X, y = load_func(return_X_y=True)
@@ -115,7 +115,7 @@ def test_tree_regressor_pred(load_func):
     assert_array_equal(actual_pred, expected_pred)
 
 
-@pytest.mark.parametrize("load_func", [load_boston])
+@pytest.mark.parametrize("load_func", [load_diabetes])
 def test_extra_tree_regressor_pred(load_func):
     X, y = load_func(return_X_y=True)
     X_train, X_test, y_train, y_test = train_test_split(
@@ -140,7 +140,7 @@ def test_extra_tree_regressor_pred(load_func):
     assert_array_equal(actual_pred, expected_pred)
 
 
-@pytest.mark.parametrize("load_func", [load_boston])
+@pytest.mark.parametrize("load_func", [load_diabetes])
 def test_tree_regressor_multi_output_pred(load_func):
 
     X, y = load_func(return_X_y=True)
@@ -171,7 +171,7 @@ def test_tree_regressor_multi_output_pred(load_func):
     assert_array_equal(actual_pred, expected_pred)
 
 
-@pytest.mark.parametrize("load_func", [load_boston])
+@pytest.mark.parametrize("load_func", [load_diabetes])
 def test_extra_tree_regressor_multi_output_pred(load_func):
     X, y = load_func(return_X_y=True)
 

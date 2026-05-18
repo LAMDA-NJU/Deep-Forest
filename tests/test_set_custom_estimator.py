@@ -2,7 +2,7 @@ import pytest
 import shutil
 import numpy as np
 from numpy.testing import assert_array_equal
-from sklearn.datasets import load_iris, load_boston
+from sklearn.datasets import load_diabetes, load_iris
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
 
@@ -17,7 +17,7 @@ X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
     X, y, test_size=0.42, random_state=42
 )
 
-X, y = load_boston(return_X_y=True)
+X, y = load_diabetes(return_X_y=True)
 X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(
     X, y, test_size=0.42, random_state=42
 )

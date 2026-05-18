@@ -265,6 +265,11 @@ def test_model_invalid_training_params(param):
 
 @pytest.mark.parametrize("predictor", ["forest", "xgboost", "lightgbm"])
 def test_classifier_predictor_normal(predictor):
+    if predictor == "xgboost":
+        pytest.importorskip("xgboost")
+    elif predictor == "lightgbm":
+        pytest.importorskip("lightgbm")
+
     deepforest.cascade._build_classifier_predictor(
         predictor, criterion="gini", n_estimators=1, n_outputs=2
     )
