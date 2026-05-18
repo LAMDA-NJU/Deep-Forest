@@ -14,6 +14,7 @@ from sklearn.base import (
     RegressorMixin,
     is_classifier,
 )
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_array, check_X_y
 from sklearn.utils.multiclass import type_of_target
@@ -205,6 +206,23 @@ def _build_regressor_predictor(
         raise NotImplementedError(msg.format(predictor_name))
 
     return predictor
+
+
+def _normalize_proba(proba, eps):
+    """Clip and normalize class probabilities."""
+    proba = np.clip(proba, eps, 1.0)
+    row_sum = np.sum(proba, axis=1, keepdims=True)
+    proba = proba / np.maximum(row_sum, eps)
+    return proba
+
+
+def _softmax_from_logits(logits):
+    """Compute softmax probabilities from logits."""
+    logits = logits - np.max(logits, axis=1, keepdims=True)
+    exp_logits = np.exp(logits)
+    return exp_logits / np.maximum(
+        np.sum(exp_logits, axis=1, keepdims=True), np.finfo(np.float64).eps
+    )
 
 
 __classifier_model_doc = """
@@ -506,6 +524,9 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         n_jobs=None,
         random_state=None,
         verbose=1,
+        adacascade=False,
+        adacascade_alpha_candidates=(0.5, 1.0, 1.5),
+        adacascade_eps=1e-6,
     ):
         self.n_bins = n_bins
         self.bin_subsample = bin_subsample
@@ -525,10 +546,14 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.verbose = verbose
+        self.adacascade = adacascade
+        self.adacascade_alpha_candidates = adacascade_alpha_candidates
+        self.adacascade_eps = adacascade_eps
 
         # Utility variables
         self.n_layers_ = 0
         self.is_fitted_ = False
+        self.layer_alphas_ = []
 
         # Internal containers
         self.layers_ = {}
@@ -684,6 +709,50 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             msg = "delta = {} should be no smaller than 0."
             raise ValueError(msg.format(self.delta))
 
+        if self.adacascade and not is_classifier(self):
+            msg = "adacascade is only supported in CascadeForestClassifier."
+            raise ValueError(msg)
+
+        if self.adacascade and self.use_predictor:
+            msg = "adacascade is incompatible with use_predictor=True."
+            raise ValueError(msg)
+
+        if self.adacascade:
+            if not self.adacascade_eps > 0:
+                msg = "adacascade_eps = {} should be strictly positive."
+                raise ValueError(msg.format(self.adacascade_eps))
+
+            if isinstance(self.adacascade_alpha_candidates, str):
+                msg = (
+                    "adacascade_alpha_candidates should be an iterable of"
+                    " positive floats, but got a string."
+                )
+                raise ValueError(msg)
+
+            try:
+                alpha_candidates = tuple(
+                    float(alpha) for alpha in self.adacascade_alpha_candidates
+                )
+            except TypeError as exc:
+                msg = (
+                    "adacascade_alpha_candidates should be an iterable of"
+                    " positive floats."
+                )
+                raise ValueError(msg) from exc
+
+            if len(alpha_candidates) == 0:
+                msg = "adacascade_alpha_candidates should not be empty."
+                raise ValueError(msg)
+
+            if any(alpha <= 0 for alpha in alpha_candidates):
+                msg = (
+                    "All values in adacascade_alpha_candidates should be"
+                    " strictly positive."
+                )
+                raise ValueError(msg)
+
+            self.adacascade_alpha_candidates = alpha_candidates
+
     def _bin_data(self, binner, X, is_training_data=True):
         """
         Bin data X. If X is training data, the bin mapper is fitted first."""
@@ -724,6 +793,12 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         ):
             self.layers_.pop("layer_{}".format(layer_idx))
             self.binners_.pop("binner_{}".format(layer_idx))
+            if (
+                self.adacascade
+                and is_classifier(self)
+                and len(self.layer_alphas_) > 0
+            ):
+                self.layer_alphas_.pop()
 
             if self.partial_mode:
                 self.buffer_.del_estimator(layer_idx)
@@ -745,6 +820,34 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         if is_classifier(self):
             return new_pivot >= pivot + delta
         return new_pivot <= pivot - delta
+
+    def _adacascade_choose_alpha(
+        self,
+        cumulative_logits,
+        layer_proba,
+        y,
+        sample_weight=None,
+    ):
+        """
+        Select alpha from candidates by maximizing training OOF accuracy.
+        """
+        best_alpha = self.adacascade_alpha_candidates[0]
+        best_pivot = -np.inf
+        best_logits = None
+        layer_log_proba = np.log(layer_proba)
+
+        for alpha in self.adacascade_alpha_candidates:
+            logits = cumulative_logits + alpha * layer_log_proba
+            y_pred = np.argmax(logits, axis=1)
+            pivot = accuracy_score(y, y_pred, sample_weight=sample_weight)
+            if pivot > best_pivot + 1e-12 or (
+                abs(pivot - best_pivot) <= 1e-12 and alpha < best_alpha
+            ):
+                best_alpha = alpha
+                best_pivot = pivot
+                best_logits = logits
+
+        return best_alpha, best_pivot, best_logits
 
     @abstractmethod
     def _repr_performance(self, pivot):
@@ -779,6 +882,7 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self._check_input(X, y)
         self._validate_params()
         n_counter = 0  # a counter controlling the early stopping
+        self.layer_alphas_ = []
 
         binner_ = Binner(
             n_bins=self.n_bins,
@@ -827,7 +931,26 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         training_time = toc - tic
 
         # Set the reference performance
-        pivot = layer_.val_performance_
+        if self.adacascade and is_classifier(self):
+            layer_proba = _normalize_proba(
+                _utils.merge_proba(X_aug_train_, self.n_outputs_),
+                self.adacascade_eps,
+            )
+            cumulative_logits = np.zeros_like(layer_proba, dtype=np.float64)
+            (
+                layer_alpha,
+                pivot,
+                cumulative_logits,
+            ) = self._adacascade_choose_alpha(
+                cumulative_logits,
+                layer_proba,
+                y,
+                sample_weight=sample_weight,
+            )
+            self.layer_alphas_.append(layer_alpha)
+        else:
+            cumulative_logits = None
+            pivot = layer_.val_performance_
 
         if self.verbose > 0:
             msg = "{} layer = {:<2} | {} | Elapsed = {:.3f} s"
@@ -908,7 +1031,25 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
             toc = time.time()
             training_time = toc - tic
 
-            new_pivot = layer_.val_performance_
+            if self.adacascade and is_classifier(self):
+                layer_proba = _normalize_proba(
+                    _utils.merge_proba(X_aug_train_, self.n_outputs_),
+                    self.adacascade_eps,
+                )
+                (
+                    layer_alpha,
+                    new_pivot,
+                    next_logits,
+                ) = self._adacascade_choose_alpha(
+                    cumulative_logits,
+                    layer_proba,
+                    y,
+                    sample_weight=sample_weight,
+                )
+            else:
+                layer_alpha = None
+                next_logits = None
+                new_pivot = layer_.val_performance_
 
             if self.verbose > 0:
                 msg = "{} layer = {:<2} | {} | Elapsed = {:.3f} s"
@@ -937,6 +1078,9 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 # Performance calibration
                 n_counter = 0
                 pivot = new_pivot
+                if self.adacascade and is_classifier(self):
+                    self.layer_alphas_.append(layer_alpha)
+                    cumulative_logits = next_logits
 
                 if self.use_predictor:
                     snapshot_X_aug_train_ = np.copy(X_aug_train_)
@@ -965,6 +1109,9 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
                 self._set_layer(layer_idx, layer_)
                 self._set_binner(layer_idx, binner_)
                 self.n_layers_ += 1
+                if self.adacascade and is_classifier(self):
+                    self.layer_alphas_.append(layer_alpha)
+                    cumulative_logits = next_logits
 
         if self.n_layers_ == self.max_layers and self.verbose > 0:
             msg = "{} Reaching the maximum number of layers: {}"
@@ -1256,6 +1403,11 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         d["use_custom_estimator"] = (
             True if hasattr(self, "use_custom_estimator") else False
         )
+        d["adacascade"] = self.adacascade
+        d["adacascade_alpha_candidates"] = self.adacascade_alpha_candidates
+        d["adacascade_eps"] = self.adacascade_eps
+        if is_classifier(self):
+            d["layer_alphas"] = self.layer_alphas_
 
         if self.use_predictor:
             d["predictor"] = self.predictor
@@ -1300,6 +1452,12 @@ class BaseCascadeForest(BaseEstimator, metaclass=ABCMeta):
         self.buffer_ = d["buffer"]
         self.verbose = d["verbose"]
         self.use_predictor = d["use_predictor"]
+        self.adacascade = d.get("adacascade", False)
+        self.adacascade_alpha_candidates = d.get(
+            "adacascade_alpha_candidates", (0.5, 1.0, 1.5)
+        )
+        self.adacascade_eps = d.get("adacascade_eps", 1e-6)
+        self.layer_alphas_ = d.get("layer_alphas", [])
         if d["use_custom_estimator"]:
             self.use_custom_estimator = True
 
@@ -1357,6 +1515,9 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         n_jobs=None,
         random_state=None,
         verbose=1,
+        adacascade=False,
+        adacascade_alpha_candidates=(0.5, 1.0, 1.5),
+        adacascade_eps=1e-6,
     ):
         super().__init__(
             n_bins=n_bins,
@@ -1379,6 +1540,9 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             n_jobs=n_jobs,
             random_state=random_state,
             verbose=verbose,
+            adacascade=adacascade,
+            adacascade_alpha_candidates=adacascade_alpha_candidates,
+            adacascade_eps=adacascade_eps,
         )
 
         # Used to deal with classification labels
@@ -1464,6 +1628,12 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
         binner_ = self._get_binner(0)
         X_test = self._bin_data(binner_, X, is_training_data=False)
         X_middle_test_ = _utils.init_array(X_test, self.n_aug_features_)
+        use_adacascade = (
+            self.adacascade
+            and (not self.use_predictor)
+            and len(self.layer_alphas_) == self.n_layers_
+        )
+        cumulative_logits = None
 
         for layer_idx in range(self.n_layers_):
             layer = self._get_layer(layer_idx)
@@ -1493,8 +1663,20 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
                 )
 
                 # Skip calling the `transform` if not using the predictor
-                if self.use_predictor:
+                if self.use_predictor or use_adacascade:
                     X_aug_test_ = layer.transform(X_middle_test_)
+
+            if use_adacascade:
+                layer_proba = _normalize_proba(
+                    _utils.merge_proba(X_aug_test_, self.n_outputs_),
+                    self.adacascade_eps,
+                )
+                layer_alpha = self.layer_alphas_[layer_idx]
+                layer_logits = layer_alpha * np.log(layer_proba)
+                if cumulative_logits is None:
+                    cumulative_logits = layer_logits
+                else:
+                    cumulative_logits += layer_logits
 
         if self.use_predictor:
 
@@ -1512,7 +1694,9 @@ class CascadeForestClassifier(BaseCascadeForest, ClassifierMixin):
             predictor = self.buffer_.load_predictor(self.predictor_)
             proba = predictor.predict_proba(X_middle_test_)
         else:
-            if self.n_layers_ > 1:
+            if use_adacascade:
+                proba = _softmax_from_logits(cumulative_logits)
+            elif self.n_layers_ > 1:
                 proba = layer.predict_full(X_middle_test_)
                 proba = _utils.merge_proba(proba, self.n_outputs_)
             else:
@@ -1569,6 +1753,9 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
         n_jobs=None,
         random_state=None,
         verbose=1,
+        adacascade=False,
+        adacascade_alpha_candidates=(0.5, 1.0, 1.5),
+        adacascade_eps=1e-6,
     ):
         super().__init__(
             n_bins=n_bins,
@@ -1591,6 +1778,9 @@ class CascadeForestRegressor(BaseCascadeForest, RegressorMixin):
             n_jobs=n_jobs,
             random_state=random_state,
             verbose=verbose,
+            adacascade=adacascade,
+            adacascade_alpha_candidates=adacascade_alpha_candidates,
+            adacascade_eps=adacascade_eps,
         )
 
         # Used to deal with target values

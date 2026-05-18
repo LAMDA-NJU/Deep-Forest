@@ -60,6 +60,29 @@ kwargs = {
     "verbose": 2,
 }
 
+ada_kwargs = {
+    "n_bins": 10,
+    "bin_subsample": 2e5,
+    "max_layers": 6,
+    "n_estimators": 1,
+    "criterion": "gini",
+    "n_trees": 30,
+    "max_depth": 3,
+    "min_samples_split": 2,
+    "min_samples_leaf": 1,
+    "use_predictor": False,
+    "predictor": "forest",
+    "predictor_kwargs": {},
+    "n_tolerant_rounds": 2,
+    "delta": 1e-5,
+    "n_jobs": 1,
+    "random_state": 0,
+    "verbose": 0,
+    "adacascade": True,
+    "adacascade_alpha_candidates": (0.3, 0.5, 1.0),
+    "adacascade_eps": 1e-6,
+}
+
 
 @pytest.mark.parametrize(
     "test_input,expected",
@@ -235,6 +258,27 @@ def test_model_workflow_in_memory(backend):
     shutil.rmtree(save_dir)
 
 
+def test_model_workflow_in_memory_adacascade():
+    model = CascadeForestClassifier(**ada_kwargs)
+    model.fit(X_train, y_train)
+
+    assert len(model.layer_alphas_) == model.n_layers_
+
+    y_pred_before = model.predict(X_test)
+
+    model.save(save_dir)
+
+    model = CascadeForestClassifier(**ada_kwargs)
+    model.load(save_dir)
+
+    y_pred_after = model.predict(X_test)
+
+    assert len(model.layer_alphas_) == model.n_layers_
+    assert_array_equal(y_pred_before, y_pred_after)
+
+    shutil.rmtree(save_dir)
+
+
 @pytest.mark.parametrize(
     "param",
     [
@@ -261,6 +305,58 @@ def test_model_invalid_training_params(param):
         assert "delta " in str(excinfo.value)
     elif param[0] == 3:
         assert "backend" in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "case_kwargs, message",
+    [
+        (
+            {"adacascade": True, "use_predictor": True},
+            "incompatible with use_predictor=True",
+        ),
+        (
+            {
+                "adacascade": True,
+                "use_predictor": False,
+                "adacascade_eps": 0,
+            },
+            "should be strictly positive",
+        ),
+        (
+            {
+                "adacascade": True,
+                "use_predictor": False,
+                "adacascade_alpha_candidates": "0.5,1.0",
+            },
+            "got a string",
+        ),
+        (
+            {
+                "adacascade": True,
+                "use_predictor": False,
+                "adacascade_alpha_candidates": (),
+            },
+            "should not be empty",
+        ),
+        (
+            {
+                "adacascade": True,
+                "use_predictor": False,
+                "adacascade_alpha_candidates": (0.5, 0.0),
+            },
+            "should be strictly positive",
+        ),
+    ],
+)
+def test_model_invalid_adacascade_params(case_kwargs, message):
+    model_kwargs = copy.deepcopy(toy_kwargs)
+    model_kwargs.update(case_kwargs)
+    model = CascadeForestClassifier(**model_kwargs)
+
+    with pytest.raises(ValueError) as excinfo:
+        model.fit(X_train, y_train)
+
+    assert message in str(excinfo.value)
 
 
 @pytest.mark.parametrize("predictor", ["forest", "xgboost", "lightgbm"])

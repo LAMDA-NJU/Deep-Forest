@@ -194,6 +194,17 @@ def test_model_invalid_training_params(param):
         assert "backend" in str(excinfo.value)
 
 
+def test_model_invalid_adacascade_for_regressor():
+    case_kwargs = copy.deepcopy(toy_kwargs)
+    case_kwargs.update({"use_predictor": False, "adacascade": True})
+    model = CascadeForestRegressor(**case_kwargs)
+
+    with pytest.raises(ValueError) as excinfo:
+        model.fit(X_train, y_train)
+
+    assert "only supported in CascadeForestClassifier" in str(excinfo.value)
+
+
 @pytest.mark.parametrize("predictor", ["forest", "xgboost", "lightgbm"])
 def test_regressor_predictor_normal(predictor):
     if predictor == "xgboost":
