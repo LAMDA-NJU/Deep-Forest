@@ -274,6 +274,19 @@ __classifier_model_doc = """
         Specifying this will extend/overwrite the original parameters inherit
         from deep forest. If ``use_predictor`` is False, this parameter will
         have no effect.
+    adacascade : :obj:`bool`, default=False
+        Whether to use AdaCascade-style layer-wise logit aggregation during
+        training and prediction. This option is only supported for
+        :class:`CascadeForestClassifier` and cannot be combined with
+        ``use_predictor=True``.
+    adacascade_alpha_candidates : iterable of :obj:`float`, \
+            default=(0.5, 1.0, 1.5)
+        Candidate coefficients used to reweight the current layer logits when
+        ``adacascade`` is enabled. The best coefficient is selected for each
+        layer based on the validation performance on the training set.
+    adacascade_eps : :obj:`float`, default=1e-6
+        A strictly positive numerical stabilizer applied before transforming
+        probabilities into logits when ``adacascade`` is enabled.
     backend : :obj:`{"custom", "sklearn"}`, default= :obj:`"custom"`
         The backend of the forest estimator. Supported backends are ``custom``
         for higher time and memory efficiency and ``sklearn`` for additional
@@ -396,6 +409,18 @@ __regressor_model_doc = """
         Specifying this will extend/overwrite the original parameters inherit
         from deep forest.
         If ``use_predictor`` is False, this parameter will have no effect.
+    adacascade : :obj:`bool`, default=False
+        Reserved for API consistency with :class:`CascadeForestClassifier`.
+        Setting ``adacascade=True`` in :class:`CascadeForestRegressor` raises
+        :class:`ValueError` because AdaCascade is only supported for
+        classification.
+    adacascade_alpha_candidates : iterable of :obj:`float`, \
+            default=(0.5, 1.0, 1.5)
+        Reserved for API consistency with :class:`CascadeForestClassifier`.
+        This parameter is validated only when ``adacascade=True``.
+    adacascade_eps : :obj:`float`, default=1e-6
+        Reserved for API consistency with :class:`CascadeForestClassifier`.
+        This parameter is validated only when ``adacascade=True``.
     backend : :obj:`{"custom", "sklearn"}`, default= :obj:`"custom"`
         The backend of the forest estimator. Supported backends are ``custom``
         for higher time and memory efficiency and ``sklearn`` for additional

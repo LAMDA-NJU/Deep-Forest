@@ -31,6 +31,8 @@ Version 0.1.*
 .. |API| replace:: :raw-html:`<span class="badge badge-warning">API Change</span>` :raw-latex:`{\small\sc [API Change]}`
 
 - |Feature| support the latest version of scikit-learn and drop support on python 3.6 (`#115 <https://github.com/LAMDA-NJU/Deep-Forest/pull/115>`__) @xuyxu
+- |Feature| |API| add optional ``adacascade`` layer-wise logit aggregation for :obj:`CascadeForestClassifier` @0x79ff
+- |Fix| support current NumPy and scikit-learn releases in the test suite and skip optional predictor tests when their dependencies are unavailable @0x79ff
 - |Feature| |API| add support on :obj:`pandas.DataFrame` for ``X`` and ``y`` (`#86 <https://github.com/LAMDA-NJU/Deep-Forest/pull/86>`__) @IncubatorShokuhou
 - |Fix| fix missing functionality of :meth:`_set_n_trees` @xuyxu
 - |Fix| |API| add docstrings for parameter ``bin_type`` (`#74 <https://github.com/LAMDA-NJU/Deep-Forest/pull/74>`__) @xuyxu
